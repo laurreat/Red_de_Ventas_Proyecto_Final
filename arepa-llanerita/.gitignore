@@ -1,0 +1,38 @@
+# arepa-llanerita/.gitignore
+
+# Laravel específico
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de desarrollo local
+*.log
+/storage/logs/*.log
+
+# Base de datos local (opcional)
+/database/database.sqlite
+
+# Archivos de caché
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Configuración local de PhpStorm
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
