@@ -1,0 +1,270 @@
+/* 
+ * Arepa la Llanerita - Estilos de la página de Registro
+ */
+
+/* Diseño horizontal completo para pantallas de PC */
+.register-wrapper {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Panel izquierdo - Información de la empresa */
+.brand-panel {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+}
+
+.brand-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="arepa-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23arepa-pattern)"/></svg>');
+    opacity: 0.5;
+}
+
+.brand-content {
+    text-align: center;
+    z-index: 1;
+    max-width: 400px;
+}
+
+.brand-logo {
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05);
+}
+
+.brand-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    font-size: 1.1rem;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.brand-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.brand-features li {
+    padding: 0.6rem 0;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.brand-features li:hover {
+    opacity: 1;
+    transform: translateX(5px);
+}
+
+.brand-features i {
+    margin-right: 12px;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    width: 24px;
+    text-align: center;
+}
+
+/* Panel derecho - Formulario de registro */
+.form-panel {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-height: 100vh;
+    position: relative;
+}
+
+.register-form-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 0 1rem;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.register-title {
+    color: var(--arepa-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+    color: #6c757d;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.form-floating {
+    margin-bottom: 1.5rem;
+}
+
+.form-floating > .form-control {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--arepa-primary);
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
+}
+
+.form-floating > label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.btn-register {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(114, 47, 55, 0.3);
+    color: white;
+}
+
+.form-check {
+    margin-bottom: 1.5rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--arepa-primary);
+    border-color: var(--arepa-primary);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.login-link a {
+    color: var(--arepa-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.login-link a:hover {
+    color: var(--arepa-accent);
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .register-wrapper {
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .brand-panel {
+        min-height: 50vh;
+        padding: 2rem 1rem;
+    }
+    
+    .form-panel {
+        min-height: 50vh;
+        padding: 2rem 1rem;
+    }
+    
+    .brand-title {
+        font-size: 1.8rem;
+    }
+    
+    .brand-features {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .register-form-container {
+        padding: 0;
+    }
+    
+    .brand-panel {
+        padding: 1.5rem;
+    }
+    
+    .form-panel {
+        padding: 1.5rem;
+    }
+    
+    .brand-title {
+        font-size: 1.6rem;
+    }
+    
+    .brand-logo {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+.invalid-feedback {
+    color: var(--arepa-danger);
+    font-size: 0.875rem;
+}
+
+.form-control.is-invalid {
+    border-color: var(--arepa-danger);
+}
+
+.select-custom {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23722f37' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+}

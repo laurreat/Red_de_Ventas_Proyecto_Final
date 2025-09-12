@@ -1,0 +1,83 @@
+/* 
+ * Arepa la Llanerita - Tema General de la Aplicación
+ * Variables CSS y estilos base compartidos
+ */
+
+:root {
+    --arepa-primary: #722F37;
+    --arepa-secondary: #FFFFFF;
+    --arepa-accent: #8B4B52;
+    --arepa-light-burgundy: #A85D65;
+    --arepa-dark-burgundy: #5A252B;
+    --arepa-success: #28a745;
+    --arepa-danger: #dc3545;
+    --arepa-warning: #856404;
+    --arepa-info: #0c5460;
+    --arepa-dark: #343a40;
+    --arepa-light: #f8f9fa;
+    --arepa-cream: #FFF8F8;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--arepa-cream);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    color: var(--arepa-primary) !important;
+}
+
+.btn-arepa-primary {
+    background-color: var(--arepa-primary);
+    border-color: var(--arepa-primary);
+    color: white;
+}
+
+.btn-arepa-primary:hover {
+    background-color: var(--arepa-accent);
+    border-color: var(--arepa-accent);
+    color: white;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-control:focus {
+    border-color: var(--arepa-primary);
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner-arepa {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--arepa-light);
+    border-top: 3px solid var(--arepa-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

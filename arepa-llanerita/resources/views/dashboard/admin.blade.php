@@ -3,53 +3,7 @@
 @section('title', '- Dashboard Administrador')
 
 @push('styles')
-<style>
-    .metric-card {
-        border-left: 4px solid var(--arepa-primary);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--arepa-primary);
-    }
-    
-    .metric-label {
-        color: #6c757d;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-    }
-    
-    .status-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 50px;
-    }
-    
-    .table-responsive {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .progress-custom {
-        height: 8px;
-        border-radius: 10px;
-        background-color: #f1f3f4;
-    }
-    
-    .progress-custom .progress-bar {
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('css/pages/admin-dashboard.css') }}">
 @endpush
 
 @section('content')

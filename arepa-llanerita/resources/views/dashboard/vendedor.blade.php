@@ -3,78 +3,7 @@
 @section('title', '- Dashboard Vendedor')
 
 @push('styles')
-<style>
-    .metric-card {
-        border-left: 4px solid var(--arepa-primary);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--arepa-primary);
-    }
-    
-    .metric-label {
-        color: #6c757d;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-    }
-    
-    .progress-custom {
-        height: 12px;
-        border-radius: 10px;
-        background-color: #f1f3f4;
-    }
-    
-    .progress-custom .progress-bar {
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
-    }
-    
-    .quick-action-btn {
-        transition: all 0.3s ease;
-        border: 2px solid var(--arepa-primary);
-        background: transparent;
-        color: var(--arepa-primary);
-        padding: 1rem;
-        border-radius: 12px;
-        text-decoration: none;
-        display: block;
-        text-align: center;
-    }
-    
-    .quick-action-btn:hover {
-        background: var(--arepa-primary);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    
-    .referral-code {
-        background: linear-gradient(135deg, var(--arepa-primary), var(--arepa-accent));
-        color: white;
-        padding: 1rem;
-        border-radius: 12px;
-        text-align: center;
-    }
-    
-    .level-badge {
-        background: linear-gradient(135deg, var(--arepa-accent), var(--arepa-light-burgundy));
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        font-weight: 600;
-        display: inline-block;
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('css/pages/vendedor-dashboard.css') }}">
 @endpush
 
 @section('content')

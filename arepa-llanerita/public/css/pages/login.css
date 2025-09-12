@@ -1,0 +1,463 @@
+/* 
+ * Arepa la Llanerita - Estilos de la página de Login
+ */
+
+/* Diseño horizontal completo para pantallas de PC */
+.login-wrapper {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Panel izquierdo - Información de la empresa */
+.brand-panel {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+}
+
+.brand-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="arepa-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23arepa-pattern)"/></svg>');
+    opacity: 0.5;
+}
+
+.brand-content {
+    text-align: center;
+    z-index: 1;
+    max-width: 400px;
+}
+
+.brand-logo {
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05);
+}
+
+.brand-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    font-size: 1.1rem;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.brand-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.brand-features li {
+    padding: 0.6rem 0;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.brand-features li:hover {
+    opacity: 1;
+    transform: translateX(5px);
+}
+
+.brand-features i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Panel derecho - Formulario de login */
+.login-panel {
+    background: linear-gradient(135deg, var(--arepa-cream) 0%, #f1f1f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.login-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-control {
+    height: 58px;
+    border-radius: 14px;
+    border: 2px solid #e2e8f0;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--arepa-primary);
+    background: white;
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.15);
+}
+
+.form-floating > label {
+    color: #6c757d;
+    font-weight: 500;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--arepa-primary);
+    font-size: 0.8rem;
+}
+
+.form-check {
+    padding-left: 0;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.8rem;
+    border-radius: 6px;
+    border: 2px solid #e2e8f0;
+}
+
+.form-check-input:checked {
+    background-color: var(--arepa-primary);
+    border-color: var(--arepa-primary);
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    border: none;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 14px;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(114, 47, 55, 0.3);
+}
+
+.login-links {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-links a {
+    color: var(--arepa-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.login-links a:hover {
+    color: var(--arepa-accent);
+}
+
+.demo-users {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 18px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.demo-users h6 {
+    color: #4a5568;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.demo-user-btn {
+    display: block;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.5rem;
+    color: #4a5568;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.demo-user-btn:hover {
+    background: var(--arepa-primary);
+    border-color: var(--arepa-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2);
+    text-decoration: none;
+}
+
+.demo-user-btn i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.demo-user-role {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    font-weight: 400;
+    margin-top: 0.2rem;
+}
+
+/* Responsive Design */
+
+/* Pantallas grandes (Desktop) */
+@media (min-width: 1200px) {
+    .brand-logo {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .brand-title {
+        font-size: 2.5rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .login-card {
+        padding: 3rem;
+        max-width: 520px;
+    }
+    
+    .login-title {
+        font-size: 2rem;
+    }
+}
+
+/* Pantallas medianas (Tablets horizontales) */
+@media (max-width: 1199.98px) and (min-width: 992px) {
+    .brand-logo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .brand-title {
+        font-size: 2rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 1rem;
+    }
+    
+    .brand-features li {
+        font-size: 0.95rem;
+    }
+    
+    .login-card {
+        padding: 2.2rem;
+    }
+}
+
+/* Tablets verticales */
+@media (max-width: 991.98px) and (min-width: 768px) {
+    .login-wrapper {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .brand-panel {
+        min-height: 40vh;
+        padding: 2rem 1rem;
+    }
+    
+    .brand-logo {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1rem;
+    }
+    
+    .brand-title {
+        font-size: 1.8rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    
+    .brand-features {
+        display: none;
+    }
+    
+    .login-panel {
+        min-height: 60vh;
+        padding: 2rem 1.5rem;
+    }
+    
+    .login-card {
+        padding: 2rem;
+    }
+    
+    .login-title {
+        font-size: 1.6rem;
+    }
+}
+
+/* Móviles */
+@media (max-width: 767.98px) {
+    .login-wrapper {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .brand-panel {
+        min-height: 35vh;
+        padding: 1.5rem 1rem;
+    }
+    
+    .brand-logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+    
+    .brand-title {
+        font-size: 1.6rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .brand-features {
+        display: none;
+    }
+    
+    .login-panel {
+        min-height: 65vh;
+        padding: 1.5rem 1rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .login-title {
+        font-size: 1.4rem;
+    }
+    
+    .form-floating > .form-control {
+        height: 54px;
+    }
+    
+    .demo-users {
+        padding: 1.2rem;
+    }
+    
+    .demo-user-btn {
+        padding: 0.7rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 575.98px) {
+    .brand-title {
+        font-size: 1.4rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .login-title {
+        font-size: 1.3rem;
+    }
+    
+    .form-floating > .form-control {
+        height: 52px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-login {
+        font-size: 1rem;
+        padding: 0.9rem 1.5rem;
+    }
+}
