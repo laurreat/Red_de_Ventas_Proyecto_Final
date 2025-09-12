@@ -203,16 +203,14 @@
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         showLoading();
     });
-    
-    // Ocultar loading si hay errores
-    @if($errors->any())
-        document.addEventListener('DOMContentLoaded', function() {
-            hideLoading();
-        });
-    @endif
-    
+
     // Animaciones de entrada
     document.addEventListener('DOMContentLoaded', function() {
+        // Ocultar loading si hay errores
+        if (hasErrors && typeof hideLoading === 'function') {
+            hideLoading();
+        }
+        
         const loginCard = document.querySelector('.login-card');
         const brandContent = document.querySelector('.brand-content');
         
