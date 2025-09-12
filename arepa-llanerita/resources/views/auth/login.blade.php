@@ -199,6 +199,9 @@
         }, 200);
     }
     
+    // Variable para controlar si hay errores
+    const hasErrors = @json($errors->any());
+    
     // Validación del formulario
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         showLoading();

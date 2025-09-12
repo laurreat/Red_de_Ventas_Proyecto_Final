@@ -279,13 +279,6 @@
             showLoading && showLoading();
         });
         
-        // Ocultar loading si hay errores
-        @if($errors->any())
-            document.addEventListener('DOMContentLoaded', function() {
-                hideLoading && hideLoading();
-            });
-        @endif
-        
         // Animación de entrada escalonada
         const formGroups = document.querySelectorAll('.form-group-modern');
         formGroups.forEach((group, index) => {
