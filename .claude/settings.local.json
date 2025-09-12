@@ -14,7 +14,8 @@
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(php:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(mysql:*)"
     ],
     "deny": [],
     "ask": []

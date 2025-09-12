@@ -12,7 +12,6 @@ class Categoria extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
-        'imagen',
         'activo',
     ];
 
@@ -48,6 +47,6 @@ class Categoria extends Model
 
     public function totalProductosActivos(): int
     {
-        return $this->productos()->where('disponible', true)->count();
+        return $this->productos()->where('activo', true)->count();
     }
 }

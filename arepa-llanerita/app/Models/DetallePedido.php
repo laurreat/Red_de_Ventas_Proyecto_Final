@@ -15,7 +15,6 @@ class DetallePedido extends Model
         'cantidad',
         'precio_unitario',
         'subtotal',
-        'observaciones_producto',
     ];
 
     protected function casts(): array
@@ -44,20 +43,9 @@ class DetallePedido extends Model
         return $this->cantidad * $this->precio_unitario;
     }
 
-    public function tieneObservaciones(): bool
-    {
-        return !empty($this->observaciones_producto);
-    }
 
-    public function margenGanancia(): float
+    public function precioTotal(): float
     {
-        if (!$this->producto->precio_costo || $this->producto->precio_costo == 0) {
-            return 0;
-        }
-        
-        $costoTotal = $this->cantidad * $this->producto->precio_costo;
-        $ganancia = $this->subtotal - $costoTotal;
-        
-        return ($ganancia / $costoTotal) * 100;
+        return $this->cantidad * $this->precio_unitario;
     }
 }

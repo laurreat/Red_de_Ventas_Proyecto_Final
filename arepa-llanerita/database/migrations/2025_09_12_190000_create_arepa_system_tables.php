@@ -8,6 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Tabla de categorías
+        Schema::create('categorias', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre');
+            $table->text('descripcion')->nullable();
+            $table->boolean('activo')->default(true);
+            $table->timestamps();
+        });
+
         // Tabla de productos
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
@@ -16,18 +25,21 @@ return new class extends Migration
             $table->decimal('precio', 10, 2);
             $table->integer('stock')->default(0);
             $table->integer('stock_minimo')->default(5);
-            $table->enum('categoria', ['arepa', 'bebida', 'acompañamiento', 'postre']);
+            $table->unsignedBigInteger('categoria_id');
             $table->boolean('activo')->default(true);
             $table->string('imagen')->nullable();
             $table->timestamps();
+            
+            $table->foreign('categoria_id')->references('id')->on('categorias');
         });
 
         // Tabla de pedidos
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
+            $table->string('numero_pedido')->unique();
             $table->unsignedBigInteger('user_id'); // Cliente
             $table->unsignedBigInteger('vendedor_id')->nullable();
-            $table->enum('estado', ['pendiente', 'confirmado', 'preparando', 'enviado', 'entregado', 'cancelado'])->default('pendiente');
+            $table->enum('estado', ['pendiente', 'confirmado', 'en_preparacion', 'listo', 'en_camino', 'entregado', 'cancelado'])->default('pendiente');
             $table->decimal('total', 10, 2);
             $table->decimal('descuento', 10, 2)->default(0);
             $table->decimal('total_final', 10, 2);
@@ -42,7 +54,7 @@ return new class extends Migration
         });
 
         // Tabla de detalles de pedidos
-        Schema::create('pedido_detalles', function (Blueprint $table) {
+        Schema::create('detalle_pedidos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('pedido_id');
             $table->unsignedBigInteger('producto_id');
@@ -123,8 +135,9 @@ return new class extends Migration
         Schema::dropIfExists('notificaciones');
         Schema::dropIfExists('referidos');
         Schema::dropIfExists('comisiones');
-        Schema::dropIfExists('pedido_detalles');
+        Schema::dropIfExists('detalle_pedidos');
         Schema::dropIfExists('pedidos');
         Schema::dropIfExists('productos');
+        Schema::dropIfExists('categorias');
     }
 };

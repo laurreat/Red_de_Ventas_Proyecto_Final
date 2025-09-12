@@ -9,61 +9,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Producto extends Model
 {
     protected $fillable = [
-        'codigo',
         'nombre',
         'descripcion',
         'categoria_id',
         'precio',
-        'precio_costo',
-        'precio_mayorista',
         'stock',
         'stock_minimo',
-        'stock_maximo',
-        'unidad_medida',
-        'ingredientes',
-        'alergenos',
-        'informacion_nutricional',
-        'tiempo_preparacion',
-        'peso',
-        'calorias',
-        'imagenes',
-        'imagen_principal',
-        'disponible',
-        'destacado',
-        'requiere_preparacion',
-        'permite_personalizacion',
-        'slug',
-        'tags',
-        'orden_mostrar',
-        'veces_vendido',
-        'rating_promedio',
-        'total_reviews',
+        'activo',
+        'imagen',
     ];
 
     protected function casts(): array
     {
         return [
             'precio' => 'decimal:2',
-            'precio_costo' => 'decimal:2',
-            'precio_mayorista' => 'decimal:2',
             'stock' => 'integer',
             'stock_minimo' => 'integer',
-            'stock_maximo' => 'integer',
-            'tiempo_preparacion' => 'integer',
-            'peso' => 'decimal:2',
-            'calorias' => 'integer',
-            'disponible' => 'boolean',
-            'destacado' => 'boolean',
-            'requiere_preparacion' => 'boolean',
-            'permite_personalizacion' => 'boolean',
-            'orden_mostrar' => 'integer',
-            'veces_vendido' => 'integer',
-            'rating_promedio' => 'decimal:2',
-            'total_reviews' => 'integer',
-            'ingredientes' => 'json',
-            'alergenos' => 'json',
-            'imagenes' => 'json',
-            'tags' => 'json',
+            'activo' => 'boolean',
         ];
     }
 
@@ -84,14 +46,9 @@ class Producto extends Model
     }
 
     // Scopes
-    public function scopeDisponibles($query)
+    public function scopeActivos($query)
     {
-        return $query->where('disponible', true);
-    }
-
-    public function scopeDestacados($query)
-    {
-        return $query->where('destacado', true);
+        return $query->where('activo', true);
     }
 
     public function scopeConStock($query)
@@ -113,15 +70,14 @@ class Producto extends Model
     {
         return $query->where(function($q) use ($termino) {
             $q->where('nombre', 'like', "%{$termino}%")
-              ->orWhere('descripcion', 'like', "%{$termino}%")
-              ->orWhere('codigo', 'like', "%{$termino}%");
+              ->orWhere('descripcion', 'like', "%{$termino}%");
         });
     }
 
     // Métodos auxiliares
     public function estaDisponible(): bool
     {
-        return $this->disponible && $this->stock > 0;
+        return $this->activo && $this->stock > 0;
     }
 
     public function tieneStockBajo(): bool
@@ -134,28 +90,15 @@ class Producto extends Model
         return $this->stock <= 0;
     }
 
-    public function margenGanancia(): float
-    {
-        if (!$this->precio_costo || $this->precio_costo == 0) {
-            return 0;
-        }
-        
-        return (($this->precio - $this->precio_costo) / $this->precio_costo) * 100;
-    }
-
     public function precioConDescuento($porcentajeDescuento): float
     {
         return $this->precio - ($this->precio * ($porcentajeDescuento / 100));
     }
 
-    public function imagenPrincipalUrl(): ?string
+    public function imagenUrl(): ?string
     {
-        if ($this->imagen_principal) {
-            return asset('storage/productos/' . $this->imagen_principal);
-        }
-        
-        if ($this->imagenes && is_array($this->imagenes) && count($this->imagenes) > 0) {
-            return asset('storage/productos/' . $this->imagenes[0]);
+        if ($this->imagen) {
+            return asset('storage/productos/' . $this->imagen);
         }
         
         return asset('images/producto-default.jpg');

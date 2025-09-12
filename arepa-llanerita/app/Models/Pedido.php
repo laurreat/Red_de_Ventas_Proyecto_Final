@@ -11,32 +11,24 @@ class Pedido extends Model
     protected $fillable = [
         'numero_pedido',
         'user_id',
+        'vendedor_id',
         'estado',
-        'subtotal',
-        'impuestos',
-        'costo_envio',
         'total',
-        'tipo_entrega',
+        'descuento',
+        'total_final',
         'direccion_entrega',
         'telefono_entrega',
-        'zona_entrega_id',
-        'observaciones',
-        'fecha_estimada_entrega',
-        'fecha_entrega_real',
-        'vendedor_id',
-        'fecha_asignacion',
+        'notas',
+        'fecha_entrega_estimada',
     ];
 
     protected function casts(): array
     {
         return [
-            'subtotal' => 'decimal:2',
-            'impuestos' => 'decimal:2',
-            'costo_envio' => 'decimal:2',
             'total' => 'decimal:2',
-            'fecha_estimada_entrega' => 'datetime',
-            'fecha_entrega_real' => 'datetime',
-            'fecha_asignacion' => 'datetime',
+            'descuento' => 'decimal:2',
+            'total_final' => 'decimal:2',
+            'fecha_entrega_estimada' => 'datetime',
         ];
     }
 

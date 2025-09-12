@@ -31,90 +31,34 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
-        // Datos demo realistas para administrador
+        // Estadísticas reales de la base de datos
         $stats = [
-            'total_usuarios' => 2847,
-            'total_vendedores' => 156,
-            'total_productos' => 45,
-            'productos_stock_bajo' => 3,
-            'pedidos_hoy' => 28,
-            'pedidos_pendientes' => 12,
-            'ventas_mes' => 8450000, // $8,450,000
-            'comisiones_pendientes' => 340000, // $340,000
+            'total_usuarios' => User::count(),
+            'total_vendedores' => User::vendedores()->count(),
+            'total_productos' => Producto::count(),
+            'productos_stock_bajo' => Producto::stockBajo()->count(),
+            'pedidos_hoy' => Pedido::whereDate('created_at', today())->count(),
+            'pedidos_pendientes' => Pedido::where('estado', 'pendiente')->count(),
+            'ventas_mes' => Pedido::whereMonth('created_at', now()->month)
+                                 ->whereYear('created_at', now()->year)
+                                 ->sum('total_final'),
+            'comisiones_pendientes' => Comision::where('estado', 'pendiente')->sum('monto'),
         ];
 
-        // Pedidos recientes demo
-        $pedidos_recientes = collect([
-            (object)[
-                'numero_pedido' => '#ARF-2024-001287',
-                'cliente' => (object)['name' => 'María González', 'email' => 'maria.gonzalez@email.com'],
-                'vendedor' => (object)['name' => 'Carlos Ruiz'],
-                'total' => 89500,
-                'estado' => 'en_preparacion',
-                'created_at' => now()->subMinutes(15)
-            ],
-            (object)[
-                'numero_pedido' => '#ARF-2024-001286',
-                'cliente' => (object)['name' => 'José Martínez', 'email' => 'jose.martinez@email.com'],
-                'vendedor' => (object)['name' => 'Ana López'],
-                'total' => 156000,
-                'estado' => 'confirmado',
-                'created_at' => now()->subHour(1)
-            ],
-            (object)[
-                'numero_pedido' => '#ARF-2024-001285',
-                'cliente' => (object)['name' => 'Laura Silva', 'email' => 'laura.silva@email.com'],
-                'vendedor' => (object)['name' => 'Pedro Castro'],
-                'total' => 67800,
-                'estado' => 'pendiente',
-                'created_at' => now()->subHours(2)
-            ],
-            (object)[
-                'numero_pedido' => '#ARF-2024-001284',
-                'cliente' => (object)['name' => 'Roberto Díaz', 'email' => 'roberto.diaz@email.com'],
-                'vendedor' => (object)['name' => 'Carmen Torres'],
-                'total' => 234500,
-                'estado' => 'listo',
-                'created_at' => now()->subHours(3)
-            ],
-            (object)[
-                'numero_pedido' => '#ARF-2024-001283',
-                'cliente' => (object)['name' => 'Sandra Jiménez', 'email' => 'sandra.jimenez@email.com'],
-                'vendedor' => (object)['name' => 'Miguel Vargas'],
-                'total' => 178000,
-                'estado' => 'entregado',
-                'created_at' => now()->subHours(4)
-            ]
-        ]);
+        // Pedidos recientes reales
+        $pedidos_recientes = Pedido::with(['cliente', 'vendedor'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
-        // Productos populares demo
-        $productos_populares = collect([
-            (object)[
-                'nombre' => 'Arepa de Queso Llanero',
-                'categoria' => (object)['nombre' => 'Arepas Tradicionales'],
-                'veces_vendido' => 1245,
-            ],
-            (object)[
-                'nombre' => 'Arepa de Carne Mechada',
-                'categoria' => (object)['nombre' => 'Arepas con Carne'],
-                'veces_vendido' => 987,
-            ],
-            (object)[
-                'nombre' => 'Arepa de Pollo Desmechado',
-                'categoria' => (object)['nombre' => 'Arepas con Pollo'],
-                'veces_vendido' => 834,
-            ],
-            (object)[
-                'nombre' => 'Arepa de Chicharrón',
-                'categoria' => (object)['nombre' => 'Arepas Especiales'],
-                'veces_vendido' => 721,
-            ],
-            (object)[
-                'nombre' => 'Arepa Mixta (Queso + Carne)',
-                'categoria' => (object)['nombre' => 'Arepas Combinadas'],
-                'veces_vendido' => 698,
-            ]
-        ]);
+        // Productos más vendidos (basado en detalles de pedidos)
+        $productos_populares = Producto::with('categoria')
+            ->join('detalle_pedidos', 'productos.id', '=', 'detalle_pedidos.producto_id')
+            ->select('productos.*', \DB::raw('SUM(detalle_pedidos.cantidad) as veces_vendido'))
+            ->groupBy('productos.id')
+            ->orderBy('veces_vendido', 'desc')
+            ->take(5)
+            ->get();
 
         return view('dashboard.admin', compact('stats', 'pedidos_recientes', 'productos_populares'));
     }
