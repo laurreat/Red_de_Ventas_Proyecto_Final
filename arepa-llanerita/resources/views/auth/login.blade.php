@@ -206,7 +206,9 @@
     
     // Ocultar loading si hay errores
     @if($errors->any())
-        hideLoading();
+        document.addEventListener('DOMContentLoaded', function() {
+            hideLoading();
+        });
     @endif
     
     // Animaciones de entrada
