@@ -6,7 +6,11 @@
       "Bash(npm install)",
       "Bash(npm run build:*)",
       "Bash(php artisan make:controller:*)",
-      "Bash(php artisan migrate:*)"
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan route:list:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(composer install:*)",
+      "Bash(php artisan serve:*)"
     ],
     "deny": [],
     "ask": []

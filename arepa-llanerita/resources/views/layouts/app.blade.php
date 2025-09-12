@@ -58,8 +58,8 @@
         }
         
         .btn-arepa-primary:hover {
-            background-color: #e55a2b;
-            border-color: #e55a2b;
+            background-color: var(--arepa-accent);
+            border-color: var(--arepa-accent);
             color: white;
         }
         
@@ -75,7 +75,7 @@
         
         .form-control:focus {
             border-color: var(--arepa-primary);
-            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
         }
         
         .loading-overlay {

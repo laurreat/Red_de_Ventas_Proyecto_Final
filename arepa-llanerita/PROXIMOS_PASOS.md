@@ -3,7 +3,7 @@
 ## 🎨 **1. CAMBIO DE COLORES CORPORATIVOS**
 **Prompt:**
 ```
-Lee el archivo CONTEXTO_PROYECTO.md para entender el estado actual del proyecto. Necesito cambiar los colores de la marca de naranja a los colores corporativos reales de Arepa la Llanerita: vino tinto (#722F37) como color primario y blanco (#FFFFFF) como color secundario. Actualiza todas las variables CSS en el layout principal y ajusta los colores en todos los dashboards para que se vean bien con la nueva paleta. También actualiza los gradientes y asegúrate de que el contraste sea adecuado para accesibilidad.
+Lee el archivo CONTEXTO_PROYECTO.md para entender el estado actual del proyecto. Necesito cambiar los colores de la marca de naranja a los colores corporativos reales de Arepa la Llanerita: vino tinto (#722F37) como color primario y blanco (#FFFFFF) como color secundario. Actualiza todas las variables CSS en el layout principal y ajusta los colores en todos los dashboards para que se vean bien con la nueva paleta. También actualiza los gradientes y asegúrate de que el contraste sea adecuado para accesibilidad, y posteriormente verifica ¿por qué al abrir el servidor local con php artisan serve, la ip que suelta siempre arroja a dashboard y no al login?, ya que el dashboard presenta problemas, cualquier dashboard presenta problemas, posteriormente a esto, dime donde está cada cosa del front end y backend para tener yo mismo un control de esto y no solo la ia.
 ```
 
 ## 🏬 **2. MÓDULO DE INVENTARIO Y PRODUCTOS**

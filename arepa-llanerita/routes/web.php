@@ -3,13 +3,23 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
-// Página principal - redirigir al dashboard si está autenticado
+// Página principal - siempre mostrar login
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
     return redirect()->route('login');
 });
+
+// Ruta específica para logout y redirección al login
+Route::get('/inicio', function () {
+    if (auth()->check()) {
+        auth()->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+    }
+    return redirect()->route('login');
+})->name('inicio');
 
 // Rutas de autenticación
 Auth::routes();
