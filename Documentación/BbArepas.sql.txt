@@ -1,0 +1,449 @@
+-- =====================================================
+-- ESTRUCTURA LIMPIA: AREPA LA LLANERITA
+-- Solo tablas, relaciones e índices - SIN DATOS
+-- =====================================================
+
+DROP DATABASE IF EXISTS arepa_llanerita;
+CREATE DATABASE arepa_llanerita CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE arepa_llanerita;
+
+-- =====================================================
+-- TABLA: users
+-- =====================================================
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    apellidos VARCHAR(255) NOT NULL,
+    cedula VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    email_verified_at TIMESTAMP NULL,
+    password VARCHAR(255) NOT NULL,
+    telefono VARCHAR(255) NULL,
+    direccion TEXT NULL,
+    ciudad VARCHAR(255) NULL,
+    departamento VARCHAR(255) NULL,
+    fecha_nacimiento DATE NULL,
+    
+    -- Sistema de roles
+    rol ENUM('cliente', 'vendedor', 'lider', 'administrador') DEFAULT 'cliente',
+    activo BOOLEAN DEFAULT TRUE,
+    ultimo_acceso TIMESTAMP NULL,
+    
+    -- Sistema de referidos
+    referido_por BIGINT UNSIGNED NULL,
+    codigo_referido VARCHAR(255) UNIQUE NULL,
+    total_referidos INT DEFAULT 0,
+    comisiones_ganadas DECIMAL(12,2) DEFAULT 0,
+    comisiones_disponibles DECIMAL(12,2) DEFAULT 0,
+    
+    -- Información comercial
+    meta_mensual DECIMAL(12,2) NULL,
+    ventas_mes_actual DECIMAL(12,2) DEFAULT 0,
+    nivel_vendedor INT DEFAULT 1,
+    zonas_asignadas JSON NULL,
+    
+    remember_token VARCHAR(100) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    INDEX idx_codigo_referido (codigo_referido),
+    INDEX idx_rol_activo (rol, activo),
+    INDEX idx_referido_por (referido_por),
+    
+    -- Foreign keys
+    FOREIGN KEY (referido_por) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABLA: categorias
+-- =====================================================
+CREATE TABLE categorias (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT NULL,
+    imagen VARCHAR(255) NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- TABLA: productos
+-- =====================================================
+CREATE TABLE productos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(255) UNIQUE NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT NULL,
+    categoria_id BIGINT UNSIGNED NOT NULL,
+    
+    -- Precios
+    precio DECIMAL(10,2) NOT NULL,
+    precio_costo DECIMAL(10,2) NULL,
+    precio_mayorista DECIMAL(10,2) NULL,
+    
+    -- Inventario
+    stock INT DEFAULT 0,
+    stock_minimo INT DEFAULT 5,
+    stock_maximo INT NULL,
+    unidad_medida VARCHAR(255) DEFAULT 'unidad',
+    
+    -- Características del producto
+    ingredientes JSON NULL,
+    alergenos JSON NULL,
+    informacion_nutricional TEXT NULL,
+    tiempo_preparacion INT NULL,
+    peso DECIMAL(8,2) NULL,
+    calorias INT NULL,
+    
+    -- Multimedia
+    imagenes JSON NULL,
+    imagen_principal VARCHAR(255) NULL,
+    
+    -- Estados
+    disponible BOOLEAN DEFAULT TRUE,
+    destacado BOOLEAN DEFAULT FALSE,
+    requiere_preparacion BOOLEAN DEFAULT TRUE,
+    permite_personalizacion BOOLEAN DEFAULT FALSE,
+    
+    -- SEO y marketing
+    slug VARCHAR(255) UNIQUE NULL,
+    tags JSON NULL,
+    orden_mostrar INT DEFAULT 0,
+    
+    -- Métricas
+    veces_vendido INT DEFAULT 0,
+    rating_promedio DECIMAL(3,2) DEFAULT 0,
+    total_reviews INT DEFAULT 0,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    INDEX idx_disponible_destacado (disponible, destacado),
+    INDEX idx_categoria_disponible (categoria_id, disponible),
+    INDEX idx_stock (stock),
+    INDEX idx_slug (slug),
+    INDEX idx_veces_vendido (veces_vendido),
+    
+    -- Foreign keys
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- TABLA: zonas_entrega
+-- =====================================================
+CREATE TABLE zonas_entrega (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT NULL,
+    costo_envio DECIMAL(8,2) DEFAULT 0,
+    tiempo_entrega_min INT DEFAULT 30,
+    tiempo_entrega_max INT DEFAULT 60,
+    pedido_minimo DECIMAL(10,2) DEFAULT 0,
+    barrios JSON NULL,
+    coordenadas JSON NULL,
+    referencias TEXT NULL,
+    horarios JSON NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    vendedores_asignados JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_activo (activo)
+);
+
+-- =====================================================
+-- TABLA: pedidos
+-- =====================================================
+CREATE TABLE pedidos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    numero_pedido VARCHAR(255) UNIQUE NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    estado ENUM('pendiente', 'confirmado', 'en_preparacion', 'listo', 'en_camino', 'entregado', 'cancelado') DEFAULT 'pendiente',
+    
+    -- Montos
+    subtotal DECIMAL(10,2) NOT NULL,
+    impuestos DECIMAL(10,2) DEFAULT 0,
+    costo_envio DECIMAL(10,2) DEFAULT 0,
+    total DECIMAL(10,2) NOT NULL,
+    
+    -- Entrega
+    tipo_entrega VARCHAR(255) DEFAULT 'domicilio',
+    direccion_entrega TEXT NULL,
+    telefono_entrega VARCHAR(255) NULL,
+    zona_entrega_id BIGINT UNSIGNED NULL,
+    observaciones TEXT NULL,
+    fecha_estimada_entrega TIMESTAMP NULL,
+    fecha_entrega_real TIMESTAMP NULL,
+    
+    -- Vendedor asignado
+    vendedor_id BIGINT UNSIGNED NULL,
+    fecha_asignacion TIMESTAMP NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    INDEX idx_estado (estado),
+    INDEX idx_numero_pedido (numero_pedido),
+    INDEX idx_user_id (user_id),
+    INDEX idx_vendedor_id (vendedor_id),
+    
+    -- Foreign keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (vendedor_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (zona_entrega_id) REFERENCES zonas_entrega(id) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABLA: detalle_pedidos
+-- =====================================================
+CREATE TABLE detalle_pedidos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pedido_id BIGINT UNSIGNED NOT NULL,
+    producto_id BIGINT UNSIGNED NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    observaciones_producto TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign keys
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- TABLA: referidos
+-- =====================================================
+CREATE TABLE referidos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    referidor_id BIGINT UNSIGNED NOT NULL,
+    referido_id BIGINT UNSIGNED NOT NULL,
+    fecha_referido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    estado ENUM('pendiente', 'activo', 'completado') DEFAULT 'pendiente',
+    fecha_activacion TIMESTAMP NULL,
+    fecha_completado TIMESTAMP NULL,
+    
+    -- Métricas (desnormalización)
+    total_pedidos INT DEFAULT 0,
+    total_compras DECIMAL(12,2) DEFAULT 0,
+    comision_generada DECIMAL(10,2) DEFAULT 0,
+    
+    -- Contexto
+    canal_referido VARCHAR(255) NULL,
+    metadata JSON NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    UNIQUE KEY unique_referido (referidor_id, referido_id),
+    INDEX idx_estado (estado),
+    INDEX idx_fecha_referido (fecha_referido),
+    
+    -- Foreign keys
+    FOREIGN KEY (referidor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (referido_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- TABLA: comisiones
+-- =====================================================
+CREATE TABLE comisiones (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    pedido_id BIGINT UNSIGNED NULL,
+    referido_id BIGINT UNSIGNED NULL,
+    tipo ENUM('venta_directa', 'referido_nuevo', 'referido_compra', 'liderazgo', 'bono_meta', 'ajuste') NOT NULL,
+    
+    -- Cálculos
+    monto_base DECIMAL(12,2) NOT NULL,
+    porcentaje DECIMAL(5,2) NOT NULL,
+    monto_comision DECIMAL(10,2) NOT NULL,
+    
+    -- Estado
+    estado ENUM('pendiente', 'aprobada', 'pagada', 'cancelada') DEFAULT 'pendiente',
+    fecha_calculo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_aprobacion TIMESTAMP NULL,
+    fecha_pago TIMESTAMP NULL,
+    
+    -- Información adicional
+    descripcion TEXT NULL,
+    detalles JSON NULL,
+    aprobado_por BIGINT UNSIGNED NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    INDEX idx_user_estado (user_id, estado),
+    INDEX idx_tipo_fecha (tipo, fecha_calculo),
+    INDEX idx_pedido_id (pedido_id),
+    
+    -- Foreign keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+    FOREIGN KEY (referido_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (aprobado_por) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABLA: movimientos_inventario
+-- =====================================================
+CREATE TABLE movimientos_inventario (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    producto_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    pedido_id BIGINT UNSIGNED NULL,
+    tipo ENUM('entrada', 'salida', 'ajuste', 'transferencia') NOT NULL,
+    motivo ENUM('venta', 'compra', 'produccion', 'merma', 'devolucion', 'regalo', 'ajuste_inventario', 'transferencia', 'perdida', 'vencimiento') NOT NULL,
+    
+    -- Cantidades
+    cantidad_anterior INT NOT NULL,
+    cantidad_movimiento INT NOT NULL,
+    cantidad_actual INT NOT NULL,
+    
+    -- Costos
+    costo_unitario DECIMAL(10,2) NULL,
+    costo_total DECIMAL(12,2) NULL,
+    
+    -- Información adicional
+    observaciones TEXT NULL,
+    lote VARCHAR(255) NULL,
+    fecha_vencimiento DATE NULL,
+    metadata JSON NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Índices
+    INDEX idx_producto_tipo (producto_id, tipo),
+    INDEX idx_created_at (created_at),
+    INDEX idx_motivo (motivo),
+    
+    -- Foreign keys
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- TABLA: configuraciones
+-- =====================================================
+CREATE TABLE configuraciones (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    clave VARCHAR(255) UNIQUE NOT NULL,
+    valor TEXT NOT NULL,
+    tipo VARCHAR(255) DEFAULT 'string',
+    descripcion TEXT NULL,
+    categoria VARCHAR(255) DEFAULT 'general',
+    editable BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_categoria_editable (categoria, editable)
+);
+
+-- =====================================================
+-- TABLA: notificaciones
+-- =====================================================
+CREATE TABLE notificaciones (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    mensaje TEXT NOT NULL,
+    tipo ENUM('info', 'success', 'warning', 'error') DEFAULT 'info',
+    leida BOOLEAN DEFAULT FALSE,
+    url VARCHAR(255) NULL,
+    metadata JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_user_leida (user_id, leida),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- TABLA: cupones
+-- =====================================================
+CREATE TABLE cupones (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(255) UNIQUE NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT NULL,
+    tipo ENUM('porcentaje', 'monto_fijo') NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    monto_minimo DECIMAL(10,2) DEFAULT 0,
+    usos_maximos INT NULL,
+    usos_realizados INT DEFAULT 0,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    categorias_aplicables JSON NULL,
+    productos_aplicables JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_codigo (codigo),
+    INDEX idx_activo_fechas (activo, fecha_inicio, fecha_fin)
+);
+
+-- =====================================================
+-- TABLA: auditoria
+-- =====================================================
+CREATE TABLE auditoria (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NULL,
+    tabla VARCHAR(255) NOT NULL,
+    registro_id BIGINT UNSIGNED NOT NULL,
+    accion ENUM('crear', 'actualizar', 'eliminar') NOT NULL,
+    datos_anteriores JSON NULL,
+    datos_nuevos JSON NULL,
+    ip VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_tabla_registro (tabla, registro_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- ÍNDICES ADICIONALES PARA OPTIMIZACIÓN
+-- =====================================================
+
+-- Índices compuestos para consultas frecuentes
+CREATE INDEX idx_pedidos_vendedor_estado_fecha ON pedidos(vendedor_id, estado, created_at);
+CREATE INDEX idx_comisiones_user_estado_fecha ON comisiones(user_id, estado, fecha_calculo);
+CREATE INDEX idx_productos_categoria_disponible_destacado ON productos(categoria_id, disponible, destacado);
+CREATE INDEX idx_detalle_pedidos_producto_fecha ON detalle_pedidos(producto_id, created_at);
+CREATE INDEX idx_referidos_referidor_estado ON referidos(referidor_id, estado);
+
+-- =====================================================
+-- VERIFICACIÓN DE ESTRUCTURA
+-- =====================================================
+
+-- Mostrar todas las tablas creadas
+SELECT 'ESTRUCTURA CREADA EXITOSAMENTE' as Estado;
+SHOW TABLES;
+
+-- Verificar foreign keys
+SELECT 
+    TABLE_NAME,
+    COLUMN_NAME,
+    REFERENCED_TABLE_NAME,
+    REFERENCED_COLUMN_NAME
+FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'arepa_llanerita'
+AND REFERENCED_TABLE_NAME IS NOT NULL
+ORDER BY TABLE_NAME, COLUMN_NAME;
+
+COMMIT;

@@ -3,78 +3,321 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
-
+    <title>{{ config('app.name', 'Arepa la Llanerita') }} @yield('title')</title>
+    <meta name="description" content="Sistema de ventas y gestión para Arepa la Llanerita - La mejor arepa de los llanos">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/favicon.ico') }}">
+    
     <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @livewireStyles
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        :root {
+            --arepa-primary: #722F37;
+            --arepa-secondary: #FFFFFF;
+            --arepa-accent: #8B4B52;
+            --arepa-light-burgundy: #A85D65;
+            --arepa-dark-burgundy: #5A252B;
+            --arepa-success: #28a745;
+            --arepa-danger: #dc3545;
+            --arepa-warning: #856404;
+            --arepa-info: #0c5460;
+            --arepa-dark: #343a40;
+            --arepa-light: #f8f9fa;
+            --arepa-cream: #FFF8F8;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--arepa-cream);
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--arepa-primary) !important;
+        }
+        
+        .btn-arepa-primary {
+            background-color: var(--arepa-primary);
+            border-color: var(--arepa-primary);
+            color: white;
+        }
+        
+        .btn-arepa-primary:hover {
+            background-color: #e55a2b;
+            border-color: #e55a2b;
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-control:focus {
+            border-color: var(--arepa-primary);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spinner-arepa {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--arepa-light);
+            border-top: 3px solid var(--arepa-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    @stack('styles')
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-
-                    </ul>
-
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <main class="py-4">
-            @yield('content')
-        </main>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner-arepa"></div>
+            <div class="mt-3 text-muted">Cargando...</div>
+        </div>
     </div>
+
+    <div id="app">
+        @guest
+            @yield('content')
+        @else
+            <!-- Navigation -->
+            <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+                <div class="container">
+                    <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
+                        <i class="bi bi-shop me-2 fs-4"></i>
+                        <span class="fw-bold">{{ config('app.name', 'Arepa la Llanerita') }}</span>
+                    </a>
+                    
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <!-- Left Side Of Navbar -->
+                        <ul class="navbar-nav me-auto">
+                            @auth
+                                @if(Auth::user()->puedeVender())
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('dashboard') }}">
+                                            <i class="bi bi-speedometer2 me-1"></i>
+                                            Dashboard
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" onclick="showComingSoon('Inventario')">
+                                            <i class="bi bi-boxes me-1"></i>
+                                            Inventario
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" onclick="showComingSoon('Pedidos')">
+                                            <i class="bi bi-cart3 me-1"></i>
+                                            Pedidos
+                                        </a>
+                                    </li>
+                                @endif
+                                
+                                @if(Auth::user()->esAdmin() || Auth::user()->esLider())
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-graph-up me-1"></i>
+                                            Reportes
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="showComingSoon('Ventas')">Ventas</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showComingSoon('Comisiones')">Comisiones</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="showComingSoon('Referidos')">Referidos</a></li>
+                                        </ul>
+                                    </li>
+                                @endif
+                            @endauth
+                        </ul>
+
+                        <!-- Right Side Of Navbar -->
+                        <ul class="navbar-nav ms-auto">
+                            @auth
+                                <!-- Notifications -->
+                                <li class="nav-item dropdown me-3">
+                                    <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-bell fs-5"></i>
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6em;">
+                                            3
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end p-0" style="width: 300px;">
+                                        <div class="p-3 border-bottom">
+                                            <h6 class="mb-0">Notificaciones</h6>
+                                        </div>
+                                        <div class="p-3 text-center text-muted">
+                                            <i class="bi bi-bell-slash fs-4"></i>
+                                            <p class="mb-0">No hay notificaciones</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                
+                                <!-- User Menu -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                        <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person text-white"></i>
+                                        </div>
+                                        <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <h6 class="dropdown-header">
+                                                {{ Auth::user()->nombreCompleto() }}
+                                                <small class="text-muted d-block">{{ ucfirst(Auth::user()->rol) }}</small>
+                                            </h6>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="showComingSoon('Perfil')">
+                                                <i class="bi bi-person me-2"></i>
+                                                Mi Perfil
+                                            </a>
+                                        </li>
+                                        @if(Auth::user()->tieneReferidos())
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="showComingSoon('Mis Referidos')">
+                                                    <i class="bi bi-people me-2"></i>
+                                                    Mis Referidos
+                                                    <span class="badge bg-primary ms-2">{{ Auth::user()->total_referidos }}</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->puedeVender())
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="showComingSoon('Comisiones')">
+                                                    <i class="bi bi-cash-coin me-2"></i>
+                                                    Comisiones
+                                                    @if(Auth::user()->comisiones_disponibles > 0)
+                                                        <span class="badge bg-success ms-2">
+                                                            ${{ number_format(Auth::user()->comisiones_disponibles, 0) }}
+                                                        </span>
+                                                    @endif
+                                                </a>
+                                            </li>
+                                        @endif
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                                <i class="bi bi-box-arrow-right me-2"></i>
+                                                Cerrar Sesión
+                                            </a>
+                                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                                @csrf
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            @endauth
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="py-4">
+                @yield('content')
+            </main>
+        @endguest
+    </div>
+
+    @livewireScripts
+    
+    <!-- Livewire Toast Notifications -->
+    @livewire('toast-notifications')
+
+    <script>
+        // Loading overlay functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Toast functions (compatibility with old system)
+        function showSuccessToast(message) {
+            showToast(message, 'success');
+        }
+        
+        function showErrorToast(message) {
+            showToast(message, 'error');
+        }
+        
+        // Coming soon modal
+        function showComingSoon(feature) {
+            alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
+        }
+        
+        // Livewire loading states
+        document.addEventListener('livewire:load', function () {
+            Livewire.hook('message.sent', () => {
+                showLoading();
+            });
+            
+            Livewire.hook('message.processed', () => {
+                hideLoading();
+            });
+        });
+        
+        // Global error handling
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Error no manejado:', event.reason);
+            showErrorToast('Ha ocurrido un error inesperado');
+        });
+        
+        // Coming soon modal
+        function showComingSoon(feature) {
+            alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
+        }
+    </script>
+    
+    @stack('scripts')
 </body>
 </html>
