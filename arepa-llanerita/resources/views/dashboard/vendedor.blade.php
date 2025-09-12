@@ -41,7 +41,7 @@
                     @if($stats['meta_mensual'] > 0)
                     <div class="progress-custom mt-2">
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100) }}%"></div>
+                            <div class="progress-bar" style="width: {{ min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, values: 100) }}%"></div>
                         </div>
                     </div>
                     <small class="text-muted">{{ number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) }}% de tu meta</small>

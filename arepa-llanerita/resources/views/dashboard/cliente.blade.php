@@ -121,6 +121,250 @@
                 </div>
             </div>
 
+            <!-- Catálogo de Productos -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+                        Nuestro Catálogo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros y búsqueda -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="buscarProducto" placeholder="Buscar productos..." onkeyup="filtrarProductos()">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-2 mt-md-0">
+                            <select class="form-select" id="filtroCategoria" onchange="filtrarProductos()">
+                                <option value="">Todas las categorías</option>
+                                <option value="arepas">Arepas</option>
+                                <option value="bebidas">Bebidas</option>
+                                <option value="acompanantes">Acompañantes</option>
+                                <option value="postres">Postres</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Grid de productos -->
+                    <div class="row" id="gridProductos">
+                        <!-- Arepas -->
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="arepas" data-nombre="arepa reina pepiada">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-primary text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-egg-fried fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(1)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Arepa Reina Pepiada</h6>
+                                    <p class="text-muted small mb-2">Pollo desmenuzado, aguacate, mayonesa y cilantro</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$8,500</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(1)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="arepas" data-nombre="arepa pelua">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-warning text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-egg-fried fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(2)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Arepa Pelua</h6>
+                                    <p class="text-muted small mb-2">Carne mechada y queso amarillo derretido</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$9,000</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(2)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="arepas" data-nombre="arepa catira">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-success text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-egg-fried fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(3)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Arepa Catira</h6>
+                                    <p class="text-muted small mb-2">Pollo desmenuzado con queso amarillo</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$8,000</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-half"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(3)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bebidas -->
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="bebidas" data-nombre="chicha de arroz">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-info text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-cup-straw fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(4)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Chicha de Arroz</h6>
+                                    <p class="text-muted small mb-2">Bebida tradicional cremosa y refrescante</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$3,500</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(4)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acompañantes -->
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="acompanantes" data-nombre="tequeños">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-danger text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-moisture fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(5)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Tequeños (6 unidades)</h6>
+                                    <p class="text-muted small mb-2">Deditos de queso envueltos en masa crujiente</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$6,500</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(5)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Postres -->
+                        <div class="col-lg-4 col-md-6 mb-4 producto-item" data-categoria="postres" data-nombre="quesillo">
+                            <div class="card producto-card h-100">
+                                <div class="card-body p-3">
+                                    <div class="producto-imagen mb-3">
+                                        <div class="bg-gradient-secondary text-white d-flex align-items-center justify-content-center" style="height: 120px; border-radius: 12px;">
+                                            <i class="bi bi-cake2 fs-1"></i>
+                                        </div>
+                                        <button class="btn-favorito" onclick="toggleFavorito(6)">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">Quesillo</h6>
+                                    <p class="text-muted small mb-2">Postre tradicional de leche condensada</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="precio-producto">
+                                            <span class="fw-bold text-success fs-5">$4,500</span>
+                                        </div>
+                                        <div class="rating text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-half"></i>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="agregarAlCarrito(6)">
+                                        <i class="bi bi-cart-plus me-1"></i>
+                                        Agregar al carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay resultados -->
+                    <div id="noResultados" class="text-center py-4" style="display: none;">
+                        <i class="bi bi-search fs-1 text-muted"></i>
+                        <h6 class="text-muted">No se encontraron productos</h6>
+                        <p class="text-muted mb-3">Prueba con otros términos de búsqueda o categorías</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Últimos Pedidos -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">

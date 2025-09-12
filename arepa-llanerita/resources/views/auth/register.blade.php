@@ -72,14 +72,14 @@
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" 
-                                           class="form-control @error('nombres') is-invalid @enderror" 
-                                           id="nombres" 
-                                           name="nombres" 
-                                           value="{{ old('nombres') }}" 
+                                           class="form-control @error('name') is-invalid @enderror" 
+                                           id="name" 
+                                           name="name" 
+                                           value="{{ old('name') }}" 
                                            placeholder="Nombres"
                                            required>
-                                    <label for="nombres">Nombres *</label>
-                                    @error('nombres')
+                                    <label for="name">Nombres *</label>
+                                    @error('name')
                                         <div class="invalid-feedback">
                                             {{ $message }}
                                         </div>
@@ -148,14 +148,14 @@
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" 
-                                           class="form-control @error('documento_identidad') is-invalid @enderror" 
-                                           id="documento_identidad" 
-                                           name="documento_identidad" 
-                                           value="{{ old('documento_identidad') }}" 
+                                           class="form-control @error('cedula') is-invalid @enderror" 
+                                           id="cedula" 
+                                           name="cedula" 
+                                           value="{{ old('cedula') }}" 
                                            placeholder="12345678"
                                            required>
-                                    <label for="documento_identidad">Cédula *</label>
-                                    @error('documento_identidad')
+                                    <label for="cedula">Cédula *</label>
+                                    @error('cedula')
                                         <div class="invalid-feedback">
                                             {{ $message }}
                                         </div>
@@ -174,6 +174,72 @@
                                    placeholder="Calle 123 #45-67">
                             <label for="direccion">Dirección</label>
                             @error('direccion')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Ciudad -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                           class="form-control @error('ciudad') is-invalid @enderror" 
+                                           id="ciudad" 
+                                           name="ciudad" 
+                                           value="{{ old('ciudad') }}" 
+                                           placeholder="Villavicencio"
+                                           required>
+                                    <label for="ciudad">Ciudad *</label>
+                                    @error('ciudad')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <!-- Departamento -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-control @error('departamento') is-invalid @enderror" 
+                                            id="departamento" 
+                                            name="departamento" 
+                                            required>
+                                        <option value="">Selecciona departamento</option>
+                                        <option value="Meta" {{ old('departamento') == 'Meta' ? 'selected' : '' }}>Meta</option>
+                                        <option value="Cundinamarca" {{ old('departamento') == 'Cundinamarca' ? 'selected' : '' }}>Cundinamarca</option>
+                                        <option value="Boyacá" {{ old('departamento') == 'Boyacá' ? 'selected' : '' }}>Boyacá</option>
+                                        <option value="Casanare" {{ old('departamento') == 'Casanare' ? 'selected' : '' }}>Casanare</option>
+                                        <option value="Arauca" {{ old('departamento') == 'Arauca' ? 'selected' : '' }}>Arauca</option>
+                                        <option value="Otro" {{ old('departamento') == 'Otro' ? 'selected' : '' }}>Otro</option>
+                                    </select>
+                                    <label for="departamento">Departamento *</label>
+                                    @error('departamento')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fecha de nacimiento -->
+                        <div class="form-floating">
+                            <input type="date" 
+                                   class="form-control @error('fecha_nacimiento') is-invalid @enderror" 
+                                   id="fecha_nacimiento" 
+                                   name="fecha_nacimiento" 
+                                   value="{{ old('fecha_nacimiento') }}"
+                                   max="{{ date('Y-m-d', strtotime('-18 years')) }}"
+                                   required>
+                            <label for="fecha_nacimiento">Fecha de Nacimiento *</label>
+                            <div class="form-text text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Debes ser mayor de 18 años para registrarte
+                            </div>
+                            @error('fecha_nacimiento')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -216,17 +282,17 @@
                         <!-- Código de referido (opcional) -->
                         <div class="form-floating">
                             <input type="text" 
-                                   class="form-control @error('codigo_referido') is-invalid @enderror" 
-                                   id="codigo_referido" 
-                                   name="codigo_referido" 
-                                   value="{{ old('codigo_referido') }}" 
-                                   placeholder="ARF123456">
-                            <label for="codigo_referido">Código de Referido (Opcional)</label>
+                                   class="form-control @error('codigo_referido_usado') is-invalid @enderror" 
+                                   id="codigo_referido_usado" 
+                                   name="codigo_referido_usado" 
+                                   value="{{ old('codigo_referido_usado') }}" 
+                                   placeholder="REF1234">
+                            <label for="codigo_referido_usado">Código de Referido (Opcional)</label>
                             <div class="form-text text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
                                 Si tienes un código de referido, ¡ingresalo aquí para obtener beneficios!
                             </div>
-                            @error('codigo_referido')
+                            @error('codigo_referido_usado')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -347,7 +413,7 @@
                 break;
                 
             case 'text':
-                if (field.name === 'documento_identidad') {
+                if (field.name === 'cedula') {
                     const docRegex = /^[0-9]{6,12}$/;
                     if (!docRegex.test(value)) {
                         isValid = false;
@@ -411,7 +477,7 @@
     });
     
     // Formatear documento
-    document.getElementById('documento_identidad').addEventListener('input', function(e) {
+    document.getElementById('cedula').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         if (value.length > 12) {
             value = value.substr(0, 12);

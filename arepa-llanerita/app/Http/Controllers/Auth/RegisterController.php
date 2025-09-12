@@ -50,8 +50,16 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
+            'apellidos' => ['required', 'string', 'max:255'],
+            'cedula' => ['required', 'string', 'max:20', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'telefono' => ['required', 'string', 'max:20'],
+            'direccion' => ['nullable', 'string'],
+            'ciudad' => ['required', 'string', 'max:100'],
+            'departamento' => ['required', 'string', 'max:100'],
+            'fecha_nacimiento' => ['required', 'date', 'before:today'],
+            'codigo_referido_usado' => ['nullable', 'string', 'exists:users,codigo_referido'],
         ]);
     }
 
@@ -63,10 +71,42 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        // Buscar el referidor si existe código de referido
+        $referidoPor = null;
+        if (!empty($data['codigo_referido_usado'])) {
+            $referidor = User::where('codigo_referido', $data['codigo_referido_usado'])->first();
+            if ($referidor) {
+                $referidoPor = $referidor->id;
+            }
+        }
+
         return User::create([
             'name' => $data['name'],
+            'apellidos' => $data['apellidos'],
+            'cedula' => $data['cedula'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'telefono' => $data['telefono'],
+            'direccion' => $data['direccion'] ?? null,
+            'ciudad' => $data['ciudad'],
+            'departamento' => $data['departamento'],
+            'fecha_nacimiento' => $data['fecha_nacimiento'],
+            'rol' => 'cliente', // Por defecto los registros son clientes
+            'activo' => true,
+            'referido_por' => $referidoPor,
+            'codigo_referido' => $this->generarCodigoReferido(),
         ]);
+    }
+
+    /**
+     * Generar código de referido único
+     */
+    private function generarCodigoReferido(): string
+    {
+        do {
+            $codigo = 'REF' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+        } while (User::where('codigo_referido', $codigo)->exists());
+        
+        return $codigo;
     }
 }

@@ -18,10 +18,10 @@
             <div class="toast-header 
                 @switch($toast['type'])
                     @case('success')
-                        bg-success text-white
+                        bg-success color: var(--color-white)  #fff = #ffffff ;
                         @break
                     @case('error')
-                        bg-danger text-white
+                        bg-danger color: var(--color-white)  #fff = #ffffff ;
                         @break
                     @case('warning')
                         bg-warning text-dark
