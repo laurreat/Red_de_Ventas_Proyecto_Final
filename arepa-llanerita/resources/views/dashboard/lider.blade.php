@@ -53,10 +53,10 @@
                     @if($stats['meta_mensual'] > 0)
                     <div class="progress-custom mt-2">
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ min(($stats['ventas_equipo_mes'] / $stats['meta_mensual']) * 100, 100) }}%"></div>
+                            <div class="progress-bar" style="width: {{ $stats['meta_mensual'] > 0 ? min(($stats['ventas_equipo_mes'] / $stats['meta_mensual']) * 100, 100) : 0 }}%"></div>
                         </div>
                     </div>
-                    <small class="text-muted">{{ number_format(min(($stats['ventas_equipo_mes'] / $stats['meta_mensual']) * 100, 100), 1) }}% de la meta</small>
+                    <small class="text-muted">{{ $stats['meta_mensual'] > 0 ? number_format(min(($stats['ventas_equipo_mes'] / $stats['meta_mensual']) * 100, 100), 1) : 0 }}% de la meta</small>
                     @endif
                 </div>
             </div>
@@ -121,10 +121,10 @@
                                             @if($miembro->meta_mensual > 0)
                                             <div class="progress-custom mt-1">
                                                 <div class="progress">
-                                                    <div class="progress-bar" style="width: {{ min(($miembro->ventas_mes_actual / $miembro->meta_mensual) * 100, 100) }}%"></div>
+                                                    <div class="progress-bar" style="width: {{ $miembro->meta_mensual > 0 ? min(($miembro->ventas_mes_actual / $miembro->meta_mensual) * 100, 100) : 0 }}%"></div>
                                                 </div>
                                             </div>
-                                            <small class="text-muted">{{ number_format(min(($miembro->ventas_mes_actual / $miembro->meta_mensual) * 100, 100), 1) }}% de meta</small>
+                                            <small class="text-muted">{{ $miembro->meta_mensual > 0 ? number_format(min(($miembro->ventas_mes_actual / $miembro->meta_mensual) * 100, 100), 1) : 0 }}% de meta</small>
                                             @endif
                                         </div>
                                         
@@ -179,7 +179,7 @@
                         </div>
                         <div class="progress-custom mt-1">
                             <div class="progress">
-                                <div class="progress-bar" style="width: {{ min(($stats['ventas_personales'] / $stats['meta_mensual']) * 100, 100) }}%"></div>
+                                <div class="progress-bar" style="width: {{ $stats['meta_mensual'] > 0 ? min(($stats['ventas_personales'] / $stats['meta_mensual']) * 100, 100) : 0 }}%"></div>
                             </div>
                         </div>
                         <small class="text-muted">Vendido: ${{ number_format($stats['ventas_personales']) }}</small>

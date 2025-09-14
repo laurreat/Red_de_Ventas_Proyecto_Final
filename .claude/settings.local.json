@@ -15,7 +15,11 @@
       "Bash(mkdir:*)",
       "Bash(php:*)",
       "Bash(dir:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(del:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []

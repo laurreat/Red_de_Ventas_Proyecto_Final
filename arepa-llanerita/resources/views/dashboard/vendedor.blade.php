@@ -41,10 +41,10 @@
                     @if($stats['meta_mensual'] > 0)
                     <div class="progress-custom mt-2">
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, values: 100) }}%"></div>
+                            <div class="progress-bar" style="width: {{ $stats['meta_mensual'] > 0 ? min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100) : 0 }}%"></div>
                         </div>
                     </div>
-                    <small class="text-muted">{{ number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) }}% de tu meta</small>
+                    <small class="text-muted">{{ $stats['meta_mensual'] > 0 ? number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) : 0 }}% de tu meta</small>
                     @endif
                 </div>
             </div>
@@ -153,17 +153,17 @@
                             </div>
                             <div class="progress-custom">
                                 <div class="progress">
-                                    <div class="progress-bar" style="width: {{ min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100) }}%"></div>
+                                    <div class="progress-bar" style="width: {{ $stats['meta_mensual'] > 0 ? min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100) : 0 }}%"></div>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between mt-2 small text-muted">
                                 <span>Faltante: ${{ number_format(max($stats['meta_mensual'] - $stats['ventas_mes'], 0)) }}</span>
-                                <span>{{ number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) }}%</span>
+                                <span>{{ $stats['meta_mensual'] > 0 ? number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) : 0 }}%</span>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
                             @php
-                                $progress = ($stats['ventas_mes'] / $stats['meta_mensual']) * 100;
+                                $progress = $stats['meta_mensual'] > 0 ? ($stats['ventas_mes'] / $stats['meta_mensual']) * 100 : 0;
                             @endphp
                             <div class="fs-1">
                                 @if($progress >= 100)
@@ -235,7 +235,7 @@
                                 <small class="text-muted">{{ $pedido->cliente->name }}</small>
                             </div>
                             <div class="text-end">
-                                <div class="fw-bold text-success">${{ number_format($pedido->total, 0) }}</div>
+                                <div class="fw-bold text-success">${{ number_format($pedido->total_final, 0) }}</div>
                                 <small class="text-muted">{{ $pedido->created_at->format('d/m') }}</small>
                             </div>
                         </div>

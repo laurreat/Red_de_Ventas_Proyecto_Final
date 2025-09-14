@@ -194,7 +194,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <strong>${{ number_format($pedido->total, 0) }}</strong>
+                                            <strong>${{ number_format($pedido->total_final, 0) }}</strong>
                                         </td>
                                         <td>
                                             @php
@@ -250,7 +250,7 @@
                                 <small class="text-muted">{{ $producto->categoria->nombre }}</small>
                                 <div class="progress-custom mt-1">
                                     <div class="progress">
-                                        <div class="progress-bar" style="width: {{ min(($producto->veces_vendido / $productos_populares->first()->veces_vendido) * 100, 100) }}%"></div>
+                                        <div class="progress-bar" style="width: {{ $productos_populares->first() && $productos_populares->first()->veces_vendido > 0 ? min(($producto->veces_vendido / $productos_populares->first()->veces_vendido) * 100, 100) : 0 }}%"></div>
                                     </div>
                                 </div>
                             </div>

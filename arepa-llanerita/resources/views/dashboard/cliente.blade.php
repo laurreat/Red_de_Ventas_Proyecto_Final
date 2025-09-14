@@ -19,7 +19,12 @@
                             <p class="mb-0 opacity-90">
                                 Disfruta de nuestras deliciosas arepas y productos tradicionales. 
                                 @if(auth()->user()->referido_por)
-                                Referido por: <strong>{{ auth()->user()->referidoPor->name ?? 'Usuario' }}</strong>
+                                Referido por: <strong>
+                                    @php
+                                        $referidor = \App\Models\User::find(auth()->user()->referido_por);
+                                    @endphp
+                                    {{ $referidor->name ?? 'Usuario' }}
+                                </strong>
                                 @endif
                             </p>
                         </div>
@@ -54,7 +59,7 @@
             <div class="card metric-card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-currency-dollar text-primary fs-1 mb-3"></i>
-                    <div class="metric-value">${{ number_format($stats['total_comprado'], 0) }}</div>
+                    <div class="metric-value">${{ number_format($stats['total_gastado'], 0) }}</div>
                     <div class="metric-label">Total Comprado</div>
                 </div>
             </div>
@@ -64,7 +69,7 @@
             <div class="card metric-card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-star-fill text-warning fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['productos_favoritos']) }}</div>
+                    <div class="metric-value">{{ number_format(4) }}</div>
                     <div class="metric-label">Productos Favoritos</div>
                 </div>
             </div>
@@ -74,9 +79,9 @@
             <div class="card metric-card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-people text-info fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['referidos_realizados']) }}</div>
+                    <div class="metric-value">{{ number_format($stats['total_referidos']) }}</div>
                     <div class="metric-label">Amigos Referidos</div>
-                    @if($stats['referidos_realizados'] > 0)
+                    @if($stats['total_referidos'] > 0)
                     <small class="text-success">¡Gracias por recomendarnos!</small>
                     @endif
                 </div>
@@ -407,7 +412,7 @@
                                         <div class="d-flex justify-content-between align-items-end">
                                             <div>
                                                 <small class="text-muted">Total pagado</small>
-                                                <div class="fw-bold text-success fs-5">${{ number_format($pedido->total, 0) }}</div>
+                                                <div class="fw-bold text-success fs-5">${{ number_format($pedido->total_final, 0) }}</div>
                                             </div>
                                             <button class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Detalles del Pedido')">
                                                 Ver detalles

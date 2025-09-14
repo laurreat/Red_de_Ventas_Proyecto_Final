@@ -56,13 +56,13 @@
         <!-- Panel derecho - Formulario de registro -->
         <div class="col-lg-7 d-flex">
             <div class="form-panel w-100">
+                <!-- Header -->
+                <div class="register-header">
+                    <h2 class="register-title">Crear Cuenta</h2>
+                    <p class="register-subtitle">Completa tus datos para comenzar</p>
+                </div>
+
                 <div class="register-form-container">
-                    <!-- Header -->
-                    <div class="register-header">
-                        <h2 class="register-title">Crear Cuenta</h2>
-                        <p class="register-subtitle">Completa tus datos para comenzar</p>
-                    </div>
-                    
                     <!-- Formulario -->
                     <form method="POST" action="{{ route('register') }}" novalidate>
                         @csrf
@@ -322,13 +322,13 @@
                             Crear Mi Cuenta
                         </button>
                     </form>
-                    
-                    <!-- Link de login -->
-                    <div class="login-link">
-                        <p class="mb-0">¿Ya tienes una cuenta? 
-                            <a href="{{ route('login') }}">Inicia sesión aquí</a>
-                        </p>
-                    </div>
+                </div>
+
+                <!-- Link de login -->
+                <div class="login-link">
+                    <p class="mb-0">¿Ya tienes una cuenta?
+                        <a href="{{ route('login') }}">Inicia sesión aquí</a>
+                    </p>
                 </div>
             </div>
         </div>

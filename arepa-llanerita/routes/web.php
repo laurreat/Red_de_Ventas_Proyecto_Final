@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 
 // Página principal - siempre mostrar login
 Route::get('/', function () {
@@ -34,7 +35,9 @@ Route::middleware(['auth', 'role'])->group(function () {
     
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {
-        // Aquí irán las rutas específicas de admin
+        // Gestión de usuarios
+        Route::resource('admin/users', UserController::class, ['as' => 'admin']);
+        Route::patch('admin/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('admin.users.toggle-active');
     });
     
     // Rutas para Líderes y Administradores

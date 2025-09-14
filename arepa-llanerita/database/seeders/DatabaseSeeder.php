@@ -14,10 +14,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            CategoriasSeeder::class,
-            ProductosSeeder::class,
-            UsersSeeder::class,
-            PedidosSeeder::class,
+            CategoriasSeeder::class,    // Categorías de productos
+            ProductosSeeder::class,     // Catálogo de productos
+            UserSeeder::class,          // Solo administrador, sin datos demo
+            // PedidosSeeder::class,    // Comentado - no hay usuarios demo para pedidos
         ]);
     }
 }
