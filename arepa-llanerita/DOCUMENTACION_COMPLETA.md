@@ -1,133 +1,237 @@
-🥞 Arepa la Llanerita - Resumen del Proyecto
-✅ Estado Actual
+# 🥞 Arepa la Llanerita - Red de Ventas Multi-Nivel
 
-Sistema base funcional con Laravel 12, PHP 8.2, Bootstrap 5.3, Livewire 3 y SQLite/MySQL.
+## 🎯 Descripción del Proyecto
+Sistema de ventas multi-nivel (MLM) para "Arepa la Llanerita" desarrollado en Laravel 12. Permite gestión completa de vendedores, líderes, productos, pedidos y comisiones con dashboards diferenciados por rol.
 
-Login horizontal responsive con diseño corporativo.
+## ✅ Estado Actual (MVP Funcional)
 
-4 roles activos: Administrador, Líder, Vendedor, Cliente.
+### Stack Tecnológico
+- **Backend**: Laravel 12 + PHP 8.2
+- **Frontend**: Bootstrap 5.3 + Livewire 3 + Alpine.js + Tailwind CSS 4.0
+- **Base de Datos**: SQLite/MySQL
+- **Herramientas**: Vite, Sass, Composer, NPM
 
-Middleware de roles implementado para control de acceso.
+### Funcionalidades Implementadas
+- ✅ Sistema de autenticación seguro con Laravel Auth
+- ✅ 4 roles definidos: Administrador, Líder, Vendedor, Cliente
+- ✅ Middleware de roles (`RoleMiddleware`) para control de acceso
+- ✅ Dashboards específicos por rol con métricas en tiempo real
+- ✅ Sistema de referidos básico implementado
+- ✅ Diseño responsive con identidad corporativa
+- ✅ Base de datos estructurada con seeders
 
-Sistema de referidos básico en el modelo User.
+## 📊 Módulos del Sistema
 
-Dashboards diferenciados por rol (Admin, Líder, Vendedor, Cliente).
+### 🔐 Autenticación y Roles
+- Login horizontal responsive
+- Middleware de protección por roles
+- Redirección automática según rol
+- Sesiones seguras con Laravel
 
-Base de datos inicial cargada con usuarios, productos, categorías y pedidos de prueba.
+### 📈 Dashboards por Rol
 
-Correcciones técnicas aplicadas: errores de array, stdClass, división por cero y validaciones seguras solucionados.
+#### Administrador
+- Métricas generales del sistema
+- Gestión de usuarios (`UserController`)
+- Control de productos y categorías
+- Reportes de ventas y comisiones
+- Pedidos recientes y productos populares
 
-📊 Funcionalidades Implementadas
+#### Líder
+- Gestión de equipos de vendedores
+- Métricas de rendimiento del equipo
+- Control de metas mensuales
+- Comisiones por equipos
 
-Autenticación y sesiones seguras con Laravel.
+#### Vendedor
+- Panel de ventas personales
+- Sistema de referidos
+- Comisiones ganadas y disponibles
+- Historial de pedidos
 
-Dashboards específicos por rol:
+#### Cliente
+- Historial de compras
+- Programa de referidos
+- Productos favoritos
+- Estado de pedidos
 
-Admin: métricas generales, pedidos recientes, productos populares.
+### 🛍️ Sistema de Productos
+- **Modelos**: `Producto`, `Categoria`, `MovimientoInventario`
+- 8 categorías predefinidas
+- 18 productos con precios reales ($8,000 - $35,000)
+- Control de inventario básico
 
-Líder: gestión de equipos, metas, rendimiento.
+### 📦 Sistema de Pedidos
+- **Modelos**: `Pedido`, `DetallePedido`
+- Estados: pendiente, procesando, entregado, cancelado
+- Cálculo automático de totales
+- Integración con sistema de comisiones
 
-Vendedor: ventas, comisiones, referidos.
+### 💰 Sistema de Comisiones y Referidos
+- **Modelos**: `Comision`, `Referido`
+- Seguimiento de metas mensuales
+- Cálculo de comisiones por ventas
+- Red de referidos multi-nivel
 
-Cliente: historial de compras y programa de referidos.
+## 🗄️ Estructura de Base de Datos
 
-Notificaciones y métricas en tiempo real con Livewire.
+### Tablas Principales
+- `users` - Usuarios con roles, metas y comisiones
+- `productos` - Catálogo de productos
+- `categorias` - Clasificación de productos
+- `pedidos` - Órdenes de compra
+- `detalle_pedidos` - Items específicos de cada pedido
+- `comisiones` - Registro de comisiones
+- `referidos` - Red de referidos
 
-Sistema de colores corporativo: vino tinto (#722F37) + blanco.
+### Tablas Auxiliares
+- `zonas_entrega` - Áreas de cobertura
+- `cupones` - Sistema de descuentos
+- `notificaciones` - Alertas del sistema
+- `movimientos_inventario` - Control de stock
+- `configuraciones` - Parámetros del sistema
 
-Frontend responsive con Bootstrap y variables CSS personalizadas.
+## 🎨 Diseño y UI
 
-Datos de ejemplo completos:
+### Identidad Visual
+- **Color primario**: Vino tinto (#722F37)
+- **Color secundario**: Blanco
+- **Tipografía**: Inter (Google Fonts)
+- **Framework**: Bootstrap 5.3 + variables CSS personalizadas
 
-12 usuarios con roles.
+### Características del Diseño
+- Responsive mobile-first
+- Login con división horizontal
+- Dashboards organizados con cards
+- Componentes Livewire para interactividad
+- Notificaciones toast implementadas
 
-8 categorías de productos.
+## 🔑 Credenciales de Prueba
 
-18 productos con precios reales.
+| Rol | Email | Password |
+|-----|-------|----------|
+| Admin | admin@arepallanerita.com | admin123 |
+| Líder | carlos.rodriguez@arepallanerita.com | lider123 |
+| Vendedor | ana.lopez@arepallanerita.com | vendedor123 |
+| Vendedor | miguel.torres@arepallanerita.com | vendedor123 |
+| Cliente | maria.gonzalez@email.com | cliente123 |
+| Cliente | pedro.ramirez@email.com | cliente123 |
 
-5 pedidos de ejemplo con estados variados.
+## 🚀 Instalación y Desarrollo
 
-🗄️ Base de Datos
-Tablas principales
+### Requisitos
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- MySQL/SQLite
 
-Users: roles, referidos, metas, comisiones.
-
-Productos y Categorías: catálogo con control de stock.
-
-Pedidos y Detalles: órdenes de compra con totales y descuentos.
-
-Comisiones y Metas: cálculo de metas mensuales y acumulados.
-
-Extras: promociones, inventario, notificaciones, logs de actividad.
-
-Datos de prueba
-
-Admin, 1 Líder, 5 Vendedores, 5 Clientes.
-
-Catálogo de productos variados ($8,000 - $35,000).
-
-Pedidos en distintos estados para pruebas.
-
-📂 Arquitectura del Proyecto
-
-Frontend: vistas Blade, layouts, dashboards por rol, Livewire, Alpine.js.
-
-Backend: controladores, middleware de roles, modelos (12 implementados).
-
-Base de datos: migraciones, seeders y BD lista en SQLite.
-
-Configuración: rutas con middleware, variables en .env, assets optimizados con Vite.
-
-🔑 Credenciales de Prueba
-
-Admin: admin@arepallanerita.com / admin123
-
-Líder: carlos.rodriguez@arepallanerita.com / lider123
-
-Vendedor (Ana): ana.lopez@arepallanerita.com / vendedor123
-
-Vendedor (Miguel): miguel.torres@arepallanerita.com / vendedor123
-
-Cliente (Maria): maria.gonzalez@email.com / cliente123
-
-Cliente (Pedro): pedro.ramirez@email.com / cliente123
-
-🎨 Diseño y Estilo
-
-Colores corporativos: vino tinto (#722F37) como primario.
-
-Fuente: Inter (Google Fonts).
-
-Diseño responsive mobile-first.
-
-UI limpia y moderna: login dividido, dashboards organizados.
-
-🚀 Desarrollo y Uso
-Instalación
+### Configuración Inicial
+```bash
+# Dependencias
 composer install
 npm install
+
+# Configuración
 cp .env.example .env
 php artisan key:generate
+
+# Base de datos
 php artisan migrate:fresh --seed
-php artisan serve     # Servidor local :8000
-npm run dev           # Compilación frontend
 
-Comandos útiles
+# Desarrollo
+php artisan serve          # Backend en :8000
+npm run dev               # Frontend con Vite
+```
 
-Migraciones → php artisan migrate
+### Comandos Útiles
+```bash
+# Laravel
+php artisan migrate
+php artisan db:seed
+php artisan config:clear
+php artisan view:clear
 
-Seeders → php artisan db:seed
+# Livewire
+php artisan livewire:make ComponentName
 
-Limpieza de cachés → php artisan config:clear && php artisan view:clear
+# Desarrollo concurrente
+composer run dev          # Servidor + queue + logs + vite
+```
 
-Livewire → php artisan livewire:make Nombre
+## 📁 Estructura del Proyecto
 
-📌 Estado General
+### Backend
+- `app/Http/Controllers/` - Controladores principales
+  - `DashboardController.php` - Dashboards por rol
+  - `Admin/UserController.php` - Gestión de usuarios
+- `app/Models/` - 12 modelos implementados
+- `app/Livewire/` - Componentes interactivos
+- `app/Http/Middleware/RoleMiddleware.php` - Control de acceso
 
-MVP ya funcional y estable.
+### Frontend
+- `resources/views/` - Vistas Blade
+  - `dashboard/` - Dashboards por rol
+  - `auth/` - Autenticación
+  - `layouts/` - Plantillas base
+  - `livewire/` - Componentes Livewire
 
-Dashboards y roles operativos sin errores críticos.
+### Base de Datos
+- `database/migrations/` - Estructura de BD
+- `database/seeders/` - Datos de prueba
 
-Listo para expandir con módulos CRUD, pedidos, comisiones y pagos.
+## 🛠️ Paquetes y Dependencias
 
-Base sólida para pasar a producción con mejoras en seguridad, performance y escalabilidad.
+### PHP (Composer)
+- `laravel/framework`: ^12.0
+- `livewire/livewire`: ^3.6
+- `laravel/ui`: ^4.6
+- `barryvdh/laravel-dompdf`: ^3.1 (PDFs)
+- `intervention/image`: ^3.11 (Imágenes)
+- `maatwebsite/excel`: ^1.1 (Excel)
+
+### JavaScript (NPM)
+- `bootstrap`: ^5.2.3
+- `@tailwindcss/vite`: ^4.0.0
+- `@popperjs/core`: ^2.11.6
+- `vite`: ^7.0.4
+- `axios`: ^1.11.0
+
+## ⚠️ Funcionalidades Pendientes
+
+### Alto Prioridad
+- [ ] CRUD completo de productos y categorías
+- [ ] Sistema completo de pedidos (crear, editar, cancelar)
+- [ ] Cálculo automático de comisiones
+- [ ] Gestión de inventario en tiempo real
+- [ ] Sistema de pagos y facturación
+
+### Media Prioridad
+- [ ] Reportes avanzados y analytics
+- [ ] Sistema de notificaciones push
+- [ ] Gestión de zonas de entrega
+- [ ] Sistema de cupones y promociones
+- [ ] API REST para mobile
+
+### Baja Prioridad
+- [ ] Integración con pasarelas de pago
+- [ ] Sistema de chat interno
+- [ ] Aplicación móvil
+- [ ] Integración con ERP
+- [ ] Sistema de backup automático
+
+## 🔧 Próximos Pasos Técnicos
+
+1. **Completar CRUDs básicos** - Productos, categorías, pedidos
+2. **Implementar lógica de comisiones** - Cálculos automáticos
+3. **Sistema de notificaciones** - Eventos en tiempo real
+4. **Validaciones y seguridad** - Protección contra XSS, CSRF
+5. **Testing** - Unit tests y feature tests
+6. **Optimización** - Cache, índices DB, lazy loading
+7. **Deployment** - Docker, CI/CD, producción
+
+## 📌 Estado General
+- ✅ **MVP funcional y estable**
+- ✅ **Dashboards operativos sin errores críticos**
+- ✅ **Base sólida para expansión**
+- ⚠️ **Listo para desarrollo de módulos principales**
+- 🚀 **Preparado para pasar a producción con mejoras**

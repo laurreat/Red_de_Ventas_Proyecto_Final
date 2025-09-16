@@ -1,23 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', '- Dashboard Administrador')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/admin-dashboard.css') }}">
-@endpush
+@section('page-title', 'Dashboard Administrador')
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header -->
+    <!-- Header con información del día -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h3 mb-0 fw-bold">Dashboard Administrador</h1>
                     <p class="text-muted mb-0">Panel de control general del sistema</p>
+                    <small class="text-muted">Última actualización: {{ now()->format('d/m/Y H:i') }}</small>
                 </div>
                 <div>
-                    <span class="badge bg-success fs-6">
+                    <span class="badge" style="background-color: var(--primary-color); font-size: 0.875rem; position: relative; z-index: 1;">
                         <i class="bi bi-calendar-check me-1"></i>
                         {{ now()->format('d/m/Y') }}
                     </span>
@@ -29,33 +26,42 @@
     <!-- Métricas Principales -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-people text-primary fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_usuarios']) }}</div>
-                    <div class="metric-label">Total Usuarios</div>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
+                        <i class="bi bi-people fs-2" style="color: var(--primary-color);"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ number_format($stats['total_usuarios']) }}</h3>
+                    <p class="text-muted mb-0 small">Total Usuarios</p>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-person-badge text-info fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_vendedores']) }}</div>
-                    <div class="metric-label">Vendedores Activos</div>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
+                        <i class="bi bi-person-badge fs-2" style="color: var(--primary-color);"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ number_format($stats['total_vendedores']) }}</h3>
+                    <p class="text-muted mb-0 small">Vendedores Activos</p>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-boxes text-warning fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_productos']) }}</div>
-                    <div class="metric-label">Productos</div>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
+                        <i class="bi bi-boxes fs-2" style="color: var(--primary-color);"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ number_format($stats['total_productos']) }}</h3>
+                    <p class="text-muted mb-0 small">Productos</p>
                     @if($stats['productos_stock_bajo'] > 0)
-                        <small class="text-danger">
+                        <small class="text-danger d-block mt-1">
                             <i class="bi bi-exclamation-triangle"></i>
                             {{ $stats['productos_stock_bajo'] }} con stock bajo
                         </small>
@@ -63,13 +69,16 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-currency-dollar text-success fs-1 mb-3"></i>
-                    <div class="metric-value">${{ number_format($stats['ventas_mes'], 0) }}</div>
-                    <div class="metric-label">Ventas del Mes</div>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(40, 167, 69, 0.1);">
+                        <i class="bi bi-currency-dollar fs-2 text-success"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-success">${{ number_format($stats['ventas_mes'], 0) }}</h3>
+                    <p class="text-muted mb-0 small">Ventas del Mes</p>
                 </div>
             </div>
         </div>
@@ -78,62 +87,74 @@
     <!-- Métricas Secundarias -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <i class="bi bi-cart-check text-success fs-2"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 48px; height: 48px; background-color: rgba(40, 167, 69, 0.1);">
+                                <i class="bi bi-cart-check text-success fs-4"></i>
+                            </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold fs-4">{{ number_format($stats['pedidos_hoy']) }}</div>
+                            <div class="fw-bold fs-4 text-success">{{ number_format($stats['pedidos_hoy']) }}</div>
                             <div class="text-muted small">Pedidos Hoy</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <i class="bi bi-clock-history text-warning fs-2"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 48px; height: 48px; background-color: rgba(255, 193, 7, 0.1);">
+                                <i class="bi bi-clock-history text-warning fs-4"></i>
+                            </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold fs-4">{{ number_format($stats['pedidos_pendientes']) }}</div>
+                            <div class="fw-bold fs-4 text-warning">{{ number_format($stats['pedidos_pendientes']) }}</div>
                             <div class="text-muted small">Pedidos Pendientes</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <i class="bi bi-cash-coin text-info fs-2"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 48px; height: 48px; background-color: rgba(114, 47, 55, 0.1);">
+                                <i class="bi bi-cash-coin fs-4" style="color: var(--primary-color);"></i>
+                            </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold fs-4">${{ number_format($stats['comisiones_pendientes'], 0) }}</div>
+                            <div class="fw-bold fs-4" style="color: var(--primary-color);">${{ number_format($stats['comisiones_pendientes'], 0) }}</div>
                             <div class="text-muted small">Comisiones Pendientes</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card">
-                <div class="card-body">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <i class="bi bi-exclamation-triangle text-danger fs-2"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 48px; height: 48px; background-color: rgba(220, 53, 69, 0.1);">
+                                <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                            </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <div class="fw-bold fs-4">{{ number_format($stats['productos_stock_bajo']) }}</div>
+                            <div class="fw-bold fs-4 text-danger">{{ number_format($stats['productos_stock_bajo']) }}</div>
                             <div class="text-muted small">Stock Crítico</div>
                         </div>
                     </div>
@@ -145,13 +166,14 @@
     <div class="row">
         <!-- Pedidos Recientes -->
         <div class="col-xl-8 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-list-ul me-2"></i>
                         Pedidos Recientes
                     </h5>
-                    <a href="#" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Gestión de Pedidos')">
+                    <a href="#" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Gestión de Pedidos')"
+                       style="border-color: var(--primary-color); color: var(--primary-color);">
                         Ver todos
                     </a>
                 </div>
@@ -234,9 +256,9 @@
 
         <!-- Productos Populares -->
         <div class="col-xl-4 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-star me-2"></i>
                         Productos Populares
                     </h5>
@@ -249,13 +271,14 @@
                                 <div class="fw-medium">{{ $producto->nombre }}</div>
                                 <small class="text-muted">{{ $producto->categoria->nombre }}</small>
                                 <div class="progress-custom mt-1">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width: {{ $productos_populares->first() && $productos_populares->first()->veces_vendido > 0 ? min(($producto->veces_vendido / $productos_populares->first()->veces_vendido) * 100, 100) : 0 }}%"></div>
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar"
+                                             style="width: {{ $productos_populares->first() && $productos_populares->first()->veces_vendido > 0 ? min(($producto->veces_vendido / $productos_populares->first()->veces_vendido) * 100, 100) : 0 }}%; background-color: var(--primary-color);"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="text-end ms-3">
-                                <div class="fw-bold text-primary">{{ number_format($producto->veces_vendido) }}</div>
+                                <div class="fw-bold" style="color: var(--primary-color);">{{ number_format($producto->veces_vendido) }}</div>
                                 <small class="text-muted">vendidos</small>
                             </div>
                         </div>

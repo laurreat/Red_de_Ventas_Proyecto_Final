@@ -38,6 +38,36 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Gestión de usuarios
         Route::resource('admin/users', UserController::class, ['as' => 'admin']);
         Route::patch('admin/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('admin.users.toggle-active');
+
+        // Productos
+        Route::get('admin/productos', function () {
+            return view('admin.productos.index');
+        })->name('admin.productos.index');
+
+        // Pedidos
+        Route::get('admin/pedidos', function () {
+            return view('admin.pedidos.index');
+        })->name('admin.pedidos.index');
+
+        // Reportes
+        Route::get('admin/reportes/ventas', function () {
+            return view('admin.reportes.ventas');
+        })->name('admin.reportes.ventas');
+
+        // Comisiones
+        Route::get('admin/comisiones', function () {
+            return view('admin.comisiones.index');
+        })->name('admin.comisiones.index');
+
+        // Red de Referidos
+        Route::get('admin/referidos', function () {
+            return view('admin.referidos');
+        })->name('admin.referidos.index');
+
+        // Configuración
+        Route::get('admin/configuracion', function () {
+            return view('admin.configuracion.index');
+        })->name('admin.configuracion.index');
     });
     
     // Rutas para Líderes y Administradores
