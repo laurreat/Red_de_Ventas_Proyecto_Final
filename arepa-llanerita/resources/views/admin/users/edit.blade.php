@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', '- Crear Usuario')
-@section('page-title', 'Crear Nuevo Usuario')
+@section('title', '- Editar Usuario')
+@section('page-title', 'Editar Usuario')
 
 @section('content')
 <div class="container-fluid">
@@ -10,7 +10,8 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="text-muted mb-0">Completa el formulario para crear un nuevo usuario</p>
+                    <h4 class="mb-0" style="color: var(--primary-color);">{{ $user->name }} {{ $user->apellidos }}</h4>
+                    <p class="text-muted mb-0">Modifica la información del usuario</p>
                 </div>
                 <div>
                     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
@@ -22,8 +23,9 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.users.store') }}">
+    <form method="POST" action="{{ route('admin.users.update', $user) }}">
         @csrf
+        @method('PUT')
         <div class="row">
             <!-- Información Personal -->
             <div class="col-lg-8">
@@ -39,7 +41,7 @@
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Nombres <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                       id="name" name="name" value="{{ old('name') }}" required>
+                                       id="name" name="name" value="{{ old('name', $user->name) }}" required>
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -47,7 +49,7 @@
                             <div class="col-md-6">
                                 <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('apellidos') is-invalid @enderror"
-                                       id="apellidos" name="apellidos" value="{{ old('apellidos') }}" required>
+                                       id="apellidos" name="apellidos" value="{{ old('apellidos', $user->apellidos) }}" required>
                                 @error('apellidos')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -55,7 +57,7 @@
                             <div class="col-md-6">
                                 <label for="cedula" class="form-label">Cédula <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('cedula') is-invalid @enderror"
-                                       id="cedula" name="cedula" value="{{ old('cedula') }}" required>
+                                       id="cedula" name="cedula" value="{{ old('cedula', $user->cedula) }}" required>
                                 @error('cedula')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -63,7 +65,8 @@
                             <div class="col-md-6">
                                 <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('fecha_nacimiento') is-invalid @enderror"
-                                       id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
+                                       id="fecha_nacimiento" name="fecha_nacimiento"
+                                       value="{{ old('fecha_nacimiento', $user->fecha_nacimiento?->format('Y-m-d')) }}" required>
                                 @error('fecha_nacimiento')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -85,7 +88,7 @@
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                       id="email" name="email" value="{{ old('email') }}" required>
+                                       id="email" name="email" value="{{ old('email', $user->email) }}" required>
                                 @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -93,7 +96,7 @@
                             <div class="col-md-6">
                                 <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('telefono') is-invalid @enderror"
-                                       id="telefono" name="telefono" value="{{ old('telefono') }}" required>
+                                       id="telefono" name="telefono" value="{{ old('telefono', $user->telefono) }}" required>
                                 @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -101,7 +104,7 @@
                             <div class="col-md-6">
                                 <label for="ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('ciudad') is-invalid @enderror"
-                                       id="ciudad" name="ciudad" value="{{ old('ciudad') }}" required>
+                                       id="ciudad" name="ciudad" value="{{ old('ciudad', $user->ciudad) }}" required>
                                 @error('ciudad')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -109,7 +112,7 @@
                             <div class="col-md-6">
                                 <label for="departamento" class="form-label">Departamento <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('departamento') is-invalid @enderror"
-                                       id="departamento" name="departamento" value="{{ old('departamento') }}" required>
+                                       id="departamento" name="departamento" value="{{ old('departamento', $user->departamento) }}" required>
                                 @error('departamento')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -117,7 +120,7 @@
                             <div class="col-12">
                                 <label for="direccion" class="form-label">Dirección</label>
                                 <textarea class="form-control @error('direccion') is-invalid @enderror"
-                                          id="direccion" name="direccion" rows="3">{{ old('direccion') }}</textarea>
+                                          id="direccion" name="direccion" rows="3">{{ old('direccion', $user->direccion) }}</textarea>
                                 @error('direccion')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -131,24 +134,28 @@
                     <div class="card-header bg-white border-bottom">
                         <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                             <i class="bi bi-shield-lock me-2"></i>
-                            Seguridad
+                            Cambiar Contraseña
                         </h5>
                     </div>
                     <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Deja estos campos vacíos si no deseas cambiar la contraseña
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
+                                <label for="password" class="form-label">Nueva Contraseña</label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                       id="password" name="password" required>
+                                       id="password" name="password">
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <div class="form-text">Mínimo 8 caracteres</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="password_confirmation" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                                <label for="password_confirmation" class="form-label">Confirmar Nueva Contraseña</label>
                                 <input type="password" class="form-control"
-                                       id="password_confirmation" name="password_confirmation" required>
+                                       id="password_confirmation" name="password_confirmation">
                             </div>
                         </div>
                     </div>
@@ -170,10 +177,10 @@
                             <select class="form-select @error('rol') is-invalid @enderror"
                                     id="rol" name="rol" required>
                                 <option value="">Seleccionar rol</option>
-                                <option value="administrador" {{ old('rol') == 'administrador' ? 'selected' : '' }}>Administrador</option>
-                                <option value="lider" {{ old('rol') == 'lider' ? 'selected' : '' }}>Líder</option>
-                                <option value="vendedor" {{ old('rol') == 'vendedor' ? 'selected' : '' }}>Vendedor</option>
-                                <option value="cliente" {{ old('rol') == 'cliente' ? 'selected' : '' }}>Cliente</option>
+                                <option value="administrador" {{ old('rol', $user->rol) == 'administrador' ? 'selected' : '' }}>Administrador</option>
+                                <option value="lider" {{ old('rol', $user->rol) == 'lider' ? 'selected' : '' }}>Líder</option>
+                                <option value="vendedor" {{ old('rol', $user->rol) == 'vendedor' ? 'selected' : '' }}>Vendedor</option>
+                                <option value="cliente" {{ old('rol', $user->rol) == 'cliente' ? 'selected' : '' }}>Cliente</option>
                             </select>
                             @error('rol')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -185,11 +192,9 @@
                             <select class="form-select @error('referido_por') is-invalid @enderror"
                                     id="referido_por" name="referido_por">
                                 <option value="">Sin referidor</option>
-                                @php
-                                    $posibles_referidores = \App\Models\User::whereIn('rol', ['administrador', 'lider', 'vendedor'])->get();
-                                @endphp
                                 @foreach($posibles_referidores as $referidor)
-                                    <option value="{{ $referidor->id }}" {{ old('referido_por') == $referidor->id ? 'selected' : '' }}>
+                                    <option value="{{ $referidor->id }}"
+                                            {{ old('referido_por', $user->referido_por) == $referidor->id ? 'selected' : '' }}>
                                         {{ $referidor->name }} {{ $referidor->apellidos }} ({{ ucfirst($referidor->rol) }})
                                     </option>
                                 @endforeach
@@ -204,21 +209,89 @@
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control @error('meta_mensual') is-invalid @enderror"
-                                       id="meta_mensual" name="meta_mensual" value="{{ old('meta_mensual') }}"
+                                       id="meta_mensual" name="meta_mensual"
+                                       value="{{ old('meta_mensual', $user->meta_mensual) }}"
                                        step="0.01" min="0">
                                 @error('meta_mensual')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-text">Solo para vendedores y líderes</div>
                         </div>
 
-                        <div class="form-check">
+                        <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="activo" name="activo" value="1"
-                                   {{ old('activo', true) ? 'checked' : '' }}>
+                                   {{ old('activo', $user->activo) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activo">
                                 Usuario activo
                             </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas MLM -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                            <i class="bi bi-graph-up me-2"></i>
+                            Estadísticas MLM
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label for="ventas_mes_actual" class="form-label">Ventas Mes Actual</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control @error('ventas_mes_actual') is-invalid @enderror"
+                                       id="ventas_mes_actual" name="ventas_mes_actual"
+                                       value="{{ old('ventas_mes_actual', $user->ventas_mes_actual) }}"
+                                       step="0.01" min="0">
+                                @error('ventas_mes_actual')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comisiones_ganadas" class="form-label">Comisiones Ganadas</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control @error('comisiones_ganadas') is-invalid @enderror"
+                                       id="comisiones_ganadas" name="comisiones_ganadas"
+                                       value="{{ old('comisiones_ganadas', $user->comisiones_ganadas) }}"
+                                       step="0.01" min="0">
+                                @error('comisiones_ganadas')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comisiones_disponibles" class="form-label">Comisiones Disponibles</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control @error('comisiones_disponibles') is-invalid @enderror"
+                                       id="comisiones_disponibles" name="comisiones_disponibles"
+                                       value="{{ old('comisiones_disponibles', $user->comisiones_disponibles) }}"
+                                       step="0.01" min="0">
+                                @error('comisiones_disponibles')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="text-muted small">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Referidos:</span>
+                                <strong>{{ $user->total_referidos ?? 0 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Código Referido:</span>
+                                <strong>{{ $user->codigo_referido }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Registro:</span>
+                                <strong>{{ $user->created_at->format('d/m/Y') }}</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -229,8 +302,12 @@
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-1"></i>
-                                Crear Usuario
+                                Guardar Cambios
                             </button>
+                            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-outline-info">
+                                <i class="bi bi-eye me-1"></i>
+                                Ver Detalles
+                            </a>
                             <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle me-1"></i>
                                 Cancelar

@@ -28,7 +28,7 @@ class ReferidoController extends Controller
 
         // Consulta base de usuarios con referidos
         $usuariosQuery = User::with(['referidor', 'referidos'])
-            ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+            ->whereIn('rol', ['vendedor', 'lider'])
             ->when($search, function ($query) use ($search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
@@ -37,24 +37,24 @@ class ReferidoController extends Controller
                 });
             })
             ->when($tipo, function ($query) use ($tipo) {
-                return $query->where('tipo_usuario', $tipo);
+                return $query->where('rol', $tipo);
             });
 
         $usuarios = $usuariosQuery->orderBy('created_at', 'desc')->paginate(20);
 
         // Estadísticas generales
         $stats = [
-            'total_vendedores' => User::vendedores()->count(),
-            'total_lideres' => User::lideres()->count(),
+            'total_vendedores' => User::where('rol', 'vendedor')->count(),
+            'total_lideres' => User::where('rol', 'lider')->count(),
             'usuarios_con_referidos' => User::whereHas('referidos')->count(),
-            'usuarios_sin_referidor' => User::whereNull('referidor_id')->whereIn('tipo_usuario', ['vendedor', 'lider'])->count(),
+            'usuarios_sin_referidor' => User::whereNull('referido_por')->whereIn('rol', ['vendedor', 'lider'])->count(),
             'promedio_referidos' => $this->calcularPromedioReferidos(),
             'red_mas_grande' => $this->obtenerRedMasGrande()
         ];
 
         // Redes más activas (top 10)
         $redesActivas = User::withCount('referidos')
-            ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+            ->whereIn('rol', ['vendedor', 'lider'])
             ->having('referidos_count', '>', 0)
             ->orderByDesc('referidos_count')
             ->take(10)
@@ -107,8 +107,8 @@ class ReferidoController extends Controller
     {
         // Si no se especifica ID, mostrar desde la raíz
         if (!$id) {
-            $usuarios_raiz = User::whereNull('referidor_id')
-                ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+            $usuarios_raiz = User::whereNull('referido_por')
+                ->whereIn('rol', ['vendedor', 'lider'])
                 ->with(['referidos' => function ($query) {
                     $query->with('referidos.referidos');
                 }])
@@ -151,7 +151,7 @@ class ReferidoController extends Controller
     private function calcularPromedioReferidos()
     {
         $usuarios_con_referidos = User::whereHas('referidos')->count();
-        $total_referidos = User::whereNotNull('referidor_id')->count();
+        $total_referidos = User::whereNotNull('referido_por')->count();
 
         return $usuarios_con_referidos > 0 ? round($total_referidos / $usuarios_con_referidos, 2) : 0;
     }
@@ -159,7 +159,7 @@ class ReferidoController extends Controller
     private function obtenerRedMasGrande()
     {
         $usuario = User::withCount('referidos')
-            ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+            ->whereIn('rol', ['vendedor', 'lider'])
             ->orderByDesc('referidos_count')
             ->first();
 
@@ -171,8 +171,8 @@ class ReferidoController extends Controller
 
     private function construirRedJerarquica()
     {
-        $usuarios_raiz = User::whereNull('referidor_id')
-            ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+        $usuarios_raiz = User::whereNull('referido_por')
+            ->whereIn('rol', ['vendedor', 'lider'])
             ->with(['referidos' => function ($query) {
                 $query->with('referidos.referidos');
             }])
@@ -189,7 +189,7 @@ class ReferidoController extends Controller
                 'id' => $usuario->id,
                 'name' => $usuario->name,
                 'email' => $usuario->email,
-                'tipo' => $usuario->tipo_usuario,
+                'tipo' => $usuario->rol,
                 'nivel' => $nivel,
                 'referidos_count' => $usuario->referidos->count(),
                 'hijos' => $nivel < 3 ? $this->formatearJerarquia($usuario->referidos, $nivel + 1) : []
@@ -265,7 +265,7 @@ class ReferidoController extends Controller
                 'id' => $usuario->id,
                 'name' => $usuario->name,
                 'email' => $usuario->email,
-                'tipo' => $usuario->tipo_usuario,
+                'tipo' => $usuario->rol,
                 'codigo_referido' => $usuario->codigo_referido,
                 'referidos_count' => $usuario->referidos->count(),
                 'children' => $this->formatearParaVisualizacion($usuario->referidos)
@@ -281,7 +281,7 @@ class ReferidoController extends Controller
 
     private function obtenerCrecimientoMensual()
     {
-        return User::whereIn('tipo_usuario', ['vendedor', 'lider'])
+        return User::whereIn('rol', ['vendedor', 'lider'])
             ->selectRaw('YEAR(created_at) as año, MONTH(created_at) as mes, COUNT(*) as cantidad')
             ->where('created_at', '>=', now()->subYear())
             ->groupBy('año', 'mes')
@@ -293,7 +293,7 @@ class ReferidoController extends Controller
     private function obtenerTopReferidores()
     {
         return User::withCount('referidos')
-            ->whereIn('tipo_usuario', ['vendedor', 'lider'])
+            ->whereIn('rol', ['vendedor', 'lider'])
             ->having('referidos_count', '>', 0)
             ->orderByDesc('referidos_count')
             ->take(10)
@@ -302,7 +302,7 @@ class ReferidoController extends Controller
 
     private function calcularConversionReferidos()
     {
-        $total_usuarios = User::whereIn('tipo_usuario', ['vendedor', 'lider'])->count();
+        $total_usuarios = User::whereIn('rol', ['vendedor', 'lider'])->count();
         $usuarios_con_referidos = User::whereHas('referidos')->count();
 
         return $total_usuarios > 0 ? round(($usuarios_con_referidos / $total_usuarios) * 100, 2) : 0;
