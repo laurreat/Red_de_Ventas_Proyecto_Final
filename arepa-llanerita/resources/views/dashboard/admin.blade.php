@@ -305,10 +305,21 @@
     
     // Mostrar tooltips en las métricas
     document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+        // Inicializar tooltips solo si Bootstrap está disponible
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        } else {
+            // Fallback: usar atributo title nativo si Bootstrap no está disponible
+            var tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipElements.forEach(function(element) {
+                if (element.getAttribute('data-bs-title')) {
+                    element.setAttribute('title', element.getAttribute('data-bs-title'));
+                }
+            });
+        }
     });
 </script>
 @endpush

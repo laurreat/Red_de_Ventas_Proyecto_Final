@@ -79,7 +79,45 @@ Route::middleware(['auth', 'role'])->group(function () {
     
     // Rutas para Líderes y Administradores
     Route::middleware(['role:lider,administrador'])->group(function () {
-        // Aquí irán las rutas de reportes y gestión de equipos
+        // Dashboard del Líder
+        Route::get('lider/dashboard', [\App\Http\Controllers\Lider\DashboardController::class, 'index'])->name('lider.dashboard');
+
+        // Gestión de Equipo
+        Route::get('lider/equipo', [\App\Http\Controllers\Lider\EquipoController::class, 'index'])->name('lider.equipo.index');
+        Route::get('lider/equipo/{id}', [\App\Http\Controllers\Lider\EquipoController::class, 'show'])->name('lider.equipo.show');
+        Route::post('lider/equipo/{id}/asignar-meta', [\App\Http\Controllers\Lider\EquipoController::class, 'asignarMeta'])->name('lider.equipo.asignar-meta');
+
+        // Red de Referidos del Líder
+        Route::get('lider/referidos', [\App\Http\Controllers\Lider\ReferidoController::class, 'index'])->name('lider.referidos.index');
+        Route::get('lider/referidos/red', [\App\Http\Controllers\Lider\ReferidoController::class, 'red'])->name('lider.referidos.red');
+
+        // Rendimiento del Equipo
+        Route::get('lider/rendimiento', [\App\Http\Controllers\Lider\RendimientoController::class, 'index'])->name('lider.rendimiento.index');
+
+        // Ventas del Equipo
+        Route::get('lider/ventas', [\App\Http\Controllers\Lider\VentaController::class, 'index'])->name('lider.ventas.index');
+        Route::get('lider/ventas/{id}', [\App\Http\Controllers\Lider\VentaController::class, 'show'])->name('lider.ventas.show');
+
+        // Comisiones del Líder
+        Route::get('lider/comisiones', [\App\Http\Controllers\Lider\ComisionController::class, 'index'])->name('lider.comisiones.index');
+        Route::get('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'solicitar'])->name('lider.comisiones.solicitar');
+        Route::post('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'procesarSolicitud'])->name('lider.comisiones.procesar');
+
+        // Metas y Objetivos
+        Route::get('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'index'])->name('lider.metas.index');
+        Route::post('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'store'])->name('lider.metas.store');
+        Route::put('lider/metas/{id}', [\App\Http\Controllers\Lider\MetaController::class, 'update'])->name('lider.metas.update');
+
+        // Reportes del Líder
+        Route::get('lider/reportes/ventas', [\App\Http\Controllers\Lider\ReporteController::class, 'ventas'])->name('lider.reportes.ventas');
+        Route::get('lider/reportes/equipo', [\App\Http\Controllers\Lider\ReporteController::class, 'equipo'])->name('lider.reportes.equipo');
+        Route::post('lider/reportes/exportar', [\App\Http\Controllers\Lider\ReporteController::class, 'exportar'])->name('lider.reportes.exportar');
+
+        // Perfil y Configuración del Líder
+        Route::get('lider/perfil', [\App\Http\Controllers\Lider\PerfilController::class, 'index'])->name('lider.perfil.index');
+        Route::put('lider/perfil', [\App\Http\Controllers\Lider\PerfilController::class, 'update'])->name('lider.perfil.update');
+        Route::get('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'index'])->name('lider.configuracion.index');
+        Route::put('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'update'])->name('lider.configuracion.update');
     });
     
     // Rutas para Vendedores, Líderes y Administradores

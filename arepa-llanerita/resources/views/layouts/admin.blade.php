@@ -705,8 +705,11 @@
             // Initialize dropdowns
             var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
             var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
-            });
+                if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                    return new bootstrap.Dropdown(dropdownToggleEl);
+                }
+                return null;
+            }).filter(Boolean);
         });
 
         // Coming soon function

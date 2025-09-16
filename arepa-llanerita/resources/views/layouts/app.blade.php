@@ -23,7 +23,6 @@
     @livewireStyles
     
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- App Theme -->
     <link rel="stylesheet" href="{{ asset('css/app-theme.css') }}">
@@ -218,15 +217,8 @@
         }
         
         // Livewire loading states
-        document.addEventListener('livewire:load', function () {
-            Livewire.hook('message.sent', () => {
-                showLoading();
-            });
-            
-            Livewire.hook('message.processed', () => {
-                hideLoading();
-            });
-        });
+        document.addEventListener('livewire:navigating', showLoading);
+        document.addEventListener('livewire:navigated', hideLoading);
         
         // Global error handling
         window.addEventListener('unhandledrejection', function(event) {
