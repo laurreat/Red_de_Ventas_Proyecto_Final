@@ -107,6 +107,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'index'])->name('lider.metas.index');
         Route::post('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'store'])->name('lider.metas.store');
         Route::put('lider/metas/{id}', [\App\Http\Controllers\Lider\MetaController::class, 'update'])->name('lider.metas.update');
+        Route::post('lider/metas/asignar-equipo', [\App\Http\Controllers\Lider\MetaController::class, 'asignarMetaEquipo'])->name('lider.metas.asignar-equipo');
 
         // Reportes del Líder
         Route::get('lider/reportes/ventas', [\App\Http\Controllers\Lider\ReporteController::class, 'ventas'])->name('lider.reportes.ventas');
@@ -118,11 +119,88 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::put('lider/perfil', [\App\Http\Controllers\Lider\PerfilController::class, 'update'])->name('lider.perfil.update');
         Route::get('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'index'])->name('lider.configuracion.index');
         Route::put('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'update'])->name('lider.configuracion.update');
+
+        // Capacitación del Equipo
+        Route::get('lider/capacitacion', [\App\Http\Controllers\Lider\CapacitacionController::class, 'index'])->name('lider.capacitacion.index');
+        Route::get('lider/capacitacion/{id}', [\App\Http\Controllers\Lider\CapacitacionController::class, 'show'])->name('lider.capacitacion.show');
+        Route::post('lider/capacitacion/asignar', [\App\Http\Controllers\Lider\CapacitacionController::class, 'asignar'])->name('lider.capacitacion.asignar');
     });
     
     // Rutas para Vendedores, Líderes y Administradores
     Route::middleware(['role:vendedor,lider,administrador'])->group(function () {
-        // Aquí irán las rutas de inventario y pedidos
+        // Dashboard del Vendedor
+        Route::get('vendedor/dashboard', [\App\Http\Controllers\Vendedor\DashboardController::class, 'index'])->name('vendedor.dashboard');
+        Route::get('vendedor/dashboard/ventas-chart', [\App\Http\Controllers\Vendedor\DashboardController::class, 'getVentasChart'])->name('vendedor.dashboard.ventas-chart');
+        Route::get('vendedor/dashboard/metricas', [\App\Http\Controllers\Vendedor\DashboardController::class, 'getMetricasRapidas'])->name('vendedor.dashboard.metricas');
+
+        // Gestión de Pedidos
+        Route::get('vendedor/pedidos', [\App\Http\Controllers\Vendedor\PedidoController::class, 'index'])->name('vendedor.pedidos.index');
+        Route::get('vendedor/pedidos/crear', [\App\Http\Controllers\Vendedor\PedidoController::class, 'create'])->name('vendedor.pedidos.create');
+        Route::post('vendedor/pedidos', [\App\Http\Controllers\Vendedor\PedidoController::class, 'store'])->name('vendedor.pedidos.store');
+        Route::get('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'show'])->name('vendedor.pedidos.show');
+        Route::get('vendedor/pedidos/{id}/editar', [\App\Http\Controllers\Vendedor\PedidoController::class, 'edit'])->name('vendedor.pedidos.edit');
+        Route::put('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'update'])->name('vendedor.pedidos.update');
+        Route::patch('vendedor/pedidos/{id}/estado', [\App\Http\Controllers\Vendedor\PedidoController::class, 'updateEstado'])->name('vendedor.pedidos.update-estado');
+        Route::delete('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'destroy'])->name('vendedor.pedidos.destroy');
+        Route::post('vendedor/pedidos/exportar', [\App\Http\Controllers\Vendedor\PedidoController::class, 'exportar'])->name('vendedor.pedidos.exportar');
+
+        // Ventas (alias para pedidos)
+        Route::get('vendedor/ventas/crear', [\App\Http\Controllers\Vendedor\PedidoController::class, 'create'])->name('vendedor.ventas.crear');
+        Route::get('vendedor/ventas/historial', [\App\Http\Controllers\Vendedor\PedidoController::class, 'index'])->name('vendedor.ventas.historial');
+
+        // Gestión de Clientes
+        Route::get('vendedor/clientes', [\App\Http\Controllers\Vendedor\ClienteController::class, 'index'])->name('vendedor.clientes.index');
+        Route::get('vendedor/clientes/crear', [\App\Http\Controllers\Vendedor\ClienteController::class, 'create'])->name('vendedor.clientes.crear');
+        Route::post('vendedor/clientes', [\App\Http\Controllers\Vendedor\ClienteController::class, 'store'])->name('vendedor.clientes.store');
+        Route::get('vendedor/clientes/{id}', [\App\Http\Controllers\Vendedor\ClienteController::class, 'show'])->name('vendedor.clientes.show');
+        Route::get('vendedor/clientes/{id}/editar', [\App\Http\Controllers\Vendedor\ClienteController::class, 'edit'])->name('vendedor.clientes.edit');
+        Route::put('vendedor/clientes/{id}', [\App\Http\Controllers\Vendedor\ClienteController::class, 'update'])->name('vendedor.clientes.update');
+        Route::get('vendedor/clientes/seguimiento', [\App\Http\Controllers\Vendedor\ClienteController::class, 'seguimiento'])->name('vendedor.clientes.seguimiento');
+        Route::get('vendedor/clientes/buscar', [\App\Http\Controllers\Vendedor\ClienteController::class, 'buscar'])->name('vendedor.clientes.buscar');
+        Route::post('vendedor/clientes/exportar', [\App\Http\Controllers\Vendedor\ClienteController::class, 'exportar'])->name('vendedor.clientes.exportar');
+
+        // Comisiones del Vendedor
+        Route::get('vendedor/comisiones', [\App\Http\Controllers\Vendedor\ComisionController::class, 'index'])->name('vendedor.comisiones.index');
+        Route::get('vendedor/comisiones/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'show'])->name('vendedor.comisiones.show');
+        Route::get('vendedor/comisiones/solicitar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'solicitar'])->name('vendedor.comisiones.solicitar');
+        Route::post('vendedor/comisiones/solicitar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'procesarSolicitud'])->name('vendedor.comisiones.procesar');
+        Route::get('vendedor/comisiones/historial', [\App\Http\Controllers\Vendedor\ComisionController::class, 'historial'])->name('vendedor.comisiones.historial');
+        Route::get('vendedor/comisiones/evolucion', [\App\Http\Controllers\Vendedor\ComisionController::class, 'getEvolucionComisiones'])->name('vendedor.comisiones.evolucion');
+        Route::post('vendedor/comisiones/exportar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'exportar'])->name('vendedor.comisiones.exportar');
+
+        // Red de Referidos del Vendedor
+        Route::get('vendedor/referidos', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'index'])->name('vendedor.referidos.index');
+        Route::get('vendedor/referidos/{id}', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'show'])->name('vendedor.referidos.show');
+        Route::get('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'invitar'])->name('vendedor.referidos.invitar');
+        Route::post('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'enviarInvitacion'])->name('vendedor.referidos.enviar-invitacion');
+        Route::get('vendedor/referidos/ganancias', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'ganancias'])->name('vendedor.referidos.ganancias');
+        Route::get('vendedor/referidos/red', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'red'])->name('vendedor.referidos.red');
+        Route::get('vendedor/referidos/enlace', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'generarEnlaceReferido'])->name('vendedor.referidos.enlace');
+        Route::post('vendedor/referidos/exportar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'exportar'])->name('vendedor.referidos.exportar');
+
+        // Metas del Vendedor
+        Route::get('vendedor/metas', [\App\Http\Controllers\Vendedor\MetaController::class, 'index'])->name('vendedor.metas.index');
+        Route::post('vendedor/metas/actualizar', [\App\Http\Controllers\Vendedor\MetaController::class, 'actualizar'])->name('vendedor.metas.actualizar');
+        Route::get('vendedor/metas/progreso', [\App\Http\Controllers\Vendedor\MetaController::class, 'getProgreso'])->name('vendedor.metas.progreso');
+        Route::get('vendedor/metas/historial', [\App\Http\Controllers\Vendedor\MetaController::class, 'getHistorial'])->name('vendedor.metas.historial');
+        Route::get('vendedor/metas/sugerir', [\App\Http\Controllers\Vendedor\MetaController::class, 'sugerirMeta'])->name('vendedor.metas.sugerir');
+
+        // Reportes del Vendedor
+        Route::get('vendedor/reportes/ventas', [\App\Http\Controllers\Vendedor\ReporteController::class, 'ventas'])->name('vendedor.reportes.ventas');
+        Route::get('vendedor/reportes/rendimiento', [\App\Http\Controllers\Vendedor\ReporteController::class, 'rendimiento'])->name('vendedor.reportes.rendimiento');
+        Route::get('vendedor/reportes/comisiones', [\App\Http\Controllers\Vendedor\ReporteController::class, 'comisiones'])->name('vendedor.reportes.comisiones');
+
+        // Perfil del Vendedor
+        Route::get('vendedor/perfil', [\App\Http\Controllers\Vendedor\PerfilController::class, 'index'])->name('vendedor.perfil.index');
+        Route::get('vendedor/perfil/editar', [\App\Http\Controllers\Vendedor\PerfilController::class, 'edit'])->name('vendedor.perfil.edit');
+        Route::put('vendedor/perfil', [\App\Http\Controllers\Vendedor\PerfilController::class, 'update'])->name('vendedor.perfil.update');
+        Route::put('vendedor/perfil/password', [\App\Http\Controllers\Vendedor\PerfilController::class, 'updatePassword'])->name('vendedor.perfil.update-password');
+        Route::delete('vendedor/perfil/avatar', [\App\Http\Controllers\Vendedor\PerfilController::class, 'eliminarAvatar'])->name('vendedor.perfil.eliminar-avatar');
+        Route::get('vendedor/perfil/exportar-datos', [\App\Http\Controllers\Vendedor\PerfilController::class, 'exportarDatos'])->name('vendedor.perfil.exportar-datos');
+
+        // Configuración del Vendedor
+        Route::get('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'configuracion'])->name('vendedor.configuracion.index');
+        Route::put('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'updateConfiguracion'])->name('vendedor.configuracion.update');
     });
 });
 

@@ -76,6 +76,17 @@ class User extends Authenticatable
         return $this->hasMany(Pedido::class, 'vendedor_id');
     }
 
+    // Alias para usar en los controladores
+    public function pedidosVendedor(): HasMany
+    {
+        return $this->pedidosComoVendedor();
+    }
+
+    public function pedidos(): HasMany
+    {
+        return $this->pedidosComoCliente();
+    }
+
     public function pedidosComoCliente(): HasMany
     {
         return $this->hasMany(Pedido::class, 'user_id');

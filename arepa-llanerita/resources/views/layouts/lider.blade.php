@@ -9,12 +9,13 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-    <!-- Livewire Styles -->
     @livewireStyles
 
     <style>
@@ -22,80 +23,65 @@
             --primary-color: #722F37;
             --primary-dark: #5a252a;
             --primary-light: #8b3c44;
-            --primary-lighter: #a44950;
             --secondary-color: #ffffff;
             --text-dark: #2c2c2c;
             --text-muted: #6c757d;
-            --border-color: #e5e7eb;
+            --border-color: #dee2e6;
             --hover-bg: #f8f9fa;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            margin: 0;
-            min-height: 100vh;
+            background-color: #f8f9fa;
         }
 
-        /* Layout principal */
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            box-shadow: var(--shadow-lg);
-            position: fixed;
+        /* Sidebar Styles */
+        .lider-sidebar {
+            width: 260px;
             height: 100vh;
+            background: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            position: fixed;
             left: 0;
             top: 0;
-            z-index: 1000;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
+            z-index: 1040;
+            transition: transform 0.3s ease;
         }
 
-        .sidebar.collapsed {
-            transform: translateX(-280px);
+        .lider-sidebar.collapsed {
+            transform: translateX(-260px);
         }
 
         .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         .sidebar-brand {
-            font-size: 1.5rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--secondary-color);
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .sidebar-brand i {
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.9);
         }
 
         .sidebar-nav {
-            padding: 1.5rem 0;
+            padding: 1rem 0;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
         }
 
         .nav-section {
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             font-size: 0.75rem;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
 
         .nav-section:first-child {
@@ -103,71 +89,99 @@
         }
 
         .nav-item {
-            margin: 0.25rem 1rem;
+            margin: 0.25rem 0;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 0.875rem 1rem;
-            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+            color: var(--text-dark);
             text-decoration: none;
-            border-radius: 0.75rem;
-            font-weight: 500;
+            border-radius: 0;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
+            border-left: 3px solid transparent;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--secondary-color);
-            transform: translateX(4px);
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
         }
 
         .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--secondary-color);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: rgba(114, 47, 55, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 500;
         }
 
         .nav-link i {
             width: 20px;
             margin-right: 0.75rem;
-            font-size: 1.125rem;
+            font-size: 1rem;
         }
 
-        /* Main content */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 100vh;
+        .dropdown-toggle::after {
+            margin-left: auto;
+            transition: transform 0.2s ease;
         }
 
-        .main-content.expanded {
-            margin-left: 0;
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
         }
 
-        /* Header */
-        .main-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+        .dropdown-menu {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            position: static;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem 0.5rem 3rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-left: 3px solid transparent;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        /* Header Styles */
+        .lider-header {
+            height: 70px;
+            background: var(--secondary-color);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
             box-shadow: var(--shadow);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 260px;
+            z-index: 1060;
+            transition: left 0.3s ease;
+        }
+
+        .lider-header.expanded {
+            left: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 1.5rem;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 1rem;
         }
 
         .sidebar-toggle {
@@ -176,19 +190,19 @@
             font-size: 1.25rem;
             color: var(--text-dark);
             cursor: pointer;
+            margin-right: 1rem;
             padding: 0.5rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
         }
 
         .sidebar-toggle:hover {
-            background: var(--hover-bg);
-            color: var(--primary-color);
+            background-color: var(--hover-bg);
         }
 
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
             color: var(--text-dark);
             margin: 0;
         }
@@ -197,85 +211,69 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-left: auto;
         }
 
-        /* Notifications */
-        .notification-dropdown {
+        .header-notifications {
             position: relative;
-        }
-
-        .notification-btn {
             background: none;
             border: none;
             font-size: 1.25rem;
-            color: var(--text-muted);
+            color: var(--text-dark);
             cursor: pointer;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            transition: all 0.2s ease;
-            position: relative;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
         }
 
-        .notification-btn:hover {
-            background: var(--hover-bg);
-            color: var(--primary-color);
+        .header-notifications:hover {
+            background-color: var(--hover-bg);
         }
 
         .notification-badge {
             position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
+            top: 0.25rem;
+            right: 0.25rem;
             background: #dc3545;
             color: white;
-            font-size: 0.75rem;
+            font-size: 0.6rem;
             padding: 0.125rem 0.375rem;
             border-radius: 0.75rem;
             min-width: 1.25rem;
             text-align: center;
-            line-height: 1;
         }
 
-        /* Profile dropdown */
-        .profile-dropdown {
-            position: relative;
-        }
-
-        .profile-btn {
+        .header-profile {
             display: flex;
             align-items: center;
-            background: none;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
             gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
         }
 
-        .profile-btn:hover {
-            background: var(--hover-bg);
+        .header-profile:hover {
+            background-color: var(--hover-bg);
         }
 
         .profile-avatar {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
+            color: var(--secondary-color);
         }
 
         .profile-info {
-            text-align: left;
+            display: flex;
+            flex-direction: column;
         }
 
         .profile-name {
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text-dark);
             font-size: 0.875rem;
             line-height: 1.2;
@@ -284,347 +282,449 @@
         .profile-role {
             font-size: 0.75rem;
             color: var(--text-muted);
+            line-height: 1.2;
         }
 
-        /* Dropdown menus */
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
-            min-width: 200px;
-            z-index: 1050;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.2s ease;
-        }
-
-        .dropdown-menu.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .dropdown-item {
-            padding: 0.75rem 1rem;
-            color: var(--text-dark);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .dropdown-item:hover {
-            background: var(--hover-bg);
-            color: var(--primary-color);
-        }
-
-        /* Content area */
-        .content-area {
+        /* Main Content */
+        .lider-main {
+            margin-left: 260px;
+            margin-top: 70px;
             padding: 2rem;
+            min-height: calc(100vh - 70px);
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(var(--primary-color), 0.02);
-        }
-
-        .card-body {
-            padding: 2rem;
+        .lider-main.expanded {
+            margin-left: 0;
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-280px);
+        @media (max-width: 991.98px) {
+            .lider-sidebar {
+                transform: translateX(-260px);
             }
 
-            .sidebar.show {
+            .lider-sidebar.show {
                 transform: translateX(0);
             }
 
-            .main-content {
-                margin-left: 0;
+            .lider-header {
+                left: 0;
             }
 
-            .main-header {
+            .lider-main {
+                margin-left: 0;
                 padding: 1rem;
             }
 
-            .header-right .profile-info {
+            .profile-info {
                 display: none;
+            }
+
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .container-fluid {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
             }
         }
 
-        /* Utilities */
-        .text-primary { color: var(--primary-color) !important; }
-        .bg-primary { background-color: var(--primary-color) !important; }
-        .border-primary { border-color: var(--primary-color) !important; }
+        @media (max-width: 575.98px) {
+            .lider-main {
+                padding: 0.75rem;
+            }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            .card-body {
+                padding: 1rem !important;
+            }
+
+            .header-content {
+                padding: 0 0.75rem;
+            }
+
+            .profile-name {
+                display: none;
+            }
+
+            .notification-badge {
+                font-size: 0.5rem;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        /* Card Styles */
+        .card {
             border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-header {
+            background: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Asegurar que las badges no interfieran con dropdowns */
+        .badge {
+            position: relative;
+            z-index: 1 !important;
+        }
+
+        /* Badges específicas del header pueden tener prioridad intermedia */
+        .header-notifications .badge,
+        .notification-badge {
+            z-index: 50 !important;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.375rem;
+            z-index: 1070 !important;
+            position: absolute !important;
+        }
+
+        /* Específico para dropdowns del header */
+        .lider-header .dropdown-menu {
+            z-index: 1080 !important;
+        }
+
+        /* Bootstrap dropdown fix */
+        .dropdown-toggle::after {
+            margin-left: 0.5rem;
+        }
+
+        /* Forzar z-index para dropdowns activos */
+        .dropdown.show .dropdown-menu {
+            z-index: 1090 !important;
+        }
+
+        .lider-header .dropdown.show .dropdown-menu {
+            z-index: 1100 !important;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
         }
     </style>
-</head>
 
+    @stack('styles')
+</head>
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                    <i class="bi bi-person-badge"></i>
-                    <span>Dashboard Líder</span>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="lider-sidebar" id="liderSidebar">
+        <div class="sidebar-header">
+            <a href="{{ route('lider.dashboard') }}" class="sidebar-brand">
+                <i class="bi bi-person-badge me-2"></i>
+                Arepa la Llanerita
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <!-- Dashboard -->
+            <div class="nav-section">Dashboard</div>
+            <div class="nav-item">
+                <a href="{{ route('lider.dashboard') }}" class="nav-link {{ request()->routeIs('lider.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i>
+                    Panel Principal
                 </a>
             </div>
 
-            <div class="sidebar-nav">
-                <div class="nav-section">Panel Principal</div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.dashboard') }}" class="nav-link {{ request()->routeIs('lider.dashboard') ? 'active' : '' }}">
-                        <i class="bi bi-speedometer2"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
+            <!-- Mi Equipo -->
+            <div class="nav-section">Mi Equipo</div>
 
-                <div class="nav-section">Mi Equipo</div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.equipo.index') }}" class="nav-link {{ request()->routeIs('lider.equipo.*') ? 'active' : '' }}">
-                        <i class="bi bi-people"></i>
-                        <span>Gestión de Equipo</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.referidos.index') }}" class="nav-link {{ request()->routeIs('lider.referidos.*') ? 'active' : '' }}">
-                        <i class="bi bi-diagram-3"></i>
-                        <span>Red de Referidos</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.rendimiento.index') }}" class="nav-link {{ request()->routeIs('lider.rendimiento.*') ? 'active' : '' }}">
-                        <i class="bi bi-graph-up"></i>
-                        <span>Rendimiento</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">Ventas & Comisiones</div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.ventas.index') }}" class="nav-link {{ request()->routeIs('lider.ventas.*') ? 'active' : '' }}">
-                        <i class="bi bi-cart-check"></i>
-                        <span>Ventas del Equipo</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.comisiones.index') }}" class="nav-link {{ request()->routeIs('lider.comisiones.*') ? 'active' : '' }}">
-                        <i class="bi bi-currency-dollar"></i>
-                        <span>Mis Comisiones</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.metas.index') }}" class="nav-link {{ request()->routeIs('lider.metas.*') ? 'active' : '' }}">
-                        <i class="bi bi-target"></i>
-                        <span>Metas y Objetivos</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">Reportes</div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.reportes.ventas') }}" class="nav-link {{ request()->routeIs('lider.reportes.*') ? 'active' : '' }}">
-                        <i class="bi bi-bar-chart"></i>
-                        <span>Reportes</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">Configuración</div>
-                <div class="nav-item">
-                    <a href="{{ route('lider.perfil.index') }}" class="nav-link {{ request()->routeIs('lider.perfil.*') ? 'active' : '' }}">
-                        <i class="bi bi-person-gear"></i>
-                        <span>Mi Perfil</span>
-                    </a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content" id="mainContent">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <button class="sidebar-toggle" id="sidebarToggle">
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#equipoSubmenu" aria-expanded="false">
+                    <i class="bi bi-people"></i>
+                    Gestión de Equipo
+                </a>
+                <div class="collapse" id="equipoSubmenu">
+                    <a href="{{ route('lider.equipo.index') }}" class="dropdown-item">
                         <i class="bi bi-list"></i>
-                    </button>
-                    <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
+                        Lista del Equipo
+                    </a>
+                    <a href="{{ route('lider.rendimiento.index') }}" class="dropdown-item">
+                        <i class="bi bi-graph-up"></i>
+                        Rendimiento
+                    </a>
+                    <a href="{{ route('lider.capacitacion.index') }}" class="dropdown-item">
+                        <i class="bi bi-book"></i>
+                        Capacitación
+                    </a>
                 </div>
-
-                <div class="header-right">
-                    <!-- Notifications -->
-                    <div class="notification-dropdown">
-                        <button class="notification-btn" id="notificationToggle">
-                            <i class="bi bi-bell"></i>
-                            <span class="notification-badge">3</span>
-                        </button>
-                        <div class="dropdown-menu" id="notificationMenu">
-                            <a href="#" class="dropdown-item">
-                                <i class="bi bi-info-circle text-primary"></i>
-                                <div>
-                                    <div class="fw-semibold">Nueva venta registrada</div>
-                                    <small class="text-muted">Hace 5 minutos</small>
-                                </div>
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="bi bi-person-plus text-success"></i>
-                                <div>
-                                    <div class="fw-semibold">Nuevo miembro en tu equipo</div>
-                                    <small class="text-muted">Hace 1 hora</small>
-                                </div>
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="bi bi-target text-warning"></i>
-                                <div>
-                                    <div class="fw-semibold">Meta mensual alcanzada</div>
-                                    <small class="text-muted">Hace 2 horas</small>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Profile -->
-                    <div class="profile-dropdown">
-                        <button class="profile-btn" id="profileToggle">
-                            <div class="profile-avatar">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </div>
-                            <div class="profile-info">
-                                <div class="profile-name">{{ auth()->user()->name }}</div>
-                                <div class="profile-role">{{ ucfirst(auth()->user()->rol) }}</div>
-                            </div>
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu" id="profileMenu">
-                            <a href="{{ route('lider.perfil.index') }}" class="dropdown-item">
-                                <i class="bi bi-person"></i>
-                                <span>Mi Perfil</span>
-                            </a>
-                            <a href="{{ route('lider.configuracion.index') }}" class="dropdown-item">
-                                <i class="bi bi-gear"></i>
-                                <span>Configuración</span>
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="bi bi-question-circle"></i>
-                                <span>Ayuda</span>
-                            </a>
-                            <hr class="my-2">
-                            <a href="{{ route('logout') }}" class="dropdown-item"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Cerrar Sesión</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Content -->
-            <div class="content-area">
-                @yield('content')
             </div>
-        </main>
-    </div>
 
-    <!-- Logout form -->
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-        @csrf
-    </form>
+            <div class="nav-item">
+                <a href="{{ route('lider.referidos.index') }}" class="nav-link {{ request()->routeIs('lider.referidos.*') ? 'active' : '' }}">
+                    <i class="bi bi-diagram-3"></i>
+                    Red de Referidos
+                </a>
+            </div>
 
-    <!-- Livewire Scripts -->
+            <!-- Ventas y Comisiones -->
+            <div class="nav-section">Ventas y Comisiones</div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.ventas.index') }}" class="nav-link {{ request()->routeIs('lider.ventas.*') ? 'active' : '' }}">
+                    <i class="bi bi-cart-check"></i>
+                    Ventas del Equipo
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.comisiones.index') }}" class="nav-link {{ request()->routeIs('lider.comisiones.*') ? 'active' : '' }}">
+                    <i class="bi bi-currency-dollar"></i>
+                    Mis Comisiones
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.metas.index') }}" class="nav-link {{ request()->routeIs('lider.metas.*') ? 'active' : '' }}">
+                    <i class="bi bi-target"></i>
+                    Metas y Objetivos
+                </a>
+            </div>
+
+            <!-- Reportes -->
+            <div class="nav-section">Reportes</div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.reportes.ventas') }}" class="nav-link {{ request()->routeIs('lider.reportes.*') ? 'active' : '' }}">
+                    <i class="bi bi-bar-chart"></i>
+                    Reportes de Ventas
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Dashboard Analítico')">
+                    <i class="bi bi-pie-chart"></i>
+                    Dashboard Analítico
+                </a>
+            </div>
+
+            <!-- Configuración -->
+            <div class="nav-section">Configuración</div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.perfil.index') }}" class="nav-link {{ request()->routeIs('lider.perfil.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-gear"></i>
+                    Mi Perfil
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Notificaciones')">
+                    <i class="bi bi-bell-fill"></i>
+                    Notificaciones
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="lider-header" id="liderHeader">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="header-title">@yield('page-title', 'Dashboard')</h1>
+            </div>
+
+            <div class="header-right">
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <small class="text-muted">5 nuevas</small>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="bg-success rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 8px; height: 8px; margin-top: 6px;"></div>
+                                <div>
+                                    <div class="fw-medium small">Nueva venta registrada</div>
+                                    <small class="text-muted">Tu equipo ha registrado una nueva venta - hace 5 min</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 8px; height: 8px; margin-top: 6px;"></div>
+                                <div>
+                                    <div class="fw-medium small">Meta mensual alcanzada</div>
+                                    <small class="text-muted">Has alcanzado el 85% de tu meta - hace 2 horas</small>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <a href="#" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Centro de Notificaciones')">Ver todas</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="dropdown">
+                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-name">{{ Auth::user()->name }}</div>
+                            <div class="profile-role">{{ ucfirst(Auth::user()->rol) }}</div>
+                        </div>
+                        <i class="bi bi-chevron-down ms-2"></i>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end" style="z-index: 1090 !important;">
+                        <li>
+                            <h6 class="dropdown-header">
+                                {{ Auth::user()->name }}
+                                <small class="text-muted d-block">{{ Auth::user()->email }}</small>
+                            </h6>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('lider.perfil.index') }}">
+                                <i class="bi bi-person me-2"></i>
+                                Mi Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('lider.configuracion.index') }}">
+                                <i class="bi bi-gear me-2"></i>
+                                Configuración
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="showComingSoon('Ayuda')">
+                                <i class="bi bi-question-circle me-2"></i>
+                                Ayuda
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Cerrar Sesión
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="lider-main" id="liderMain">
+        @yield('content')
+    </main>
+
     @livewireScripts
-
-    <!-- Livewire Toast Notifications -->
     @livewire('toast-notifications')
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar toggle
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
+            const sidebar = document.getElementById('liderSidebar');
+            const header = document.getElementById('liderHeader');
+            const main = document.getElementById('liderMain');
+            const toggle = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
 
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('expanded');
-            });
-
-            // Dropdown toggles
-            function setupDropdown(toggleId, menuId) {
-                const toggle = document.getElementById(toggleId);
-                const menu = document.getElementById(menuId);
-
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    // Close other dropdowns
-                    document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-                        if (m !== menu) m.classList.remove('show');
-                    });
-                    menu.classList.toggle('show');
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function() {
-                    menu.classList.remove('show');
-                });
-            }
-
-            setupDropdown('notificationToggle', 'notificationMenu');
-            setupDropdown('profileToggle', 'profileMenu');
-
-            // Close sidebar on mobile when clicking outside
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                        sidebar.classList.remove('show');
-                    }
+            // Toggle sidebar
+            toggle.addEventListener('click', function() {
+                if (window.innerWidth <= 991.98) {
+                    // Mobile behavior
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                } else {
+                    // Desktop behavior
+                    sidebar.classList.toggle('collapsed');
+                    header.classList.toggle('expanded');
+                    main.classList.toggle('expanded');
                 }
             });
 
-            // Handle mobile sidebar
-            if (window.innerWidth <= 768) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                });
-            }
+            // Close sidebar when clicking overlay
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991.98) {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                }
+            });
+
+            // Initialize dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                    return new bootstrap.Dropdown(dropdownToggleEl);
+                }
+                return null;
+            }).filter(Boolean);
         });
+
+        // Coming soon function
+        function showComingSoon(feature) {
+            alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
+        }
     </script>
+
+    @stack('scripts')
 </body>
 </html>

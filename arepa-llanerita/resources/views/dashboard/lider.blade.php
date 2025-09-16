@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.lider')
 
 @section('title', '- Dashboard Líder')
+@section('page-title', 'Dashboard Líder')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/pages/lider-dashboard.css') }}">

@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.vendedor')
 
-@section('title', '- Dashboard Vendedor')
+@section('title', '- Dashboard')
+@section('page-title', 'Dashboard')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/pages/vendedor-dashboard.css') }}">
