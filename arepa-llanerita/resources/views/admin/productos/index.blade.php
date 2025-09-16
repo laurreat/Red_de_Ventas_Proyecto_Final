@@ -13,7 +13,7 @@
                     <p class="text-muted mb-0">Administra el catálogo completo de productos</p>
                 </div>
                 <div>
-                    <a href="#" class="btn btn-primary" onclick="showComingSoon('Crear Producto')">
+                    <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-1"></i>
                         Nuevo Producto
                     </a>
@@ -21,6 +21,13 @@
             </div>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     <!-- Métricas de Productos -->
     <div class="row mb-4">
@@ -31,7 +38,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-boxes fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">18</h3>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['total_productos'] }}</h3>
                     <p class="text-muted mb-0 small">Total Productos</p>
                 </div>
             </div>
@@ -44,8 +51,8 @@
                          style="width: 60px; height: 60px; background-color: rgba(40, 167, 69, 0.1);">
                         <i class="bi bi-check-circle fs-2 text-success"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-success">16</h3>
-                    <p class="text-muted mb-0 small">En Stock</p>
+                    <h3 class="fw-bold mb-1 text-success">{{ $stats['productos_activos'] }}</h3>
+                    <p class="text-muted mb-0 small">Productos Activos</p>
                 </div>
             </div>
         </div>
@@ -57,7 +64,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
                         <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-warning">2</h3>
+                    <h3 class="fw-bold mb-1 text-warning">{{ $stats['productos_stock_bajo'] }}</h3>
                     <p class="text-muted mb-0 small">Stock Bajo</p>
                 </div>
             </div>
@@ -70,95 +77,219 @@
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-tags fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">8</h3>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['total_categorias'] }}</h3>
                     <p class="text-muted mb-0 small">Categorías</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Acciones Rápidas -->
+    <!-- Filtros -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-lightning me-2"></i>
-                        Acciones Rápidas
+                        <i class="bi bi-funnel me-2"></i>
+                        Filtros de Búsqueda
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="showComingSoon('Lista de Productos')">
-                                    <i class="bi bi-list me-2"></i>
-                                    Ver Todos los Productos
-                                </button>
+                    <form method="GET" action="{{ route('admin.productos.index') }}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Buscar producto</label>
+                                <input type="text" class="form-control" name="buscar"
+                                       placeholder="Nombre o descripción..."
+                                       value="{{ request('buscar') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" name="categoria">
+                                    <option value="">Todas las categorías</option>
+                                    @foreach($categorias as $categoria)
+                                        <option value="{{ $categoria->id }}"
+                                                {{ request('categoria') == $categoria->id ? 'selected' : '' }}>
+                                            {{ $categoria->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" name="estado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="activo" {{ request('estado') == 'activo' ? 'selected' : '' }}>Activos</option>
+                                    <option value="inactivo" {{ request('estado') == 'inactivo' ? 'selected' : '' }}>Inactivos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
+                                    <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="showComingSoon('Gestión de Categorías')">
-                                    <i class="bi bi-tags me-2"></i>
-                                    Gestionar Categorías
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="showComingSoon('Control de Inventario')">
-                                    <i class="bi bi-box-seam me-2"></i>
-                                    Control de Inventario
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="showComingSoon('Importar Productos')">
-                                    <i class="bi bi-upload me-2"></i>
-                                    Importar Productos
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estado de Desarrollo -->
+    <!-- Lista de Productos -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="text-center py-4">
-                        <i class="bi bi-gear fs-1 text-muted"></i>
-                        <h4 class="mt-3 text-muted">Módulo en Desarrollo</h4>
-                        <p class="text-muted">La gestión completa de productos estará disponible próximamente.</p>
-                        <p class="text-muted"><strong>Funcionalidades planeadas:</strong></p>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>CRUD completo de productos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Gestión de categorías</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Control de inventario</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Carga de imágenes</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Precios y descuentos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Variantes de productos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Importación masiva</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Reportes de inventario</li>
-                                </ul>
-                            </div>
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Lista de Productos ({{ $productos->total() }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if($productos->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($productos as $producto)
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0 me-3">
+                                                    @if($producto->imagen)
+                                                        <img src="{{ asset('storage/' . $producto->imagen) }}"
+                                                             alt="{{ $producto->nombre }}"
+                                                             class="rounded"
+                                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                                    @else
+                                                        <div class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                                                             style="width: 50px; height: 50px;">
+                                                            <i class="bi bi-image text-white"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ $producto->nombre }}</div>
+                                                    @if($producto->descripcion)
+                                                        <small class="text-muted">{{ Str::limit($producto->descripcion, 50) }}</small>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ $producto->categoria->nombre }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>${{ number_format($producto->precio, 0) }}</strong>
+                                        </td>
+                                        <td>
+                                            @if($producto->stock <= 5)
+                                                <span class="badge bg-danger">{{ $producto->stock }}</span>
+                                            @elseif($producto->stock <= 10)
+                                                <span class="badge bg-warning">{{ $producto->stock }}</span>
+                                            @else
+                                                <span class="badge bg-success">{{ $producto->stock }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($producto->activo)
+                                                <span class="badge bg-success">Activo</span>
+                                            @else
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('admin.productos.show', $producto) }}"
+                                                   class="btn btn-sm btn-outline-info" title="Ver">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ route('admin.productos.edit', $producto) }}"
+                                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm {{ $producto->activo ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                                                        title="{{ $producto->activo ? 'Desactivar' : 'Activar' }}"
+                                                        onclick="toggleStatus({{ $producto->id }})">
+                                                    <i class="bi bi-{{ $producto->activo ? 'pause' : 'play' }}"></i>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        title="Eliminar"
+                                                        onclick="confirmDelete({{ $producto->id }})">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- Formularios ocultos -->
+                                            <form id="toggle-form-{{ $producto->id }}"
+                                                  action="{{ route('admin.productos.toggle-status', $producto) }}"
+                                                  method="POST" class="d-none">
+                                                @csrf
+                                                @method('PATCH')
+                                            </form>
+
+                                            <form id="delete-form-{{ $producto->id }}"
+                                                  action="{{ route('admin.productos.destroy', $producto) }}"
+                                                  method="POST" class="d-none">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+
+                        <!-- Paginación -->
+                        <div class="p-4">
+                            {{ $productos->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="bi bi-box fs-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">No hay productos</h4>
+                            <p class="text-muted">No se encontraron productos que coincidan con los filtros.</p>
+                            <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Crear primer producto
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function toggleStatus(productoId) {
+    if (confirm('¿Estás seguro de que quieres cambiar el estado de este producto?')) {
+        document.getElementById('toggle-form-' + productoId).submit();
+    }
+}
+
+function confirmDelete(productoId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer.')) {
+        document.getElementById('delete-form-' + productoId).submit();
+    }
+}
+</script>
 @endsection

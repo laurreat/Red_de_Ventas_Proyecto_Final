@@ -10,40 +10,71 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="text-muted mb-0">Análisis detallado de las ventas del sistema</p>
+                    <p class="text-muted mb-0">Análisis detallado de ventas y rendimiento</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-primary me-2" onclick="showComingSoon('Exportar Reporte')">
+                    <button type="button" class="btn btn-outline-success" onclick="exportarReporte()">
                         <i class="bi bi-download me-1"></i>
                         Exportar
-                    </button>
-                    <button class="btn btn-primary" onclick="showComingSoon('Generar Reporte')">
-                        <i class="bi bi-file-earmark-text me-1"></i>
-                        Generar Reporte
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Métricas de Ventas -->
+    <!-- Filtros -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+        <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(40, 167, 69, 0.1);">
-                        <i class="bi bi-currency-dollar fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">$2,458,000</h3>
-                    <p class="text-muted mb-0 small">Ventas del Mes</p>
-                    <small class="text-success">
-                        <i class="bi bi-arrow-up"></i> +12.5% vs mes anterior
-                    </small>
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-funnel me-2"></i>
+                        Filtros de Reporte
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="GET" action="{{ route('admin.reportes.ventas') }}">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">Fecha Inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio"
+                                       value="{{ $fechaInicio }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">Fecha Fin</label>
+                                <input type="date" class="form-control" name="fecha_fin"
+                                       value="{{ $fechaFin }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">Vendedor</label>
+                                <select class="form-select" name="vendedor_id">
+                                    <option value="">Todos los vendedores</option>
+                                    @foreach($vendedores as $vendedor)
+                                        <option value="{{ $vendedor->id }}"
+                                                {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search me-1"></i>
+                                        Generar Reporte
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center p-4">
@@ -51,11 +82,8 @@
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-cart-check fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">156</h3>
-                    <p class="text-muted mb-0 small">Pedidos del Mes</p>
-                    <small style="color: var(--primary-color);">
-                        <i class="bi bi-arrow-up"></i> +8.3% vs mes anterior
-                    </small>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['total_ventas'] }}</h3>
+                    <p class="text-muted mb-0 small">Total Ventas</p>
                 </div>
             </div>
         </div>
@@ -64,14 +92,24 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(13, 202, 240, 0.1);">
-                        <i class="bi bi-graph-up fs-2 text-info"></i>
+                         style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
+                        <i class="bi bi-currency-dollar fs-2 text-success"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-info">$15,780</h3>
+                    <h3 class="fw-bold mb-1 text-success">${{ number_format($stats['total_ingresos'], 0) }}</h3>
+                    <p class="text-muted mb-0 small">Total Ingresos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.1);">
+                        <i class="bi bi-receipt fs-2 text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-primary">${{ number_format($stats['ticket_promedio'], 0) }}</h3>
                     <p class="text-muted mb-0 small">Ticket Promedio</p>
-                    <small class="text-info">
-                        <i class="bi bi-arrow-up"></i> +3.8% vs mes anterior
-                    </small>
                 </div>
             </div>
         </div>
@@ -80,170 +118,235 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-people fs-2" style="color: var(--primary-color);"></i>
+                         style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
+                        <i class="bi bi-box-seam fs-2 text-warning"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">89</h3>
-                    <p class="text-muted mb-0 small">Clientes Activos</p>
-                    <small style="color: var(--primary-color);">
-                        <i class="bi bi-arrow-up"></i> +15.2% vs mes anterior
-                    </small>
+                    <h3 class="fw-bold mb-1 text-warning">{{ $stats['productos_vendidos'] }}</h3>
+                    <p class="text-muted mb-0 small">Productos Vendidos</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filtros de Fecha -->
+    <div class="row">
+        <!-- Ventas por Día -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Ventas por Día
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if($ventasPorDia->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cantidad Pedidos</th>
+                                        <th>Total Ventas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($ventasPorDia as $fecha => $data)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</td>
+                                        <td><span class="badge bg-primary">{{ $data['cantidad'] }}</span></td>
+                                        <td><strong>${{ number_format($data['total'], 0) }}</strong></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-graph-down fs-1"></i>
+                            <p class="mt-2">No hay datos de ventas en el período seleccionado</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventas por Estado -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-pie-chart me-2"></i>
+                        Ventas por Estado
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if($ventasPorEstado->count() > 0)
+                        @foreach($ventasPorEstado as $estado => $data)
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <span class="fw-medium">{{ ucfirst(str_replace('_', ' ', $estado)) }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ $data['cantidad'] }} pedidos</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong>${{ number_format($data['total'], 0) }}</strong>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No hay datos disponibles</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas por Vendedor -->
+    @if($ventasPorVendedor->count() > 0)
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-calendar3 me-2"></i>
-                        Filtros de Período
+                        <i class="bi bi-person-badge me-2"></i>
+                        Rendimiento por Vendedor
                     </h5>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-outline-primary w-100" onclick="showComingSoon('Hoy')">
-                                <i class="bi bi-calendar-day me-2"></i>
-                                Hoy
-                            </button>
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-primary w-100" onclick="showComingSoon('Esta Semana')">
-                                <i class="bi bi-calendar-week me-2"></i>
-                                Esta Semana
-                            </button>
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-outline-primary w-100" onclick="showComingSoon('Este Mes')">
-                                <i class="bi bi-calendar-month me-2"></i>
-                                Este Mes
-                            </button>
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-outline-primary w-100" onclick="showComingSoon('Trimestre')">
-                                <i class="bi bi-calendar3 me-2"></i>
-                                Trimestre
-                            </button>
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-outline-primary w-100" onclick="showComingSoon('Este Año')">
-                                <i class="bi bi-calendar4 me-2"></i>
-                                Este Año
-                            </button>
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                            <button class="btn btn-outline-secondary w-100" onclick="showComingSoon('Personalizado')">
-                                <i class="bi bi-sliders me-2"></i>
-                                Personalizado
-                            </button>
-                        </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Vendedor</th>
+                                    <th>Pedidos</th>
+                                    <th>Total Ventas</th>
+                                    <th>Comisión Estimada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($ventasPorVendedor as $data)
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <div class="fw-medium">{{ $data['vendedor'] }}</div>
+                                            <small class="text-muted">{{ $data['email'] }}</small>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-primary">{{ $data['cantidad_pedidos'] }}</span></td>
+                                    <td><strong>${{ number_format($data['total_ventas'], 0) }}</strong></td>
+                                    <td><strong class="text-success">${{ number_format($data['comision_estimada'], 0) }}</strong></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
     <div class="row">
-        <!-- Gráfico de Ventas -->
-        <div class="col-xl-8 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-graph-up me-2"></i>
-                        Tendencia de Ventas
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="text-center py-5">
-                        <i class="bi bi-bar-chart fs-1 text-muted"></i>
-                        <h5 class="mt-3 text-muted">Gráfico de Ventas</h5>
-                        <p class="text-muted">Integración con Chart.js próximamente</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Vendedores -->
-        <div class="col-xl-4 mb-4">
+        <!-- Productos Más Vendidos -->
+        <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-trophy me-2"></i>
-                        Top Vendedores
+                        Productos Más Vendidos
                     </h5>
                 </div>
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Ana López</div>
-                            <small class="text-muted">Vendedor</small>
+                <div class="card-body p-0">
+                    @if($productosMasVendidos->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Vendidos</th>
+                                        <th>Ingresos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($productosMasVendidos as $data)
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ $data['producto'] }}</div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ $data['categoria'] }}</span></td>
+                                        <td><span class="badge bg-success">{{ $data['cantidad_vendida'] }}</span></td>
+                                        <td><strong>${{ number_format($data['total_ingresos'], 0) }}</strong></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$485,000</div>
-                            <small class="text-muted">23 pedidos</small>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-box fs-1"></i>
+                            <p class="mt-2">No hay productos vendidos en el período</p>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Miguel Torres</div>
-                            <small class="text-muted">Vendedor</small>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$420,000</div>
-                            <small class="text-muted">19 pedidos</small>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center py-2">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Carlos Rodríguez</div>
-                            <small class="text-muted">Líder</small>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$380,000</div>
-                            <small class="text-muted">15 pedidos</small>
-                        </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Estado de Desarrollo -->
-    <div class="row">
-        <div class="col-12">
+        <!-- Clientes Más Activos -->
+        <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="text-center py-4">
-                        <i class="bi bi-graph-up-arrow fs-1 text-muted"></i>
-                        <h4 class="mt-3 text-muted">Módulo en Desarrollo</h4>
-                        <p class="text-muted">Los reportes avanzados de ventas estarán disponibles próximamente.</p>
-                        <p class="text-muted"><strong>Funcionalidades planeadas:</strong></p>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Gráficos interactivos con Chart.js</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Reportes por período personalizado</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Análisis por vendedor</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Comparativas mensuales</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Exportación a PDF y Excel</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Métricas de rendimiento</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Análisis de productos más vendidos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Proyecciones de ventas</li>
-                                </ul>
-                            </div>
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-people me-2"></i>
+                        Clientes Más Activos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if($clientesMasActivos->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Pedidos</th>
+                                        <th>Total Gastado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($clientesMasActivos as $data)
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div class="fw-medium">{{ $data['cliente'] }}</div>
+                                                <small class="text-muted">{{ $data['email'] }}</small>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-primary">{{ $data['cantidad_pedidos'] }}</span></td>
+                                        <td><strong>${{ number_format($data['total_gastado'], 0) }}</strong></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-people fs-1"></i>
+                            <p class="mt-2">No hay clientes activos en el período</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function exportarReporte() {
+    // TODO: Implementar exportación
+    alert('Funcionalidad de exportación en desarrollo');
+}
+</script>
 @endsection

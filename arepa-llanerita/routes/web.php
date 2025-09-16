@@ -40,34 +40,41 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::patch('admin/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('admin.users.toggle-active');
 
         // Productos
-        Route::get('admin/productos', function () {
-            return view('admin.productos.index');
-        })->name('admin.productos.index');
+        Route::resource('admin/productos', \App\Http\Controllers\Admin\ProductoController::class, ['as' => 'admin']);
+        Route::patch('admin/productos/{producto}/toggle-status', [\App\Http\Controllers\Admin\ProductoController::class, 'toggleStatus'])->name('admin.productos.toggle-status');
 
         // Pedidos
-        Route::get('admin/pedidos', function () {
-            return view('admin.pedidos.index');
-        })->name('admin.pedidos.index');
+        Route::resource('admin/pedidos', \App\Http\Controllers\Admin\PedidoController::class, ['as' => 'admin']);
+        Route::patch('admin/pedidos/{pedido}/status', [\App\Http\Controllers\Admin\PedidoController::class, 'updateStatus'])->name('admin.pedidos.update-status');
 
         // Reportes
-        Route::get('admin/reportes/ventas', function () {
-            return view('admin.reportes.ventas');
-        })->name('admin.reportes.ventas');
+        Route::get('admin/reportes/ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'ventas'])->name('admin.reportes.ventas');
+        Route::get('admin/reportes/productos', [\App\Http\Controllers\Admin\ReporteController::class, 'productos'])->name('admin.reportes.productos');
+        Route::get('admin/reportes/comisiones', [\App\Http\Controllers\Admin\ReporteController::class, 'comisiones'])->name('admin.reportes.comisiones');
+        Route::post('admin/reportes/exportar-ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'exportarVentas'])->name('admin.reportes.exportar-ventas');
 
         // Comisiones
-        Route::get('admin/comisiones', function () {
-            return view('admin.comisiones.index');
-        })->name('admin.comisiones.index');
+        Route::get('admin/comisiones', [\App\Http\Controllers\Admin\ComisionController::class, 'index'])->name('admin.comisiones.index');
+        Route::get('admin/comisiones/{id}', [\App\Http\Controllers\Admin\ComisionController::class, 'show'])->name('admin.comisiones.show');
+        Route::post('admin/comisiones/calcular', [\App\Http\Controllers\Admin\ComisionController::class, 'calcular'])->name('admin.comisiones.calcular');
+        Route::post('admin/comisiones/exportar', [\App\Http\Controllers\Admin\ComisionController::class, 'exportar'])->name('admin.comisiones.exportar');
 
         // Red de Referidos
-        Route::get('admin/referidos', function () {
-            return view('admin.referidos');
-        })->name('admin.referidos.index');
+        Route::get('admin/referidos', [\App\Http\Controllers\Admin\ReferidoController::class, 'index'])->name('admin.referidos.index');
+        Route::get('admin/referidos/{id}', [\App\Http\Controllers\Admin\ReferidoController::class, 'show'])->name('admin.referidos.show');
+        Route::get('admin/referidos/red/{id?}', [\App\Http\Controllers\Admin\ReferidoController::class, 'red'])->name('admin.referidos.red');
+        Route::get('admin/referidos/estadisticas', [\App\Http\Controllers\Admin\ReferidoController::class, 'estadisticas'])->name('admin.referidos.estadisticas');
 
         // Configuración
-        Route::get('admin/configuracion', function () {
-            return view('admin.configuracion.index');
-        })->name('admin.configuracion.index');
+        Route::get('admin/configuracion', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'index'])->name('admin.configuracion.index');
+        Route::post('admin/configuracion/general', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'updateGeneral'])->name('admin.configuracion.update-general');
+        Route::post('admin/configuracion/mlm', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'updateMlm'])->name('admin.configuracion.update-mlm');
+        Route::post('admin/configuracion/pedidos', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'updatePedidos'])->name('admin.configuracion.update-pedidos');
+        Route::post('admin/configuracion/notificaciones', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'updateNotificaciones'])->name('admin.configuracion.update-notificaciones');
+        Route::post('admin/configuracion/backup', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'backup'])->name('admin.configuracion.backup');
+        Route::post('admin/configuracion/limpiar-cache', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'limpiarCache'])->name('admin.configuracion.limpiar-cache');
+        Route::post('admin/configuracion/limpiar-logs', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'limpiarLogs'])->name('admin.configuracion.limpiar-logs');
+        Route::get('admin/configuracion/info-sistema', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'infoSistema'])->name('admin.configuracion.info-sistema');
     });
     
     // Rutas para Líderes y Administradores

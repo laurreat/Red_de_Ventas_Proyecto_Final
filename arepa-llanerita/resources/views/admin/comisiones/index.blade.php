@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', '- Comisiones')
+@section('title', '- Gestión de Comisiones')
 @section('page-title', 'Gestión de Comisiones')
 
 @section('content')
@@ -10,33 +10,84 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="text-muted mb-0">Administra las comisiones del sistema MLM</p>
+                    <p class="text-muted mb-0">Control y seguimiento de comisiones de vendedores</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-primary me-2" onclick="showComingSoon('Procesar Comisiones')">
-                        <i class="bi bi-gear me-1"></i>
-                        Procesar Comisiones
+                    <button type="button" class="btn btn-outline-success me-2" onclick="calcularComisiones()">
+                        <i class="bi bi-calculator me-1"></i>
+                        Calcular
                     </button>
-                    <button class="btn btn-primary" onclick="showComingSoon('Configurar Comisiones')">
-                        <i class="bi bi-sliders me-1"></i>
-                        Configuración
+                    <button type="button" class="btn btn-outline-primary" onclick="exportarComisiones()">
+                        <i class="bi bi-download me-1"></i>
+                        Exportar
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Métricas de Comisiones -->
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-funnel me-2"></i>
+                        Filtros de Período
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="GET" action="{{ route('admin.comisiones.index') }}">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">Fecha Inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio"
+                                       value="{{ $fechaInicio }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <label class="form-label">Fecha Fin</label>
+                                <input type="date" class="form-control" name="fecha_fin"
+                                       value="{{ $fechaFin }}">
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <label class="form-label">Vendedor</label>
+                                <select class="form-select" name="vendedor_id">
+                                    <option value="">Todos los vendedores</option>
+                                    @foreach($vendedores as $vendedor)
+                                        <option value="{{ $vendedor->id }}"
+                                                {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search me-1"></i>
+                                        Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-cash-stack fs-2" style="color: var(--primary-color);"></i>
+                         style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
+                        <i class="bi bi-currency-dollar fs-2 text-success"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">$425,000</h3>
-                    <p class="text-muted mb-0 small">Comisiones del Mes</p>
+                    <h3 class="fw-bold mb-1 text-success">${{ number_format($stats['total_comisiones_ganadas'], 0) }}</h3>
+                    <p class="text-muted mb-0 small">Comisiones Ganadas</p>
                 </div>
             </div>
         </div>
@@ -48,21 +99,8 @@
                          style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
                         <i class="bi bi-clock fs-2 text-warning"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-warning">$125,000</h3>
-                    <p class="text-muted mb-0 small">Pendientes de Pago</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(40, 167, 69, 0.1);">
-                        <i class="bi bi-check-circle fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">$300,000</h3>
-                    <p class="text-muted mb-0 small">Pagadas este Mes</p>
+                    <h3 class="fw-bold mb-1 text-warning">${{ number_format($stats['total_comisiones_pendientes'], 0) }}</h3>
+                    <p class="text-muted mb-0 small">Comisiones Pendientes</p>
                 </div>
             </div>
         </div>
@@ -74,197 +112,225 @@
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-people fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">28</h3>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['vendedores_activos'] }}</h3>
                     <p class="text-muted mb-0 small">Vendedores Activos</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Acciones Rápidas -->
-    <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-lightning me-2"></i>
-                        Acciones Rápidas
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-warning" onclick="showComingSoon('Comisiones Pendientes')">
-                                    <i class="bi bi-clock me-2"></i>
-                                    Pendientes ($125,000)
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-success" onclick="showComingSoon('Procesar Pagos')">
-                                    <i class="bi bi-credit-card me-2"></i>
-                                    Procesar Pagos
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="showComingSoon('Historial de Pagos')">
-                                    <i class="bi bi-clock-history me-2"></i>
-                                    Historial de Pagos
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="d-grid">
-                                <button class="btn btn-outline-secondary" onclick="showComingSoon('Exportar Reporte')">
-                                    <i class="bi bi-download me-2"></i>
-                                    Exportar Reporte
-                                </button>
-                            </div>
-                        </div>
+                <div class="card-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                         style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.1);">
+                        <i class="bi bi-bar-chart fs-2 text-primary"></i>
                     </div>
+                    <h3 class="fw-bold mb-1 text-primary">${{ number_format($stats['promedio_comision'], 0) }}</h3>
+                    <p class="text-muted mb-0 small">Promedio Comisión</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <!-- Configuración de Comisiones -->
-        <div class="col-xl-6 mb-4">
+        <!-- Tabla de Comisiones por Vendedor -->
+        <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-sliders me-2"></i>
-                        Configuración Actual
+                        <i class="bi bi-table me-2"></i>
+                        Comisiones por Vendedor
                     </h5>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 style="color: var(--primary-color);">5%</h4>
-                                <small class="text-muted">Comisión Directa</small>
-                            </div>
+                <div class="card-body p-0">
+                    @if($comisiones->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Vendedor</th>
+                                        <th>Pedidos</th>
+                                        <th>Entregados</th>
+                                        <th>Total Ventas</th>
+                                        <th>Comisión Ganada</th>
+                                        <th>Comisión Pendiente</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($comisiones as $comision)
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div class="fw-medium">{{ $comision->name }}</div>
+                                                <small class="text-muted">{{ $comision->email }}</small>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-primary">{{ $comision->total_pedidos }}</span></td>
+                                        <td><span class="badge bg-success">{{ $comision->pedidos_entregados }}</span></td>
+                                        <td><strong>${{ number_format($comision->total_ventas, 0) }}</strong></td>
+                                        <td><strong class="text-success">${{ number_format($comision->comision_ganada, 0) }}</strong></td>
+                                        <td><strong class="text-warning">${{ number_format($comision->comision_pendiente, 0) }}</strong></td>
+                                        <td>
+                                            <a href="{{ route('admin.comisiones.show', $comision->id) }}"
+                                               class="btn btn-sm btn-outline-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 style="color: var(--primary-color);">3%</h4>
-                                <small class="text-muted">Comisión de Referido</small>
-                            </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="bi bi-calculator fs-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">No hay comisiones</h4>
+                            <p class="text-muted">No se encontraron comisiones en el período seleccionado.</p>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 style="color: var(--primary-color);">2%</h4>
-                                <small class="text-muted">Comisión de Líder</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 style="color: var(--primary-color);">15°</h4>
-                                <small class="text-muted">Día de Pago</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-grid">
-                        <button class="btn btn-outline-primary" onclick="showComingSoon('Editar Configuración')">
-                            <i class="bi bi-gear me-2"></i>
-                            Editar Configuración
-                        </button>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Top Comisionistas -->
-        <div class="col-xl-6 mb-4">
-            <div class="card border-0 shadow-sm">
+        <!-- Top Vendedores y Comisiones por Día -->
+        <div class="col-lg-4 mb-4">
+            <!-- Top 5 Vendedores -->
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-trophy me-2"></i>
-                        Top Comisionistas del Mes
+                        Top 5 Vendedores
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Ana López</div>
-                            <small class="text-muted">Vendedor</small>
+                    @if($topVendedores->count() > 0)
+                        @foreach($topVendedores as $index => $vendedor)
+                            <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'mb-3 pb-3 border-bottom' : '' }}">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        @if($index == 0)
+                                            <div class="badge bg-warning text-dark fs-6">🥇</div>
+                                        @elseif($index == 1)
+                                            <div class="badge bg-secondary fs-6">🥈</div>
+                                        @elseif($index == 2)
+                                            <div class="badge bg-danger fs-6">🥉</div>
+                                        @else
+                                            <div class="badge bg-light text-dark">{{ $index + 1 }}</div>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ $vendedor->name }}</div>
+                                        <small class="text-muted">{{ $vendedor->pedidos_entregados }} entregados</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-success">${{ number_format($vendedor->comision_ganada, 0) }}</div>
+                                    <small class="text-muted">${{ number_format($vendedor->total_ventas, 0) }} ventas</small>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-trophy fs-1"></i>
+                            <p class="mt-2">No hay datos disponibles</p>
                         </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$24,250</div>
-                            <small class="text-success">+18.5%</small>
-                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Mejor Vendedor del Período -->
+            @if($stats['mejor_vendedor'])
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-star me-2"></i>
+                        Vendedor Destacado
+                    </h5>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-check fs-1" style="color: var(--primary-color);"></i>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Carlos Rodríguez</div>
-                            <small class="text-muted">Líder</small>
+                    <h6 class="fw-semibold">{{ $stats['mejor_vendedor']->name }}</h6>
+                    <p class="text-muted mb-3">{{ $stats['mejor_vendedor']->email }}</p>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="fw-semibold mb-1 text-success">${{ number_format($stats['mejor_vendedor']->comision_ganada, 0) }}</h6>
+                                <small class="text-muted">Comisión</small>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$19,000</div>
-                            <small class="text-success">+12.3%</small>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Miguel Torres</div>
-                            <small class="text-muted">Vendedor</small>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$17,800</div>
-                            <small class="text-success">+9.7%</small>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center py-2">
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Laura Martínez</div>
-                            <small class="text-muted">Vendedor</small>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-bold" style="color: var(--primary-color);">$15,200</div>
-                            <small class="text-success">+15.1%</small>
+                        <div class="col-6">
+                            <h6 class="fw-semibold mb-1" style="color: var(--primary-color);">{{ $stats['mejor_vendedor']->pedidos_entregados }}</h6>
+                            <small class="text-muted">Entregados</small>
                         </div>
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 
-    <!-- Estado de Desarrollo -->
+    <!-- Comisiones por Día -->
+    @if($comisionesPorDia->count() > 0)
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Evolución Diaria de Comisiones
+                    </h5>
+                </div>
                 <div class="card-body p-4">
-                    <div class="text-center py-4">
-                        <i class="bi bi-cash-coin fs-1 text-muted"></i>
-                        <h4 class="mt-3 text-muted">Módulo en Desarrollo</h4>
-                        <p class="text-muted">El sistema completo de comisiones estará disponible próximamente.</p>
-                        <p class="text-muted"><strong>Funcionalidades planeadas:</strong></p>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Cálculo automático de comisiones</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Configuración flexible de porcentajes</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Procesamiento masivo de pagos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Historial detallado</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Reportes de comisiones</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Notificaciones automáticas</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Integración con bancos</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Auditoría de comisiones</li>
-                                </ul>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Pedidos</th>
+                                    <th>Ventas</th>
+                                    <th>Comisiones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($comisionesPorDia as $dia)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($dia->fecha)->format('d/m/Y') }}</td>
+                                    <td><span class="badge bg-primary">{{ $dia->pedidos }}</span></td>
+                                    <td><strong>${{ number_format($dia->ventas, 0) }}</strong></td>
+                                    <td><strong class="text-success">${{ number_format($dia->comisiones, 0) }}</strong></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 </div>
+
+<script>
+function calcularComisiones() {
+    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
+    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
+
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor selecciona un período válido');
+        return;
+    }
+
+    // TODO: Implementar cálculo de comisiones
+    alert('Calculando comisiones para el período seleccionado...');
+}
+
+function exportarComisiones() {
+    // TODO: Implementar exportación
+    alert('Funcionalidad de exportación en desarrollo');
+}
+</script>
 @endsection
