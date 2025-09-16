@@ -1,294 +1,391 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }} @yield('title')</title>
+    <title>{{ config('app.name', 'Arepa la Llanerita') }} @yield('title')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Scripts -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @livewireStyles
 
-    <!-- Custom Styles -->
     <style>
         :root {
             --primary-color: #722F37;
-            --primary-light: rgba(114, 47, 55, 0.1);
             --primary-dark: #5a252a;
+            --primary-light: #8b3c44;
             --secondary-color: #ffffff;
-            --success-color: #28a745;
-            --info-color: #17a2b8;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --dark-color: #343a40;
-            --light-color: #f8f9fa;
-            --border-color: #dee2e6;
+            --text-dark: #2c2c2c;
             --text-muted: #6c757d;
-            --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            --border-radius: 0.5rem;
-            --transition: all 0.3s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --border-color: #dee2e6;
+            --hover-bg: #f8f9fa;
+            --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .vendedor-wrapper {
-            display: flex;
-            min-height: 100vh;
+            background-color: #f8f9fa;
         }
 
         /* Sidebar Styles */
         .vendedor-sidebar {
-            width: 280px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
-            position: fixed;
-            top: 0;
-            left: 0;
+            width: 260px;
             height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
-            transition: var(--transition);
+            background: var(--secondary-color);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1040;
+            transition: transform 0.3s ease;
+        }
+
+        .vendedor-sidebar.collapsed {
+            transform: translateX(-260px);
         }
 
         .sidebar-header {
             padding: 1.5rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         .sidebar-brand {
-            color: white;
-            text-decoration: none;
             font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-brand:hover {
-            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+            color: var(--secondary-color);
+            text-decoration: none;
         }
 
         .sidebar-nav {
             padding: 1rem 0;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
         }
 
         .nav-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .nav-section-title {
             padding: 0.5rem 1rem;
             font-size: 0.75rem;
             font-weight: 600;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .nav-section:first-child {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
             padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-dark);
             text-decoration: none;
-            transition: var(--transition);
+            border-radius: 0;
+            transition: all 0.2s ease;
             border-left: 3px solid transparent;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-left-color: rgba(255, 255, 255, 0.5);
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
         }
 
         .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-left-color: white;
+            background-color: rgba(114, 47, 55, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 500;
         }
 
         .nav-link i {
             width: 20px;
             margin-right: 0.75rem;
-            text-align: center;
-        }
-
-        /* Dropdown Styles */
-        .dropdown-toggle {
-            position: relative;
+            font-size: 1rem;
         }
 
         .dropdown-toggle::after {
-            content: '\F285';
-            font-family: 'bootstrap-icons';
             margin-left: auto;
-            transition: var(--transition);
+            transition: transform 0.2s ease;
         }
 
-        .dropdown-toggle.collapsed::after {
-            content: '\F286';
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
         }
 
-        .dropdown-menu-vendedor {
-            background: rgba(0, 0, 0, 0.2);
+        .dropdown-menu {
+            background: transparent;
             border: none;
-            padding: 0.5rem 0;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            position: static;
         }
 
-        .dropdown-item-vendedor {
+        .dropdown-item {
             padding: 0.5rem 1rem 0.5rem 3rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            display: block;
-            transition: var(--transition);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-left: 3px solid transparent;
         }
 
-        .dropdown-item-vendedor:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Main Content */
-        .vendedor-main {
-            margin-left: 280px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .vendedor-header {
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .dropdown-item:hover {
+            background-color: var(--hover-bg);
             color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        /* Header Styles */
+        .vendedor-header {
+            height: 70px;
+            background: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 260px;
+            z-index: 1060;
+            transition: left 0.3s ease;
+        }
+
+        .vendedor-header.expanded {
+            left: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 1.5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            margin-right: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
             margin: 0;
         }
 
-        .header-actions {
+        .header-right {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-left: auto;
         }
 
-        .notification-btn {
+        .header-notifications {
             position: relative;
             background: none;
             border: none;
             font-size: 1.25rem;
-            color: var(--text-muted);
+            color: var(--text-dark);
             cursor: pointer;
-            transition: var(--transition);
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
         }
 
-        .notification-btn:hover {
-            color: var(--primary-color);
+        .header-notifications:hover {
+            background-color: var(--hover-bg);
         }
 
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger-color);
+            top: 0.25rem;
+            right: 0.25rem;
+            background: #dc3545;
             color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 0.6rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.75rem;
+            min-width: 1.25rem;
+            text-align: center;
         }
 
-        .user-menu {
+        .header-profile {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
+            gap: 0.75rem;
             cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
         }
 
-        .user-menu:hover {
-            background: var(--light-color);
+        .header-profile:hover {
+            background-color: var(--hover-bg);
         }
 
-        .user-avatar {
+        .profile-avatar {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
             background: var(--primary-color);
-            color: white;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            color: var(--secondary-color);
         }
 
-        .vendedor-content {
-            flex: 1;
-            padding: 1.5rem;
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-name {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.875rem;
+            line-height: 1.2;
+        }
+
+        .profile-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        /* Main Content */
+        .vendedor-main {
+            margin-left: 260px;
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vendedor-main.expanded {
+            margin-left: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .vendedor-sidebar {
+                transform: translateX(-260px);
+            }
+
+            .vendedor-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .vendedor-header {
+                left: 0;
+            }
+
+            .vendedor-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .profile-info {
+                display: none;
+            }
+
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .container-fluid {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .vendedor-main {
+                padding: 0.75rem;
+            }
+
+            .card-body {
+                padding: 1rem !important;
+            }
+
+            .header-content {
+                padding: 0 0.75rem;
+            }
+
+            .profile-name {
+                display: none;
+            }
+
+            .notification-badge {
+                font-size: 0.5rem;
+                padding: 0.1rem 0.3rem;
+            }
         }
 
         /* Card Styles */
         .card {
             border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 2;
         }
 
         .card-header {
-            background: white;
+            background: var(--secondary-color);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 1.25rem;
-            font-weight: 600;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
         }
 
-        .metric-card {
-            transition: var(--transition);
+        /* Asegurar que las badges no interfieran con dropdowns */
+        .badge {
+            position: relative;
+            z-index: 1 !important;
         }
 
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(114, 47, 55, 0.15);
+        /* Badges específicas del header pueden tener prioridad intermedia */
+        .header-notifications .badge,
+        .notification-badge {
+            z-index: 50 !important;
         }
 
+        /* Buttons */
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
@@ -299,334 +396,386 @@
             border-color: var(--primary-dark);
         }
 
-        .text-primary {
-            color: var(--primary-color) !important;
-        }
-
-        .bg-primary {
-            background-color: var(--primary-color) !important;
-        }
-
-        /* Progress Bars */
-        .progress {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #e9ecef;
-        }
-
-        .progress-bar {
-            background-color: var(--primary-color);
-            border-radius: 4px;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .vendedor-sidebar {
-                width: 100%;
-                transform: translateX(-100%);
-            }
-
-            .vendedor-sidebar.show {
-                transform: translateX(0);
-            }
-
-            .vendedor-main {
-                margin-left: 0;
-            }
-
-            .mobile-toggle {
-                display: block !important;
-            }
-        }
-
-        .mobile-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.25rem;
+        .btn-outline-primary {
             color: var(--primary-color);
-            cursor: pointer;
+            border-color: var(--primary-color);
         }
 
-        /* Utility Classes */
-        .text-vinotinto {
-            color: var(--primary-color) !important;
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
-        .bg-vinotinto {
-            background-color: var(--primary-color) !important;
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.375rem;
+            z-index: 1070 !important;
+            position: absolute !important;
         }
 
-        .border-vinotinto {
-            border-color: var(--primary-color) !important;
+        /* Específico para dropdowns del header */
+        .vendedor-header .dropdown-menu {
+            z-index: 1080 !important;
+        }
+
+        /* Bootstrap dropdown fix */
+        .dropdown-toggle::after {
+            margin-left: 0.5rem;
+        }
+
+        /* Forzar z-index para dropdowns activos */
+        .dropdown.show .dropdown-menu {
+            z-index: 1090 !important;
+        }
+
+        .vendedor-header .dropdown.show .dropdown-menu {
+            z-index: 1100 !important;
+        }
+
+        /* Contenedor global para evitar stacking context issues */
+        .container-fluid {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Todos los elementos del contenido principal deben estar por debajo del header */
+        .vendedor-main * {
+            position: relative;
+            z-index: auto;
+        }
+
+        /* Las badges del contenido específicamente deben estar muy por debajo */
+        .vendedor-main .badge {
+            z-index: 1 !important;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
         }
     </style>
 
     @stack('styles')
 </head>
-
 <body>
-    <div class="vendedor-wrapper">
-        <!-- Sidebar -->
-        <nav class="vendedor-sidebar" id="vendedorSidebar">
-            <div class="sidebar-header">
-                <a href="{{ route('vendedor.dashboard') }}" class="sidebar-brand">
-                    <i class="bi bi-shop me-2"></i>
-                    Arepa la Llanerita
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- Sidebar -->
+    <nav class="vendedor-sidebar" id="vendedorSidebar">
+        <div class="sidebar-header">
+            <a href="{{ route('vendedor.dashboard') }}" class="sidebar-brand">
+                <i class="bi bi-shop me-2"></i>
+                Arepa la Llanerita
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <!-- Dashboard -->
+            <div class="nav-section">Dashboard</div>
+            <div class="nav-item">
+                <a href="{{ route('vendedor.dashboard') }}" class="nav-link {{ request()->routeIs('vendedor.dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i>
+                    Panel Principal
                 </a>
             </div>
 
-            <div class="sidebar-nav">
-                <!-- Dashboard -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Principal</div>
-                    <a href="{{ route('vendedor.dashboard') }}" class="nav-link {{ request()->routeIs('vendedor.dashboard') ? 'active' : '' }}">
-                        <i class="bi bi-speedometer2"></i>
-                        Dashboard
+            <!-- Ventas -->
+            <div class="nav-section">Ventas</div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#ventasSubmenu" aria-expanded="false">
+                    <i class="bi bi-cart-check"></i>
+                    Mis Ventas
+                </a>
+                <div class="collapse" id="ventasSubmenu">
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Gestión de Pedidos')">
+                        <i class="bi bi-list"></i>
+                        Gestión de Pedidos
                     </a>
-                </div>
-
-                <!-- Ventas -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Ventas</div>
-
-                    <a href="#ventasSubmenu" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                       aria-expanded="{{ request()->routeIs('vendedor.pedidos.*') || request()->routeIs('vendedor.ventas.*') ? 'true' : 'false' }}">
-                        <i class="bi bi-cart-check"></i>
-                        Mis Ventas
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Nueva Venta')">
+                        <i class="bi bi-plus-circle"></i>
+                        Nueva Venta
                     </a>
-                    <div class="collapse {{ request()->routeIs('vendedor.pedidos.*') || request()->routeIs('vendedor.ventas.*') ? 'show' : '' }}" id="ventasSubmenu">
-                        <div class="dropdown-menu-vendedor">
-                            <a href="{{ route('vendedor.pedidos.index') }}" class="dropdown-item-vendedor">Gestión de Pedidos</a>
-                            <a href="{{ route('vendedor.ventas.crear') }}" class="dropdown-item-vendedor">Nueva Venta</a>
-                            <a href="{{ route('vendedor.ventas.historial') }}" class="dropdown-item-vendedor">Historial de Ventas</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Clientes -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Clientes</div>
-
-                    <a href="#clientesSubmenu" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                       aria-expanded="{{ request()->routeIs('vendedor.clientes.*') ? 'true' : 'false' }}">
-                        <i class="bi bi-people"></i>
-                        Mis Clientes
-                    </a>
-                    <div class="collapse {{ request()->routeIs('vendedor.clientes.*') ? 'show' : '' }}" id="clientesSubmenu">
-                        <div class="dropdown-menu-vendedor">
-                            <a href="{{ route('vendedor.clientes.index') }}" class="dropdown-item-vendedor">Lista de Clientes</a>
-                            <a href="{{ route('vendedor.clientes.crear') }}" class="dropdown-item-vendedor">Nuevo Cliente</a>
-                            <a href="{{ route('vendedor.clientes.seguimiento') }}" class="dropdown-item-vendedor">Seguimiento</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Comisiones -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Ganancias</div>
-
-                    <a href="#comisionesSubmenu" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                       aria-expanded="{{ request()->routeIs('vendedor.comisiones.*') ? 'true' : 'false' }}">
-                        <i class="bi bi-cash-coin"></i>
-                        Comisiones
-                    </a>
-                    <div class="collapse {{ request()->routeIs('vendedor.comisiones.*') ? 'show' : '' }}" id="comisionesSubmenu">
-                        <div class="dropdown-menu-vendedor">
-                            <a href="{{ route('vendedor.comisiones.index') }}" class="dropdown-item-vendedor">Mis Comisiones</a>
-                            <a href="{{ route('vendedor.comisiones.solicitar') }}" class="dropdown-item-vendedor">Solicitar Retiro</a>
-                            <a href="{{ route('vendedor.comisiones.historial') }}" class="dropdown-item-vendedor">Historial de Pagos</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Referidos -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Red</div>
-
-                    <a href="#referidosSubmenu" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                       aria-expanded="{{ request()->routeIs('vendedor.referidos.*') ? 'true' : 'false' }}">
-                        <i class="bi bi-diagram-3"></i>
-                        Mis Referidos
-                    </a>
-                    <div class="collapse {{ request()->routeIs('vendedor.referidos.*') ? 'show' : '' }}" id="referidosSubmenu">
-                        <div class="dropdown-menu-vendedor">
-                            <a href="{{ route('vendedor.referidos.index') }}" class="dropdown-item-vendedor">Mi Red</a>
-                            <a href="{{ route('vendedor.referidos.invitar') }}" class="dropdown-item-vendedor">Invitar Nuevos</a>
-                            <a href="{{ route('vendedor.referidos.ganancias') }}" class="dropdown-item-vendedor">Ganancias por Referidos</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metas -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Objetivos</div>
-                    <a href="{{ route('vendedor.metas.index') }}" class="nav-link {{ request()->routeIs('vendedor.metas.*') ? 'active' : '' }}">
-                        <i class="bi bi-target"></i>
-                        Mis Metas
-                    </a>
-                </div>
-
-                <!-- Reportes -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Análisis</div>
-
-                    <a href="#reportesSubmenu" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                       aria-expanded="{{ request()->routeIs('vendedor.reportes.*') ? 'true' : 'false' }}">
-                        <i class="bi bi-graph-up"></i>
-                        Mis Reportes
-                    </a>
-                    <div class="collapse {{ request()->routeIs('vendedor.reportes.*') ? 'show' : '' }}" id="reportesSubmenu">
-                        <div class="dropdown-menu-vendedor">
-                            <a href="{{ route('vendedor.reportes.ventas') }}" class="dropdown-item-vendedor">Reporte de Ventas</a>
-                            <a href="{{ route('vendedor.reportes.rendimiento') }}" class="dropdown-item-vendedor">Mi Rendimiento</a>
-                            <a href="{{ route('vendedor.reportes.comisiones') }}" class="dropdown-item-vendedor">Reporte de Comisiones</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Perfil -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Cuenta</div>
-                    <a href="{{ route('vendedor.perfil.index') }}" class="nav-link {{ request()->routeIs('vendedor.perfil.*') ? 'active' : '' }}">
-                        <i class="bi bi-person-circle"></i>
-                        Mi Perfil
-                    </a>
-                    <a href="{{ route('vendedor.configuracion.index') }}" class="nav-link {{ request()->routeIs('vendedor.configuracion.*') ? 'active' : '' }}">
-                        <i class="bi bi-gear"></i>
-                        Configuración
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Historial de Ventas')">
+                        <i class="bi bi-clock-history"></i>
+                        Historial de Ventas
                     </a>
                 </div>
             </div>
-        </nav>
 
-        <!-- Main Content -->
-        <div class="vendedor-main">
-            <!-- Header -->
-            <header class="vendedor-header">
-                <button class="mobile-toggle" id="sidebarToggle">
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Productos')">
+                    <i class="bi bi-boxes"></i>
+                    Productos
+                </a>
+            </div>
+
+            <!-- Clientes -->
+            <div class="nav-section">Clientes</div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#clientesSubmenu" aria-expanded="false">
+                    <i class="bi bi-people"></i>
+                    Mis Clientes
+                </a>
+                <div class="collapse" id="clientesSubmenu">
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Lista de Clientes')">
+                        <i class="bi bi-list"></i>
+                        Lista de Clientes
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Nuevo Cliente')">
+                        <i class="bi bi-person-plus"></i>
+                        Nuevo Cliente
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Seguimiento')">
+                        <i class="bi bi-graph-up"></i>
+                        Seguimiento
+                    </a>
+                </div>
+            </div>
+
+            <!-- Comisiones y Ganancias -->
+            <div class="nav-section">Ganancias</div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#comisionesSubmenu" aria-expanded="false">
+                    <i class="bi bi-cash-coin"></i>
+                    Comisiones
+                </a>
+                <div class="collapse" id="comisionesSubmenu">
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mis Comisiones')">
+                        <i class="bi bi-list"></i>
+                        Mis Comisiones
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Solicitar Retiro')">
+                        <i class="bi bi-wallet2"></i>
+                        Solicitar Retiro
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Historial de Pagos')">
+                        <i class="bi bi-clock-history"></i>
+                        Historial de Pagos
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#referidosSubmenu" aria-expanded="false">
+                    <i class="bi bi-diagram-3"></i>
+                    Red de Referidos
+                </a>
+                <div class="collapse" id="referidosSubmenu">
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mi Red')">
+                        <i class="bi bi-diagram-2"></i>
+                        Mi Red
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Invitar Nuevos')">
+                        <i class="bi bi-person-plus"></i>
+                        Invitar Nuevos
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Ganancias por Referidos')">
+                        <i class="bi bi-currency-dollar"></i>
+                        Ganancias por Referidos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Reportes y Análisis -->
+            <div class="nav-section">Análisis</div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reportesSubmenu" aria-expanded="false">
+                    <i class="bi bi-graph-up"></i>
+                    Reportes
+                </a>
+                <div class="collapse" id="reportesSubmenu">
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Reporte de Ventas')">
+                        <i class="bi bi-bar-chart"></i>
+                        Reporte de Ventas
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mi Rendimiento')">
+                        <i class="bi bi-speedometer"></i>
+                        Mi Rendimiento
+                    </a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Reporte de Comisiones')">
+                        <i class="bi bi-cash-stack"></i>
+                        Reporte de Comisiones
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Mis Metas')">
+                    <i class="bi bi-target"></i>
+                    Mis Metas
+                </a>
+            </div>
+
+            <!-- Configuración -->
+            <div class="nav-section">Configuración</div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Mi Perfil')">
+                    <i class="bi bi-person-circle"></i>
+                    Mi Perfil
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="showComingSoon('Configuración')">
+                    <i class="bi bi-gear"></i>
+                    Configuración
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="vendedor-header" id="vendedorHeader">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="bi bi-list"></i>
                 </button>
+                <h1 class="header-title">@yield('page-title', 'Dashboard')</h1>
+            </div>
 
-                <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
-
-                <div class="header-actions">
-                    <!-- Notifications -->
-                    <button class="notification-btn" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="header-right">
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-bell"></i>
                         <span class="notification-badge">3</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><h6 class="dropdown-header">Notificaciones</h6></li>
-                        <li><a class="dropdown-item" href="#">Nueva comisión disponible</a></li>
-                        <li><a class="dropdown-item" href="#">Meta mensual al 80%</a></li>
-                        <li><a class="dropdown-item" href="#">Nuevo referido registrado</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-center" href="#">Ver todas</a></li>
-                    </ul>
-
-                    <!-- User Menu -->
-                    <div class="dropdown">
-                        <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="user-avatar">
-                                {{ substr(auth()->user()->name, 0, 1) }}
-                            </div>
-                            <div class="d-none d-md-block">
-                                <div class="fw-medium">{{ auth()->user()->name }}</div>
-                                <small class="text-muted">Vendedor</small>
-                            </div>
-                            <i class="bi bi-chevron-down ms-1"></i>
+                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <small class="text-muted">3 nuevas</small>
                         </div>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('vendedor.perfil.index') }}">
-                                <i class="bi bi-person me-2"></i>Mi Perfil
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('vendedor.configuracion.index') }}">
-                                <i class="bi bi-gear me-2"></i>Configuración
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                        <div class="p-3 text-center text-muted">
+                            <i class="bi bi-bell-slash fs-4"></i>
+                            <p class="mb-0 mt-2">Sistema de notificaciones próximamente</p>
+                        </div>
                     </div>
                 </div>
-            </header>
 
-            <!-- Content -->
-            <main class="vendedor-content">
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <!-- Profile -->
+                <div class="dropdown">
+                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-name">{{ Auth::user()->name }}</div>
+                            <div class="profile-role">Vendedor</div>
+                        </div>
+                        <i class="bi bi-chevron-down ms-2"></i>
                     </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
-
-                @yield('content')
-            </main>
+                    <ul class="dropdown-menu dropdown-menu-end" style="z-index: 1090 !important;">
+                        <li>
+                            <h6 class="dropdown-header">
+                                {{ Auth::user()->name }}
+                                <small class="text-muted d-block">{{ Auth::user()->email }}</small>
+                            </h6>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="showComingSoon('Mi Perfil')">
+                                <i class="bi bi-person me-2"></i>
+                                Mi Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="showComingSoon('Configuración')">
+                                <i class="bi bi-gear me-2"></i>
+                                Configuración
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Cerrar Sesión
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Main Content -->
+    <main class="vendedor-main" id="vendedorMain">
+        @yield('content')
+    </main>
 
-    <!-- Custom Scripts -->
+    @livewireScripts
+    @livewire('toast-notifications')
+
     <script>
-        // Mobile sidebar toggle
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('vendedorSidebar').classList.toggle('show');
-        });
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(e) {
+        document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('vendedorSidebar');
+            const header = document.getElementById('vendedorHeader');
+            const main = document.getElementById('vendedorMain');
             const toggle = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
 
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+            // Toggle sidebar
+            toggle.addEventListener('click', function() {
+                if (window.innerWidth <= 991.98) {
+                    // Mobile behavior
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                } else {
+                    // Desktop behavior
+                    sidebar.classList.toggle('collapsed');
+                    header.classList.toggle('expanded');
+                    main.classList.toggle('expanded');
+                }
+            });
+
+            // Close sidebar when clicking overlay
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991.98) {
                     sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
                 }
-            }
+            });
+
+            // Initialize dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                    return new bootstrap.Dropdown(dropdownToggleEl);
+                }
+                return null;
+            }).filter(Boolean);
         });
-
-        // Toast notification function
-        function showToast(message, type = 'info') {
-            // Simple alert for now, can be enhanced with toast library
-            const alertClass = type === 'success' ? 'alert-success' :
-                             type === 'error' ? 'alert-danger' : 'alert-info';
-
-            const toast = document.createElement('div');
-            toast.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
-            toast.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
-            toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 5000);
-        }
 
         // Coming soon function
         function showComingSoon(feature) {
-            showToast(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`, 'info');
+            alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
     </script>
 
