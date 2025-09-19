@@ -24,11 +24,23 @@ class DashboardController extends Controller
         $stats = $this->calcularEstadisticas($vendedor, $inicioMes, $finMes);
 
         // Pedidos recientes (últimos 5)
-        $pedidos_recientes = Pedido::where('vendedor_id', $vendedor->id)
+        $pedidos_recientes = Pedido::where('vendedor_id', $vendedor->_id)
                                    ->orderBy('created_at', 'desc')
-                                   ->with('cliente')
                                    ->limit(5)
-                                   ->get();
+                                   ->get()
+                                   ->map(function ($pedido) {
+                                       return (object)[
+                                           'id' => $pedido->_id,
+                                           'numero_pedido' => $pedido->numero_pedido,
+                                           'cliente' => (object)[
+                                               'name' => $pedido->cliente_data['name'] ?? 'Cliente',
+                                               'email' => $pedido->cliente_data['email'] ?? ''
+                                           ],
+                                           'total_final' => $pedido->total_final,
+                                           'estado' => $pedido->estado,
+                                           'created_at' => $pedido->created_at
+                                       ];
+                                   });
 
         // Evolución de ventas (últimos 6 meses)
         $evolucionVentas = $this->calcularEvolucionVentas($vendedor);
@@ -47,36 +59,37 @@ class DashboardController extends Controller
     private function calcularEstadisticas($vendedor, $inicioMes, $finMes)
     {
         // Ventas del mes
-        $ventasMes = Pedido::where('vendedor_id', $vendedor->id)
+        $ventasMes = Pedido::where('vendedor_id', $vendedor->_id)
                           ->whereBetween('created_at', [$inicioMes, $finMes])
+                          ->where('estado', '!=', 'cancelado')
                           ->sum('total_final');
 
         // Pedidos del mes
-        $pedidosMes = Pedido::where('vendedor_id', $vendedor->id)
+        $pedidosMes = Pedido::where('vendedor_id', $vendedor->_id)
                            ->whereBetween('created_at', [$inicioMes, $finMes])
                            ->count();
 
         // Comisiones ganadas este mes
-        $comisionesGanadas = Comision::where('user_id', $vendedor->id)
+        $comisionesGanadas = Comision::where('user_id', $vendedor->_id)
                                    ->whereBetween('created_at', [$inicioMes, $finMes])
-                                   ->sum('monto_comision');
+                                   ->sum('monto');
 
         // Comisiones disponibles para retiro
-        $comisionesDisponibles = Comision::where('user_id', $vendedor->id)
+        $comisionesDisponibles = Comision::where('user_id', $vendedor->_id)
                                         ->where('estado', 'pendiente')
-                                        ->sum('monto_comision');
+                                        ->sum('monto');
 
         // Referidos totales
-        $totalReferidos = User::where('referido_por', $vendedor->id)->count();
+        $totalReferidos = User::where('referido_por', $vendedor->_id)->count();
 
         // Nuevos referidos este mes
-        $nuevosReferidosMes = User::where('referido_por', $vendedor->id)
+        $nuevosReferidosMes = User::where('referido_por', $vendedor->_id)
                                  ->whereBetween('created_at', [$inicioMes, $finMes])
                                  ->count();
 
         // Referidos activos (con al menos 1 pedido)
-        $referidosActivos = User::where('referido_por', $vendedor->id)
-                               ->whereHas('pedidosVendedor')
+        $referidosActivos = User::where('referido_por', $vendedor->_id)
+                               ->whereHas('pedidosComoCliente')
                                ->count();
 
         // Meta mensual
@@ -102,12 +115,13 @@ class DashboardController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $mes = Carbon::now()->subMonths($i);
 
-            $ventas = Pedido::where('vendedor_id', $vendedor->id)
+            $ventas = Pedido::where('vendedor_id', $vendedor->_id)
                            ->whereYear('created_at', $mes->year)
                            ->whereMonth('created_at', $mes->month)
+                           ->where('estado', '!=', 'cancelado')
                            ->sum('total_final');
 
-            $cantidad = Pedido::where('vendedor_id', $vendedor->id)
+            $cantidad = Pedido::where('vendedor_id', $vendedor->_id)
                              ->whereYear('created_at', $mes->year)
                              ->whereMonth('created_at', $mes->month)
                              ->count();
@@ -136,8 +150,9 @@ class DashboardController extends Controller
             ];
         }
 
-        $ventasActuales = Pedido::where('vendedor_id', $vendedor->id)
+        $ventasActuales = Pedido::where('vendedor_id', $vendedor->_id)
                                ->whereBetween('created_at', [$inicioMes, $finMes])
+                               ->where('estado', '!=', 'cancelado')
                                ->sum('total_final');
 
         $porcentajeCumplimiento = ($ventasActuales / $metaMensual) * 100;

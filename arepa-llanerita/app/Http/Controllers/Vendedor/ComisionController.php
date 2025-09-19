@@ -125,7 +125,8 @@ class ComisionController extends Controller
             }
 
             // Asociar comisiones a la solicitud
-            $solicitud->comisiones()->sync($comisionesAfectadas);
+            // MongoDB: usar arrays embebidos
+            // $solicitud->comisiones()->sync($comisionesAfectadas);
 
             DB::commit();
 

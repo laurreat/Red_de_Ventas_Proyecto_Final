@@ -93,7 +93,7 @@ class PedidoController extends Controller
     {
         $clientes = User::clientes()->orderBy('name')->get();
         $vendedores = User::vendedores()->orderBy('name')->get();
-        $productos = Producto::where('activo', true)->with('categoria')->orderBy('nombre')->get();
+        $productos = Producto::where('activo', true)->orderBy('nombre')->get();
 
         return view('admin.pedidos.create', compact('clientes', 'vendedores', 'productos'));
     }
@@ -101,10 +101,10 @@ class PedidoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cliente_id' => 'required|exists:users,id',
+            'cliente_id' => 'required|string',
             'vendedor_id' => 'nullable|exists:users,id',
             'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
             'descuento' => 'nullable|numeric|min:0',
             'observaciones' => 'nullable|string|max:500'
@@ -160,7 +160,7 @@ class PedidoController extends Controller
 
         $clientes = User::clientes()->orderBy('name')->get();
         $vendedores = User::vendedores()->orderBy('name')->get();
-        $productos = Producto::where('activo', true)->with('categoria')->orderBy('nombre')->get();
+        $productos = Producto::where('activo', true)->orderBy('nombre')->get();
         $pedido->load(['detalles.producto']);
 
         return view('admin.pedidos.edit', compact('pedido', 'clientes', 'vendedores', 'productos'));

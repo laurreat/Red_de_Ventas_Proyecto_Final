@@ -19,13 +19,13 @@ class ClienteController extends Controller
         // Obtener clientes que han comprado al vendedor
         $query = User::where('rol', 'cliente')
                     ->whereHas('pedidos', function($q) use ($vendedor) {
-                        $q->where('vendedor_id', $vendedor->id);
+                        $q->where('vendedor_id', $vendedor->_id);
                     })
                     ->withCount(['pedidos' => function($q) use ($vendedor) {
-                        $q->where('vendedor_id', $vendedor->id);
+                        $q->where('vendedor_id', $vendedor->_id);
                     }])
                     ->withSum(['pedidos as total_compras' => function($q) use ($vendedor) {
-                        $q->where('vendedor_id', $vendedor->id);
+                        $q->where('vendedor_id', $vendedor->_id);
                     }], 'total_final');
 
         // Filtros
@@ -41,12 +41,12 @@ class ClienteController extends Controller
         if ($request->filled('estado')) {
             if ($request->estado === 'activo') {
                 $query->whereHas('pedidos', function($q) use ($vendedor) {
-                    $q->where('vendedor_id', $vendedor->id)
+                    $q->where('vendedor_id', $vendedor->_id)
                       ->where('created_at', '>=', Carbon::now()->subDays(30));
                 });
             } elseif ($request->estado === 'inactivo') {
                 $query->whereDoesntHave('pedidos', function($q) use ($vendedor) {
-                    $q->where('vendedor_id', $vendedor->id)
+                    $q->where('vendedor_id', $vendedor->_id)
                       ->where('created_at', '>=', Carbon::now()->subDays(30));
                 });
             }
@@ -58,16 +58,16 @@ class ClienteController extends Controller
         $stats = [
             'total_clientes' => User::where('rol', 'cliente')
                                    ->whereHas('pedidos', function($q) use ($vendedor) {
-                                       $q->where('vendedor_id', $vendedor->id);
+                                       $q->where('vendedor_id', $vendedor->_id);
                                    })->count(),
             'clientes_activos' => User::where('rol', 'cliente')
                                      ->whereHas('pedidos', function($q) use ($vendedor) {
-                                         $q->where('vendedor_id', $vendedor->id)
+                                         $q->where('vendedor_id', $vendedor->_id)
                                            ->where('created_at', '>=', Carbon::now()->subDays(30));
                                      })->count(),
             'nuevos_mes' => User::where('rol', 'cliente')
                                ->whereHas('pedidos', function($q) use ($vendedor) {
-                                   $q->where('vendedor_id', $vendedor->id)
+                                   $q->where('vendedor_id', $vendedor->_id)
                                      ->where('created_at', '>=', Carbon::now()->startOfMonth());
                                })->count(),
             'promedio_compra' => Pedido::where('vendedor_id', $vendedor->id)->avg('total_final') ?? 0
@@ -81,33 +81,33 @@ class ClienteController extends Controller
         $vendedor = Auth::user();
         $cliente = User::where('rol', 'cliente')
                       ->whereHas('pedidos', function($q) use ($vendedor) {
-                          $q->where('vendedor_id', $vendedor->id);
+                          $q->where('vendedor_id', $vendedor->_id);
                       })
                       ->findOrFail($id);
 
         // Pedidos del cliente con este vendedor
         $pedidos = Pedido::where('cliente_id', $cliente->id)
-                        ->where('vendedor_id', $vendedor->id)
+                        ->where('vendedor_id', $vendedor->_id)
                         ->orderBy('created_at', 'desc')
                         ->paginate(10);
 
         // Estadísticas del cliente
         $estadisticas = [
             'total_pedidos' => Pedido::where('cliente_id', $cliente->id)
-                                    ->where('vendedor_id', $vendedor->id)
+                                    ->where('vendedor_id', $vendedor->_id)
                                     ->count(),
             'total_gastado' => Pedido::where('cliente_id', $cliente->id)
-                                    ->where('vendedor_id', $vendedor->id)
+                                    ->where('vendedor_id', $vendedor->_id)
                                     ->sum('total_final'),
             'promedio_pedido' => Pedido::where('cliente_id', $cliente->id)
-                                      ->where('vendedor_id', $vendedor->id)
+                                      ->where('vendedor_id', $vendedor->_id)
                                       ->avg('total_final') ?? 0,
             'ultimo_pedido' => Pedido::where('cliente_id', $cliente->id)
-                                    ->where('vendedor_id', $vendedor->id)
+                                    ->where('vendedor_id', $vendedor->_id)
                                     ->orderBy('created_at', 'desc')
                                     ->first()?->created_at,
             'pedidos_mes' => Pedido::where('cliente_id', $cliente->id)
-                                  ->where('vendedor_id', $vendedor->id)
+                                  ->where('vendedor_id', $vendedor->_id)
                                   ->where('created_at', '>=', Carbon::now()->startOfMonth())
                                   ->count()
         ];
@@ -159,7 +159,7 @@ class ClienteController extends Controller
         $vendedor = Auth::user();
         $cliente = User::where('rol', 'cliente')
                       ->whereHas('pedidos', function($q) use ($vendedor) {
-                          $q->where('vendedor_id', $vendedor->id);
+                          $q->where('vendedor_id', $vendedor->_id);
                       })
                       ->findOrFail($id);
 
@@ -171,7 +171,7 @@ class ClienteController extends Controller
         $vendedor = Auth::user();
         $cliente = User::where('rol', 'cliente')
                       ->whereHas('pedidos', function($q) use ($vendedor) {
-                          $q->where('vendedor_id', $vendedor->id);
+                          $q->where('vendedor_id', $vendedor->_id);
                       })
                       ->findOrFail($id);
 
@@ -203,20 +203,20 @@ class ClienteController extends Controller
         // Clientes que necesitan seguimiento (sin pedidos en los últimos 30 días)
         $clientesSeguimiento = User::where('rol', 'cliente')
                                   ->whereHas('pedidos', function($q) use ($vendedor) {
-                                      $q->where('vendedor_id', $vendedor->id);
+                                      $q->where('vendedor_id', $vendedor->_id);
                                   })
                                   ->whereDoesntHave('pedidos', function($q) use ($vendedor) {
-                                      $q->where('vendedor_id', $vendedor->id)
+                                      $q->where('vendedor_id', $vendedor->_id)
                                         ->where('created_at', '>=', Carbon::now()->subDays(30));
                                   })
                                   ->withCount(['pedidos' => function($q) use ($vendedor) {
-                                      $q->where('vendedor_id', $vendedor->id);
+                                      $q->where('vendedor_id', $vendedor->_id);
                                   }])
                                   ->withSum(['pedidos as total_compras' => function($q) use ($vendedor) {
-                                      $q->where('vendedor_id', $vendedor->id);
+                                      $q->where('vendedor_id', $vendedor->_id);
                                   }], 'total_final')
                                   ->with(['pedidos' => function($q) use ($vendedor) {
-                                      $q->where('vendedor_id', $vendedor->id)
+                                      $q->where('vendedor_id', $vendedor->_id)
                                         ->orderBy('created_at', 'desc')
                                         ->limit(1);
                                   }])
@@ -226,10 +226,10 @@ class ClienteController extends Controller
         // Mejores clientes (más compras)
         $mejoresClientes = User::where('rol', 'cliente')
                               ->whereHas('pedidos', function($q) use ($vendedor) {
-                                  $q->where('vendedor_id', $vendedor->id);
+                                  $q->where('vendedor_id', $vendedor->_id);
                               })
                               ->withSum(['pedidos as total_compras' => function($q) use ($vendedor) {
-                                  $q->where('vendedor_id', $vendedor->id);
+                                  $q->where('vendedor_id', $vendedor->_id);
                               }], 'total_final')
                               ->orderBy('total_compras', 'desc')
                               ->limit(10)
@@ -249,7 +249,7 @@ class ClienteController extends Controller
                              ->orWhere('email', 'like', '%' . $buscar . '%');
                        })
                        ->whereHas('pedidos', function($q) use ($vendedor) {
-                           $q->where('vendedor_id', $vendedor->id);
+                           $q->where('vendedor_id', $vendedor->_id);
                        })
                        ->limit(10)
                        ->get();
@@ -263,13 +263,13 @@ class ClienteController extends Controller
 
         $clientes = User::where('rol', 'cliente')
                        ->whereHas('pedidos', function($q) use ($vendedor) {
-                           $q->where('vendedor_id', $vendedor->id);
+                           $q->where('vendedor_id', $vendedor->_id);
                        })
                        ->withCount(['pedidos' => function($q) use ($vendedor) {
-                           $q->where('vendedor_id', $vendedor->id);
+                           $q->where('vendedor_id', $vendedor->_id);
                        }])
                        ->withSum(['pedidos as total_compras' => function($q) use ($vendedor) {
-                           $q->where('vendedor_id', $vendedor->id);
+                           $q->where('vendedor_id', $vendedor->_id);
                        }], 'total_final')
                        ->get();
 

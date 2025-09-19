@@ -2,65 +2,52 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Comision extends Model
 {
-    protected $table = 'comisiones';
+    protected $connection = 'mongodb';
+    protected $collection = 'comisiones';
 
     protected $fillable = [
         'user_id',
+        'user_data',
         'pedido_id',
-        'referido_id',
+        'pedido_data',
         'tipo',
-        'monto_base',
         'porcentaje',
-        'monto_comision',
+        'monto',
         'estado',
-        'fecha_calculo',
-        'fecha_aprobacion',
         'fecha_pago',
-        'descripcion',
-        'detalles',
-        'aprobado_por',
+        'detalles_calculo',
+        'metodo_pago',
+        'mysql_id'
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'porcentaje' => 'decimal:2',
+        'monto' => 'decimal:2',
+        'fecha_pago' => 'datetime',
+        'user_data' => 'array',
+        'pedido_data' => 'array',
+        'detalles_calculo' => 'array'
+    ];
+
+    public function user()
     {
-        return [
-            'monto_base' => 'decimal:2',
-            'porcentaje' => 'decimal:2',
-            'monto_comision' => 'decimal:2',
-            'fecha_calculo' => 'datetime',
-            'fecha_aprobacion' => 'datetime',
-            'fecha_pago' => 'datetime',
-            'detalles' => 'json',
-        ];
+        return $this->belongsTo(User::class);
     }
 
-    // Relaciones
-    public function usuario(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function pedido(): BelongsTo
+    public function pedido()
     {
         return $this->belongsTo(Pedido::class);
     }
 
-    public function referido(): BelongsTo
+    public function scopePorEstado($query, $estado)
     {
-        return $this->belongsTo(User::class, 'referido_id');
+        return $query->where('estado', $estado);
     }
 
-    public function aprobadoPor(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'aprobado_por');
-    }
-
-    // Scopes
     public function scopePendientes($query)
     {
         return $query->where('estado', 'pendiente');
@@ -74,82 +61,5 @@ class Comision extends Model
     public function scopePagadas($query)
     {
         return $query->where('estado', 'pagada');
-    }
-
-    public function scopeDelUsuario($query, $usuarioId)
-    {
-        return $query->where('user_id', $usuarioId);
-    }
-
-    public function scopePorTipo($query, $tipo)
-    {
-        return $query->where('tipo', $tipo);
-    }
-
-    public function scopeDelMes($query, $mes = null, $año = null)
-    {
-        $mes = $mes ?? now()->month;
-        $año = $año ?? now()->year;
-        
-        return $query->whereYear('fecha_calculo', $año)
-                    ->whereMonth('fecha_calculo', $mes);
-    }
-
-    // Métodos auxiliares
-    public function estaPendiente(): bool
-    {
-        return $this->estado === 'pendiente';
-    }
-
-    public function estaAprobada(): bool
-    {
-        return $this->estado === 'aprobada';
-    }
-
-    public function estaPagada(): bool
-    {
-        return $this->estado === 'pagada';
-    }
-
-    public function estaCancelada(): bool
-    {
-        return $this->estado === 'cancelada';
-    }
-
-    public function aprobar(int $aprobadoPorId): void
-    {
-        $this->update([
-            'estado' => 'aprobada',
-            'fecha_aprobacion' => now(),
-            'aprobado_por' => $aprobadoPorId,
-        ]);
-    }
-
-    public function marcarComoPagada(): void
-    {
-        $this->update([
-            'estado' => 'pagada',
-            'fecha_pago' => now(),
-        ]);
-    }
-
-    public function calcular(): float
-    {
-        return ($this->monto_base * $this->porcentaje) / 100;
-    }
-
-    public function esVentaDirecta(): bool
-    {
-        return $this->tipo === 'venta_directa';
-    }
-
-    public function esReferido(): bool
-    {
-        return in_array($this->tipo, ['referido_nuevo', 'referido_compra']);
-    }
-
-    public function esLiderazgo(): bool
-    {
-        return $this->tipo === 'liderazgo';
     }
 }

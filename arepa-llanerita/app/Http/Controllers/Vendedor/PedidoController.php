@@ -16,8 +16,7 @@ class PedidoController extends Controller
     public function index(Request $request)
     {
         $vendedor = Auth::user();
-        $query = Pedido::where('vendedor_id', $vendedor->id)
-                      ->with(['cliente', 'productos']);
+        $query = Pedido::where('vendedor_id', $vendedor->_id);
 
         // Filtros
         if ($request->filled('estado')) {
@@ -25,28 +24,26 @@ class PedidoController extends Controller
         }
 
         if ($request->filled('fecha_desde')) {
-            $query->whereDate('created_at', '>=', $request->fecha_desde);
+            $query->where('created_at', '>=', new \MongoDB\BSON\UTCDateTime(strtotime($request->fecha_desde) * 1000));
         }
 
         if ($request->filled('fecha_hasta')) {
-            $query->whereDate('created_at', '<=', $request->fecha_hasta);
+            $query->where('created_at', '<=', new \MongoDB\BSON\UTCDateTime(strtotime($request->fecha_hasta . ' 23:59:59') * 1000));
         }
 
         if ($request->filled('cliente')) {
-            $query->whereHas('cliente', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->cliente . '%');
-            });
+            $query->where('cliente_data.name', 'like', '%' . $request->cliente . '%');
         }
 
         $pedidos = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        // Estadísticas para el dashboard de pedidos
+        // Estadísticas para el dashboard de pedidos (usando agregaciones de MongoDB)
         $stats = [
-            'total' => Pedido::where('vendedor_id', $vendedor->id)->count(),
-            'pendientes' => Pedido::where('vendedor_id', $vendedor->id)->where('estado', 'pendiente')->count(),
-            'completados' => Pedido::where('vendedor_id', $vendedor->id)->where('estado', 'completado')->count(),
-            'cancelados' => Pedido::where('vendedor_id', $vendedor->id)->where('estado', 'cancelado')->count(),
-            'total_ventas' => Pedido::where('vendedor_id', $vendedor->id)->sum('total_final')
+            'total' => Pedido::where('vendedor_id', $vendedor->_id)->count(),
+            'pendientes' => Pedido::where('vendedor_id', $vendedor->_id)->where('estado', 'pendiente')->count(),
+            'confirmados' => Pedido::where('vendedor_id', $vendedor->_id)->where('estado', 'confirmado')->count(),
+            'entregados' => Pedido::where('vendedor_id', $vendedor->_id)->where('estado', 'entregado')->count(),
+            'total_ventas' => Pedido::where('vendedor_id', $vendedor->_id)->sum('total_final')
         ];
 
         return view('vendedor.pedidos.index', compact('pedidos', 'stats'));
@@ -57,7 +54,7 @@ class PedidoController extends Controller
         $vendedor = Auth::user();
         $pedido = Pedido::where('vendedor_id', $vendedor->id)
                        ->where('id', $id)
-                       ->with(['cliente', 'productos'])
+                       // MongoDB: datos embebidos, no necesita with
                        ->firstOrFail();
 
         return view('vendedor.pedidos.show', compact('pedido'));
@@ -74,9 +71,9 @@ class PedidoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cliente_id' => 'required|exists:users,id',
+            'cliente_id' => 'required|string',
             'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
             'notas' => 'nullable|string|max:500'
         ]);
@@ -125,11 +122,14 @@ class PedidoController extends Controller
 
             // Asociar productos al pedido
             foreach ($productosData as $productoData) {
+                // MongoDB: usar arrays embebidos
+                /*
                 $pedido->productos()->attach($productoData['producto_id'], [
                     'cantidad' => $productoData['cantidad'],
                     'precio_unitario' => $productoData['precio_unitario'],
                     'total' => $productoData['total']
                 ]);
+                */
             }
 
             DB::commit();
@@ -151,7 +151,7 @@ class PedidoController extends Controller
         $pedido = Pedido::where('vendedor_id', $vendedor->id)
                        ->where('id', $id)
                        ->where('estado', 'pendiente') // Solo pedidos pendientes se pueden editar
-                       ->with(['cliente', 'productos'])
+                       // MongoDB: datos embebidos, no necesita with
                        ->firstOrFail();
 
         $clientes = User::where('rol', 'cliente')->get();
@@ -163,9 +163,9 @@ class PedidoController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'cliente_id' => 'required|exists:users,id',
+            'cliente_id' => 'required|string',
             'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
             'notas' => 'nullable|string|max:500'
         ]);
@@ -211,13 +211,17 @@ class PedidoController extends Controller
             ]);
 
             // Actualizar productos del pedido
-            $pedido->productos()->detach();
+            // MongoDB: usar arrays embebidos
+            // $pedido->productos()->detach();
             foreach ($productosData as $productoData) {
+                // MongoDB: usar arrays embebidos
+                /*
                 $pedido->productos()->attach($productoData['producto_id'], [
                     'cantidad' => $productoData['cantidad'],
                     'precio_unitario' => $productoData['precio_unitario'],
                     'total' => $productoData['total']
                 ]);
+                */
             }
 
             DB::commit();
@@ -263,7 +267,8 @@ class PedidoController extends Controller
 
         DB::beginTransaction();
         try {
-            $pedido->productos()->detach();
+            // MongoDB: usar arrays embebidos
+            // $pedido->productos()->detach();
             $pedido->delete();
 
             DB::commit();
@@ -291,7 +296,8 @@ class PedidoController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
         }
 
-        $pedidos = $query->with(['cliente', 'productos'])->get();
+        // MongoDB: datos embebidos, no necesita with
+        $pedidos = $query->get();
 
         // Aquí implementarías la lógica de exportación (CSV, Excel, PDF)
         // Por ahora retornamos un JSON

@@ -2,51 +2,42 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Categoria extends Model
 {
-    protected $table = 'categorias';
+    protected $connection = 'mongodb';
+    protected $collection = 'categorias';
 
     protected $fillable = [
         'nombre',
         'descripcion',
         'activo',
+        'imagen',
+        'orden',
+        'productos_count',
+        'configuracion'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'activo' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'activo' => 'boolean',
+        'orden' => 'integer',
+        'productos_count' => 'integer',
+        'configuracion' => 'array'
+    ];
 
-    // Relaciones
-    public function productos(): HasMany
+    public function productos()
     {
         return $this->hasMany(Producto::class, 'categoria_id');
     }
 
-    // Scopes
-    public function scopeActivas($query)
+    public function scopeActivos($query)
     {
         return $query->where('activo', true);
     }
 
-    // Métodos auxiliares
-    public function tieneProductos(): bool
+    public function scopeOrdenados($query)
     {
-        return $this->productos()->count() > 0;
-    }
-
-    public function totalProductos(): int
-    {
-        return $this->productos()->count();
-    }
-
-    public function totalProductosActivos(): int
-    {
-        return $this->productos()->where('activo', true)->count();
+        return $query->orderBy('orden', 'asc');
     }
 }

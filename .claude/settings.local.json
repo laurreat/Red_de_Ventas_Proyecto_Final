@@ -20,7 +20,17 @@
       "Bash(rm:*)",
       "Bash(grep:*)",
       "Bash(sqlite3:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(composer:*)",
+      "Read(//c/xampp/php/**)",
+      "Bash(pecl install:*)",
+      "WebFetch(domain:pecl.php.net)",
+      "Bash(mongod:*)",
+      "Bash(net start:*)",
+      "Bash(timeout:*)",
+      "Bash(mongosh:*)",
+      "Bash(mongo:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

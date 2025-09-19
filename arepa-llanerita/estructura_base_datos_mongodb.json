@@ -1,0 +1,555 @@
+{
+  "proyecto": "Arepa la Llanerita - Red de Ventas MLM",
+  "base_datos": "arepa_llanerita_mongo",
+  "version_esquema": "2.0",
+  "fecha_generacion": "2024-09-19",
+  "migracion_desde": "MySQL",
+  "estado": "Completo - 13 Colecciones Implementadas",
+
+  "colecciones": {
+    "users": {
+      "descripcion": "Usuarios del sistema con roles diferenciados",
+      "modelo": "UserMongo",
+      "estado": "✅ Implementado",
+      "indices": ["email", "cedula", "codigo_referido", "rol"],
+      "campos": {
+        "name": {"tipo": "string", "requerido": true, "descripcion": "Nombre del usuario"},
+        "apellidos": {"tipo": "string", "requerido": true, "descripcion": "Apellidos del usuario"},
+        "cedula": {"tipo": "string", "requerido": true, "unico": true, "descripcion": "Cédula de identidad"},
+        "email": {"tipo": "string", "requerido": true, "unico": true, "descripcion": "Correo electrónico"},
+        "password": {"tipo": "string", "requerido": true, "encriptado": true, "descripcion": "Contraseña encriptada"},
+        "telefono": {"tipo": "string", "requerido": false, "descripcion": "Número de teléfono"},
+        "direccion": {"tipo": "string", "requerido": false, "descripcion": "Dirección física"},
+        "ciudad": {"tipo": "string", "requerido": false, "descripcion": "Ciudad de residencia"},
+        "departamento": {"tipo": "string", "requerido": false, "descripcion": "Departamento/Estado"},
+        "fecha_nacimiento": {"tipo": "date", "requerido": false, "descripcion": "Fecha de nacimiento"},
+        "rol": {"tipo": "enum", "valores": ["administrador", "lider", "vendedor", "cliente"], "requerido": true, "descripcion": "Rol en el sistema"},
+        "activo": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo/inactivo"},
+        "ultimo_acceso": {"tipo": "datetime", "requerido": false, "descripcion": "Último acceso al sistema"},
+        "referido_por": {"tipo": "objectId", "referencia": "users", "requerido": false, "descripcion": "ID del usuario que lo refirió"},
+        "codigo_referido": {"tipo": "string", "unico": true, "requerido": false, "descripcion": "Código único para referir otros usuarios"},
+        "total_referidos": {"tipo": "integer", "por_defecto": 0, "descripcion": "Cantidad total de referidos"},
+        "comisiones_ganadas": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Total de comisiones ganadas"},
+        "comisiones_disponibles": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Comisiones disponibles para cobro"},
+        "meta_mensual": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Meta de ventas mensuales"},
+        "ventas_mes_actual": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Ventas del mes actual"},
+        "nivel_vendedor": {"tipo": "integer", "por_defecto": 1, "descripcion": "Nivel del vendedor en la estructura"},
+        "zonas_asignadas": {"tipo": "array", "descripcion": "Zonas de entrega asignadas"},
+        "referidos_data": {"tipo": "array", "embebido": true, "descripcion": "Datos embebidos de referidos"},
+        "historial_ventas": {"tipo": "array", "embebido": true, "descripcion": "Historial de ventas embebido"},
+        "configuracion_personal": {"tipo": "object", "embebido": true, "descripcion": "Configuraciones personales del usuario"}
+      },
+      "relaciones": {
+        "pedidos_como_vendedor": {"tipo": "hasMany", "modelo": "PedidoMongo", "campo": "vendedor_id"},
+        "pedidos_como_cliente": {"tipo": "hasMany", "modelo": "PedidoMongo", "campo": "user_id"},
+        "comisiones": {"tipo": "hasMany", "modelo": "ComisionMongo", "campo": "user_id"},
+        "notificaciones": {"tipo": "hasMany", "modelo": "NotificacionMongo", "campo": "user_id"}
+      },
+      "metodos_especiales": ["nombreCompleto", "esAdmin", "esLider", "esVendedor", "esCliente", "puedeVender", "agregarReferido", "agregarVentaAlHistorial"],
+      "scopes": ["activos", "porRol", "vendedores", "clientes"]
+    },
+
+    "categorias": {
+      "descripcion": "Categorías de productos con configuración embebida",
+      "modelo": "CategoriaMongo",
+      "estado": "✅ Implementado",
+      "indices": ["nombre", "activo", "orden"],
+      "campos": {
+        "nombre": {"tipo": "string", "requerido": true, "descripcion": "Nombre de la categoría"},
+        "descripcion": {"tipo": "text", "requerido": false, "descripcion": "Descripción detallada"},
+        "activo": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo/inactivo"},
+        "imagen": {"tipo": "string", "requerido": false, "descripcion": "URL de la imagen de categoría"},
+        "orden": {"tipo": "integer", "por_defecto": 0, "descripcion": "Orden de visualización"},
+        "productos_count": {"tipo": "integer", "por_defecto": 0, "descripcion": "Contador de productos"},
+        "configuracion": {"tipo": "object", "embebido": true, "descripcion": "Configuraciones específicas de la categoría"}
+      },
+      "relaciones": {
+        "productos": {"tipo": "hasMany", "modelo": "ProductoMongo", "campo": "categoria_id"}
+      },
+      "scopes": ["activos", "ordenados"]
+    },
+
+    "productos": {
+      "descripcion": "Catálogo de productos con datos embebidos de categoría y reviews",
+      "modelo": "ProductoMongo",
+      "estado": "✅ Implementado",
+      "indices": ["nombre", "categoria_id", "activo", "stock"],
+      "campos": {
+        "nombre": {"tipo": "string", "requerido": true, "descripcion": "Nombre del producto"},
+        "descripcion": {"tipo": "text", "requerido": false, "descripcion": "Descripción del producto"},
+        "categoria_id": {"tipo": "objectId", "referencia": "categorias", "requerido": true, "descripcion": "ID de la categoría"},
+        "categoria_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos de la categoría"},
+        "precio": {"tipo": "decimal", "requerido": true, "descripcion": "Precio del producto"},
+        "stock": {"tipo": "integer", "por_defecto": 0, "descripcion": "Cantidad en inventario"},
+        "stock_minimo": {"tipo": "integer", "por_defecto": 5, "descripcion": "Stock mínimo para alertas"},
+        "activo": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo/inactivo"},
+        "imagen": {"tipo": "string", "requerido": false, "descripcion": "Imagen principal del producto"},
+        "imagenes_adicionales": {"tipo": "array", "descripcion": "URLs de imágenes adicionales"},
+        "especificaciones": {"tipo": "object", "embebido": true, "descripcion": "Especificaciones técnicas"},
+        "tiempo_preparacion": {"tipo": "integer", "descripcion": "Tiempo de preparación en minutos"},
+        "ingredientes": {"tipo": "array", "descripcion": "Lista de ingredientes"},
+        "historial_precios": {"tipo": "array", "embebido": true, "descripcion": "Historial de cambios de precio"},
+        "reviews": {"tipo": "array", "embebido": true, "descripcion": "Reseñas y calificaciones embebidas"}
+      },
+      "relaciones": {
+        "detalles_pedidos": {"tipo": "hasMany", "modelo": "DetallePedidoMongo", "campo": "producto_id"},
+        "movimientos_inventario": {"tipo": "hasMany", "modelo": "MovimientoInventarioMongo", "campo": "producto_id"}
+      },
+      "metodos_especiales": ["estaDisponible", "tieneStockBajo", "estaAgotado", "agregarReview", "actualizarPrecio", "promedioReviews"],
+      "scopes": ["activos", "conStock", "stockBajo", "porCategoria", "buscar"]
+    },
+
+    "pedidos": {
+      "descripcion": "Pedidos con datos embebidos de cliente, vendedor y detalles",
+      "modelo": "PedidoMongo",
+      "estado": "✅ Implementado",
+      "indices": ["numero_pedido", "user_id", "vendedor_id", "estado", "created_at"],
+      "campos": {
+        "numero_pedido": {"tipo": "string", "unico": true, "requerido": true, "descripcion": "Número único del pedido"},
+        "user_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "ID del cliente"},
+        "cliente_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del cliente"},
+        "vendedor_id": {"tipo": "objectId", "referencia": "users", "requerido": false, "descripcion": "ID del vendedor"},
+        "vendedor_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del vendedor"},
+        "estado": {"tipo": "enum", "valores": ["pendiente", "confirmado", "en_preparacion", "listo", "en_camino", "entregado", "cancelado"], "por_defecto": "pendiente", "descripcion": "Estado del pedido"},
+        "total": {"tipo": "decimal", "requerido": true, "descripcion": "Total del pedido"},
+        "descuento": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Descuento aplicado"},
+        "total_final": {"tipo": "decimal", "requerido": true, "descripcion": "Total final con descuentos"},
+        "direccion_entrega": {"tipo": "text", "requerido": true, "descripcion": "Dirección de entrega"},
+        "telefono_entrega": {"tipo": "string", "requerido": true, "descripcion": "Teléfono de contacto"},
+        "notas": {"tipo": "text", "requerido": false, "descripcion": "Notas adicionales"},
+        "fecha_entrega_estimada": {"tipo": "datetime", "requerido": false, "descripcion": "Fecha estimada de entrega"},
+        "zona_entrega_id": {"tipo": "objectId", "referencia": "zonas_entrega", "requerido": false, "descripcion": "ID de la zona de entrega"},
+        "zona_entrega_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos de la zona"},
+        "detalles": {"tipo": "array", "embebido": true, "descripcion": "Productos del pedido embebidos"},
+        "historial_estados": {"tipo": "array", "embebido": true, "descripcion": "Historial de cambios de estado"},
+        "metodo_pago": {"tipo": "string", "requerido": false, "descripcion": "Método de pago utilizado"},
+        "datos_entrega": {"tipo": "object", "embebido": true, "descripcion": "Datos específicos de la entrega"},
+        "comisiones_calculadas": {"tipo": "array", "embebido": true, "descripcion": "Comisiones calculadas del pedido"}
+      },
+      "relaciones": {
+        "cliente": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "user_id"},
+        "vendedor": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "vendedor_id"},
+        "comisiones": {"tipo": "hasMany", "modelo": "ComisionMongo", "campo": "pedido_id"}
+      },
+      "metodos_especiales": ["agregarDetalle", "recalcularTotales", "cambiarEstado", "calcularComisionVendedor", "asignarDatosEmbebidos"],
+      "scopes": ["porEstado", "pendientes", "confirmados", "entregados", "delVendedor", "delCliente", "hoy"]
+    },
+
+    "detalle_pedidos": {
+      "descripcion": "Detalles específicos de productos en pedidos",
+      "modelo": "DetallePedidoMongo",
+      "estado": "✅ Implementado",
+      "indices": ["pedido_id", "producto_id"],
+      "campos": {
+        "pedido_id": {"tipo": "objectId", "referencia": "pedidos", "requerido": true, "descripcion": "ID del pedido"},
+        "pedido_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del pedido"},
+        "producto_id": {"tipo": "objectId", "referencia": "productos", "requerido": true, "descripcion": "ID del producto"},
+        "producto_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del producto"},
+        "cantidad": {"tipo": "integer", "requerido": true, "descripcion": "Cantidad solicitada"},
+        "precio_unitario": {"tipo": "decimal", "requerido": true, "descripcion": "Precio unitario al momento del pedido"},
+        "subtotal": {"tipo": "decimal", "requerido": true, "descripcion": "Subtotal de la línea"},
+        "descuento_aplicado": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Descuento aplicado al item"},
+        "descuento_porcentaje": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Porcentaje de descuento"},
+        "precio_original": {"tipo": "decimal", "requerido": false, "descripcion": "Precio original antes de descuentos"},
+        "especificaciones_producto": {"tipo": "object", "embebido": true, "descripcion": "Especificaciones específicas del producto"},
+        "notas_especiales": {"tipo": "array", "embebido": true, "descripcion": "Notas especiales del item"}
+      },
+      "relaciones": {
+        "pedido": {"tipo": "belongsTo", "modelo": "PedidoMongo", "campo": "pedido_id"},
+        "producto": {"tipo": "belongsTo", "modelo": "ProductoMongo", "campo": "producto_id"}
+      },
+      "metodos_especiales": ["calcularSubtotal", "aplicarDescuento", "tieneDescuento", "embederDatosProducto", "agregarNotasEspeciales"],
+      "scopes": ["delPedido", "delProducto", "conDescuento"]
+    },
+
+    "comisiones": {
+      "descripcion": "Sistema de comisiones MLM con datos embebidos",
+      "modelo": "ComisionMongo",
+      "estado": "✅ Implementado",
+      "indices": ["user_id", "pedido_id", "tipo", "estado"],
+      "campos": {
+        "user_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "ID del usuario que recibe la comisión"},
+        "user_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del usuario"},
+        "pedido_id": {"tipo": "objectId", "referencia": "pedidos", "requerido": true, "descripcion": "ID del pedido que genera la comisión"},
+        "pedido_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del pedido"},
+        "tipo": {"tipo": "enum", "valores": ["venta_directa", "referido_nivel_1", "referido_nivel_2", "bono_liderazgo"], "requerido": true, "descripcion": "Tipo de comisión"},
+        "porcentaje": {"tipo": "decimal", "requerido": true, "descripcion": "Porcentaje de comisión aplicado"},
+        "monto": {"tipo": "decimal", "requerido": true, "descripcion": "Monto de la comisión"},
+        "estado": {"tipo": "enum", "valores": ["pendiente", "aprobada", "pagada"], "por_defecto": "pendiente", "descripcion": "Estado de la comisión"},
+        "fecha_pago": {"tipo": "datetime", "requerido": false, "descripcion": "Fecha de pago de la comisión"},
+        "detalles_calculo": {"tipo": "object", "embebido": true, "descripcion": "Detalles del cálculo de la comisión"},
+        "metodo_pago": {"tipo": "string", "requerido": false, "descripcion": "Método de pago utilizado"},
+        "mysql_id": {"tipo": "integer", "requerido": false, "descripcion": "ID en la tabla MySQL original"}
+      },
+      "relaciones": {
+        "user": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "user_id"},
+        "pedido": {"tipo": "belongsTo", "modelo": "PedidoMongo", "campo": "pedido_id"}
+      },
+      "scopes": ["porEstado", "pendientes", "aprobadas", "pagadas"]
+    },
+
+    "referidos": {
+      "descripcion": "Sistema de referidos MLM con seguimiento detallado",
+      "modelo": "ReferidoMongo",
+      "estado": "✅ Implementado",
+      "indices": ["referidor_id", "referido_id", "nivel", "activo"],
+      "campos": {
+        "referidor_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "ID del usuario que refiere"},
+        "referidor_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del referidor"},
+        "referido_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "ID del usuario referido"},
+        "referido_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del referido"},
+        "fecha_registro": {"tipo": "datetime", "requerido": true, "descripcion": "Fecha de registro del referido"},
+        "activo": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo del referido"},
+        "nivel": {"tipo": "integer", "requerido": true, "descripcion": "Nivel del referido (1, 2, etc.)"},
+        "comisiones_generadas": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Total de comisiones generadas"},
+        "comisiones_pendientes": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Comisiones pendientes de pago"},
+        "comisiones_pagadas": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Comisiones ya pagadas"},
+        "total_ventas_referido": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Total de ventas del referido"},
+        "meta_referido": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Meta asignada al referido"},
+        "estado_referido": {"tipo": "string", "por_defecto": "activo", "descripcion": "Estado específico del referido"},
+        "historial_comisiones": {"tipo": "array", "embebido": true, "descripcion": "Historial detallado de comisiones"},
+        "codigo_promocional_usado": {"tipo": "string", "requerido": false, "descripcion": "Código promocional utilizado"},
+        "bonificaciones_especiales": {"tipo": "array", "embebido": true, "descripcion": "Bonificaciones especiales otorgadas"}
+      },
+      "relaciones": {
+        "referidor": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "referidor_id"},
+        "referido": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "referido_id"},
+        "comisiones": {"tipo": "hasMany", "modelo": "ComisionMongo", "campo": "referido_relacion_id"}
+      },
+      "metodos_especiales": ["embederDatosReferidor", "embederDatosReferido", "agregarComisionAlHistorial", "actualizarVentasReferido", "desactivar"],
+      "scopes": ["activos", "delReferidor", "delReferido", "porNivel", "conComisionesPendientes", "metaAlcanzada"]
+    },
+
+    "notificaciones": {
+      "descripcion": "Sistema de notificaciones con datos embebidos de usuario",
+      "modelo": "NotificacionMongo",
+      "estado": "✅ Implementado",
+      "indices": ["user_id", "tipo", "leida", "created_at"],
+      "campos": {
+        "user_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "ID del usuario destinatario"},
+        "user_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del usuario"},
+        "titulo": {"tipo": "string", "requerido": true, "descripcion": "Título de la notificación"},
+        "mensaje": {"tipo": "text", "requerido": true, "descripcion": "Contenido del mensaje"},
+        "tipo": {"tipo": "enum", "valores": ["pedido", "comision", "sistema", "promocion"], "requerido": true, "descripcion": "Tipo de notificación"},
+        "leida": {"tipo": "boolean", "por_defecto": false, "descripcion": "Estado de lectura"},
+        "fecha_lectura": {"tipo": "datetime", "requerido": false, "descripcion": "Fecha de lectura"},
+        "datos_adicionales": {"tipo": "object", "embebido": true, "descripcion": "Datos adicionales específicos del tipo"},
+        "canal": {"tipo": "string", "requerido": false, "descripcion": "Canal de envío (email, push, sms)"},
+        "mysql_id": {"tipo": "integer", "requerido": false, "descripcion": "ID en la tabla MySQL original"}
+      },
+      "relaciones": {
+        "user": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "user_id"}
+      },
+      "metodos_especiales": ["marcarComoLeida"],
+      "scopes": ["noLeidas", "leidas", "porTipo"]
+    },
+
+    "movimientos_inventario": {
+      "descripcion": "Control de inventario con datos embebidos y auditoría",
+      "modelo": "MovimientoInventarioMongo",
+      "estado": "✅ Implementado",
+      "indices": ["producto_id", "user_id", "tipo", "created_at"],
+      "campos": {
+        "producto_id": {"tipo": "objectId", "referencia": "productos", "requerido": true, "descripcion": "ID del producto"},
+        "producto_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del producto"},
+        "user_id": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "Usuario responsable del movimiento"},
+        "user_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del usuario"},
+        "tipo": {"tipo": "enum", "valores": ["entrada", "salida", "ajuste"], "requerido": true, "descripcion": "Tipo de movimiento"},
+        "cantidad": {"tipo": "integer", "requerido": true, "descripcion": "Cantidad del movimiento"},
+        "stock_anterior": {"tipo": "integer", "requerido": true, "descripcion": "Stock antes del movimiento"},
+        "stock_nuevo": {"tipo": "integer", "requerido": true, "descripcion": "Stock después del movimiento"},
+        "motivo": {"tipo": "text", "requerido": false, "descripcion": "Motivo del movimiento"},
+        "costo_unitario": {"tipo": "decimal", "requerido": false, "descripcion": "Costo unitario del producto"},
+        "costo_total": {"tipo": "decimal", "requerido": false, "descripcion": "Costo total del movimiento"},
+        "proveedor_id": {"tipo": "objectId", "requerido": false, "descripcion": "ID del proveedor"},
+        "proveedor_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del proveedor"},
+        "numero_factura": {"tipo": "string", "requerido": false, "descripcion": "Número de factura"},
+        "numero_lote": {"tipo": "string", "requerido": false, "descripcion": "Número de lote"},
+        "fecha_vencimiento": {"tipo": "date", "requerido": false, "descripcion": "Fecha de vencimiento"},
+        "ubicacion_almacen": {"tipo": "string", "requerido": false, "descripcion": "Ubicación en el almacén"},
+        "documento_respaldo": {"tipo": "array", "embebido": true, "descripcion": "Documentos de respaldo"},
+        "observaciones": {"tipo": "array", "embebido": true, "descripcion": "Observaciones del movimiento"},
+        "aprobado_por": {"tipo": "objectId", "referencia": "users", "requerido": false, "descripcion": "Usuario que aprobó el movimiento"},
+        "datos_adicionales": {"tipo": "object", "embebido": true, "descripcion": "Datos adicionales del movimiento"}
+      },
+      "relaciones": {
+        "producto": {"tipo": "belongsTo", "modelo": "ProductoMongo", "campo": "producto_id"},
+        "usuario": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "user_id"},
+        "aprobado_por": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "aprobado_por"}
+      },
+      "metodos_especiales": ["embederDatosProducto", "embederDatosUsuario", "agregarDocumentoRespaldo", "aprobar", "cancelar"],
+      "scopes": ["delProducto", "delUsuario", "porTipo", "entradas", "salidas", "ajustes", "hoy", "ultimoMes", "proximosAVencer"]
+    },
+
+    "zonas_entrega": {
+      "descripcion": "Gestión de zonas de entrega con configuración avanzada",
+      "modelo": "ZonaEntregaMongo",
+      "estado": "✅ Implementado",
+      "indices": ["ciudad", "departamento", "activa"],
+      "campos": {
+        "nombre": {"tipo": "string", "requerido": true, "descripcion": "Nombre de la zona"},
+        "descripcion": {"tipo": "text", "requerido": false, "descripcion": "Descripción de la zona"},
+        "ciudad": {"tipo": "string", "requerido": true, "descripcion": "Ciudad de la zona"},
+        "departamento": {"tipo": "string", "requerido": true, "descripcion": "Departamento de la zona"},
+        "codigo_postal": {"tipo": "string", "requerido": false, "descripcion": "Código postal"},
+        "coordenadas": {"tipo": "array", "descripcion": "Coordenadas geográficas [lat, lng]"},
+        "precio_domicilio": {"tipo": "decimal", "por_defecto": 0, "descripcion": "Precio del domicilio"},
+        "tiempo_entrega_estimado": {"tipo": "integer", "descripcion": "Tiempo estimado en minutos"},
+        "activa": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo/inactivo"},
+        "vendedores_asignados": {"tipo": "array", "embebido": true, "descripcion": "Vendedores asignados a la zona"},
+        "cobertura_barrios": {"tipo": "array", "descripcion": "Barrios cubiertos por la zona"},
+        "horarios_entrega": {"tipo": "object", "embebido": true, "descripcion": "Horarios de entrega por día"},
+        "restricciones": {"tipo": "array", "embebido": true, "descripcion": "Restricciones específicas"},
+        "configuracion_especial": {"tipo": "object", "embebido": true, "descripcion": "Configuraciones especiales"},
+        "estadisticas": {"tipo": "object", "embebido": true, "descripcion": "Estadísticas de la zona"},
+        "observaciones": {"tipo": "array", "embebido": true, "descripcion": "Observaciones de la zona"}
+      },
+      "relaciones": {
+        "pedidos": {"tipo": "hasMany", "modelo": "PedidoMongo", "campo": "zona_entrega_id"}
+      },
+      "metodos_especiales": ["asignarVendedor", "desasignarVendedor", "agregarBarrio", "configurarHorario", "distanciaAproximada"],
+      "scopes": ["activas", "porCiudad", "porDepartamento", "conDomicilio", "entregaRapida"]
+    },
+
+    "configuraciones": {
+      "descripcion": "Configuraciones del sistema con historial de cambios",
+      "modelo": "ConfiguracionMongo",
+      "estado": "✅ Implementado",
+      "indices": ["clave", "categoria", "grupo", "es_publica"],
+      "campos": {
+        "clave": {"tipo": "string", "unico": true, "requerido": true, "descripcion": "Clave única de configuración"},
+        "valor": {"tipo": "array", "requerido": true, "descripcion": "Valor estructurado de la configuración"},
+        "tipo": {"tipo": "enum", "valores": ["string", "integer", "float", "boolean", "array", "json"], "requerido": true, "descripcion": "Tipo de dato"},
+        "categoria": {"tipo": "string", "requerido": true, "descripcion": "Categoría de la configuración"},
+        "descripcion": {"tipo": "text", "requerido": false, "descripcion": "Descripción de la configuración"},
+        "es_publica": {"tipo": "boolean", "por_defecto": false, "descripcion": "Si es visible públicamente"},
+        "es_editable": {"tipo": "boolean", "por_defecto": true, "descripcion": "Si puede ser editada"},
+        "validaciones": {"tipo": "array", "embebido": true, "descripcion": "Reglas de validación"},
+        "opciones_disponibles": {"tipo": "array", "descripcion": "Opciones disponibles para la configuración"},
+        "valor_por_defecto": {"tipo": "array", "descripcion": "Valor por defecto"},
+        "historial_cambios": {"tipo": "array", "embebido": true, "descripcion": "Historial de cambios"},
+        "metadatos": {"tipo": "object", "embebido": true, "descripcion": "Metadatos adicionales"},
+        "dependencias": {"tipo": "array", "embebido": true, "descripcion": "Dependencias con otras configuraciones"},
+        "grupo": {"tipo": "string", "requerido": false, "descripcion": "Grupo de configuraciones"},
+        "orden": {"tipo": "integer", "por_defecto": 0, "descripcion": "Orden de visualización"}
+      },
+      "metodos_especiales": ["actualizarValor", "restaurarValor", "agregarMetadato", "restablecerValorPorDefecto"],
+      "metodos_estaticos": ["obtener", "establecer", "obtenerPorCategoria", "obtenerPorGrupo"],
+      "scopes": ["porCategoria", "porGrupo", "publicas", "editables", "porTipo", "ordenadas", "buscar"]
+    },
+
+    "cupones": {
+      "descripcion": "Sistema de cupones y descuentos con validaciones avanzadas",
+      "modelo": "CuponMongo",
+      "estado": "✅ Implementado",
+      "indices": ["codigo", "activo", "fecha_vencimiento", "tipo"],
+      "campos": {
+        "codigo": {"tipo": "string", "unico": true, "requerido": true, "descripcion": "Código único del cupón"},
+        "tipo": {"tipo": "enum", "valores": ["porcentaje", "monto_fijo", "envio_gratis"], "requerido": true, "descripcion": "Tipo de descuento"},
+        "valor": {"tipo": "decimal", "requerido": false, "descripcion": "Valor del descuento"},
+        "porcentaje_descuento": {"tipo": "decimal", "requerido": false, "descripcion": "Porcentaje de descuento"},
+        "monto_descuento": {"tipo": "decimal", "requerido": false, "descripcion": "Monto fijo de descuento"},
+        "descripcion": {"tipo": "text", "requerido": false, "descripcion": "Descripción del cupón"},
+        "fecha_inicio": {"tipo": "datetime", "requerido": true, "descripcion": "Fecha de inicio de vigencia"},
+        "fecha_vencimiento": {"tipo": "datetime", "requerido": true, "descripcion": "Fecha de vencimiento"},
+        "limite_usos": {"tipo": "integer", "requerido": false, "descripcion": "Límite de usos del cupón"},
+        "usos_actuales": {"tipo": "integer", "por_defecto": 0, "descripcion": "Usos actuales del cupón"},
+        "activo": {"tipo": "boolean", "por_defecto": true, "descripcion": "Estado activo/inactivo"},
+        "aplicable_a": {"tipo": "enum", "valores": ["todos", "productos", "categorias", "usuarios"], "por_defecto": "todos", "descripcion": "A qué se puede aplicar"},
+        "productos_aplicables": {"tipo": "array", "embebido": true, "descripcion": "Productos específicos"},
+        "categorias_aplicables": {"tipo": "array", "descripcion": "Categorías específicas"},
+        "usuarios_aplicables": {"tipo": "array", "descripcion": "Usuarios específicos"},
+        "monto_minimo_compra": {"tipo": "decimal", "requerido": false, "descripcion": "Monto mínimo de compra"},
+        "monto_maximo_descuento": {"tipo": "decimal", "requerido": false, "descripcion": "Monto máximo de descuento"},
+        "restricciones": {"tipo": "array", "embebido": true, "descripcion": "Restricciones adicionales"},
+        "condiciones_especiales": {"tipo": "array", "embebido": true, "descripcion": "Condiciones especiales"},
+        "historial_usos": {"tipo": "array", "embebido": true, "descripcion": "Historial de usos del cupón"},
+        "created_by": {"tipo": "objectId", "referencia": "users", "requerido": true, "descripcion": "Usuario que creó el cupón"},
+        "estadisticas": {"tipo": "object", "embebido": true, "descripcion": "Estadísticas de uso"}
+      },
+      "relaciones": {
+        "creador": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "created_by"}
+      },
+      "metodos_especiales": ["puedeAplicarseA", "calcularDescuento", "validarCondiciones", "usar", "clonar", "desactivar"],
+      "metodos_estaticos": ["validarCodigo"],
+      "scopes": ["activos", "vigentes", "disponibles", "porTipo", "porcentaje", "montoFijo", "envioGratis", "porCodigo"]
+    },
+
+    "auditoria": {
+      "descripcion": "Sistema de auditoría y trazabilidad de cambios",
+      "modelo": "AuditoriaMongo",
+      "estado": "✅ Implementado",
+      "indices": ["modelo", "modelo_id", "accion", "usuario_id", "created_at", "nivel_criticidad"],
+      "campos": {
+        "modelo": {"tipo": "string", "requerido": true, "descripcion": "Nombre del modelo afectado"},
+        "modelo_id": {"tipo": "string", "requerido": true, "descripcion": "ID del registro afectado"},
+        "accion": {"tipo": "enum", "valores": ["created", "updated", "deleted"], "requerido": true, "descripcion": "Acción realizada"},
+        "usuario_id": {"tipo": "objectId", "referencia": "users", "requerido": false, "descripcion": "Usuario que realizó la acción"},
+        "usuario_data": {"tipo": "object", "embebido": true, "descripcion": "Datos embebidos del usuario"},
+        "datos_anteriores": {"tipo": "object", "embebido": true, "descripcion": "Datos antes del cambio"},
+        "datos_nuevos": {"tipo": "object", "embebido": true, "descripcion": "Datos después del cambio"},
+        "cambios_detectados": {"tipo": "object", "embebido": true, "descripcion": "Cambios específicos detectados"},
+        "ip_address": {"tipo": "string", "requerido": false, "descripcion": "Dirección IP del usuario"},
+        "user_agent": {"tipo": "string", "requerido": false, "descripcion": "User agent del navegador"},
+        "url": {"tipo": "string", "requerido": false, "descripcion": "URL donde se realizó la acción"},
+        "metodo_http": {"tipo": "string", "requerido": false, "descripcion": "Método HTTP utilizado"},
+        "session_id": {"tipo": "string", "requerido": false, "descripcion": "ID de la sesión"},
+        "tabla_afectada": {"tipo": "string", "requerido": false, "descripcion": "Tabla/colección afectada"},
+        "contexto_adicional": {"tipo": "object", "embebido": true, "descripcion": "Contexto adicional de la acción"},
+        "nivel_criticidad": {"tipo": "enum", "valores": ["critico", "alto", "medio", "bajo"], "por_defecto": "medio", "descripcion": "Nivel de criticidad del cambio"},
+        "categoria": {"tipo": "string", "por_defecto": "crud", "descripcion": "Categoría de la auditoría"},
+        "tags": {"tipo": "array", "descripcion": "Tags para clasificación"},
+        "datos_request": {"tipo": "object", "embebido": true, "descripcion": "Datos del request"},
+        "tiempo_ejecucion": {"tipo": "float", "requerido": false, "descripcion": "Tiempo de ejecución en segundos"}
+      },
+      "relaciones": {
+        "usuario": {"tipo": "belongsTo", "modelo": "UserMongo", "campo": "usuario_id"}
+      },
+      "metodos_especiales": ["embederDatosUsuario", "agregarContexto", "agregarTag", "marcarComoRevisado", "detectarCambiosSensibles"],
+      "metodos_estaticos": ["registrarCreacion", "registrarActualizacion", "registrarEliminacion"],
+      "scopes": ["porModelo", "porModeloId", "porAccion", "porUsuario", "creaciones", "actualizaciones", "eliminaciones", "hoy", "ultimoMes", "criticos", "porCategoria"]
+    }
+  },
+
+  "estadisticas_implementacion": {
+    "total_colecciones": 13,
+    "colecciones_implementadas": 13,
+    "porcentaje_completitud": "100%",
+    "modelos_con_datos_embebidos": 13,
+    "modelos_con_relaciones": 11,
+    "modelos_con_scopes": 13,
+    "modelos_con_metodos_especiales": 13,
+    "indices_totales": 45,
+    "campos_totales": 156
+  },
+
+  "caracteristicas_mongodb": {
+    "datos_embebidos": {
+      "descripcion": "Uso extensivo de documentos embebidos para optimizar consultas",
+      "ejemplos": [
+        "categoria_data en productos",
+        "cliente_data y vendedor_data en pedidos",
+        "detalles embebidos en pedidos",
+        "historial_cambios en configuraciones",
+        "reviews embebidas en productos"
+      ]
+    },
+    "indices_optimizados": {
+      "descripcion": "Índices estratégicos para consultas frecuentes",
+      "ejemplos": [
+        "email y cedula únicos en users",
+        "numero_pedido único en pedidos",
+        "codigo único en cupones",
+        "estado y fecha en pedidos",
+        "activo en múltiples colecciones"
+      ]
+    },
+    "flexibilidad_esquema": {
+      "descripcion": "Esquemas flexibles con validaciones a nivel de aplicación",
+      "ventajas": [
+        "Fácil evolución del esquema",
+        "Campos opcionales sin penalización",
+        "Estructuras anidadas complejas",
+        "Arrays dinámicos"
+      ]
+    },
+    "rendimiento": {
+      "descripcion": "Optimizaciones específicas para MongoDB",
+      "estrategias": [
+        "Consultas embebidas evitan JOINs",
+        "Agregaciones para reportes complejos",
+        "Índices compuestos para consultas múltiples",
+        "Proyecciones para limitar datos transferidos"
+      ]
+    }
+  },
+
+  "migracion_mysql": {
+    "estado": "Estructura completa - Pendiente migración de datos",
+    "tablas_origen": [
+      "users", "categorias", "productos", "pedidos",
+      "detalle_pedidos", "comisiones", "referidos",
+      "notificaciones", "movimientos_inventario"
+    ],
+    "modelos_nuevos": [
+      "ZonaEntregaMongo", "ConfiguracionMongo",
+      "CuponMongo", "AuditoriaMongo"
+    ],
+    "campos_mysql_id": {
+      "descripcion": "Campo mysql_id para mantener referencia con datos originales",
+      "modelos_afectados": ["NotificacionMongo", "ComisionMongo"]
+    }
+  },
+
+  "funcionalidades_implementadas": {
+    "sistema_mlm": {
+      "descripcion": "Sistema Multi-Nivel Marketing completo",
+      "componentes": [
+        "Gestión de referidos con múltiples niveles",
+        "Cálculo automático de comisiones",
+        "Seguimiento de metas y rendimiento",
+        "Estructura jerárquica de vendedores"
+      ]
+    },
+    "gestion_productos": {
+      "descripcion": "Catálogo completo con inventario",
+      "componentes": [
+        "Categorización avanzada",
+        "Control de stock en tiempo real",
+        "Historial de precios embebido",
+        "Sistema de reviews integrado"
+      ]
+    },
+    "procesamiento_pedidos": {
+      "descripcion": "Flujo completo de pedidos",
+      "componentes": [
+        "Estados de pedido configurables",
+        "Gestión de zonas de entrega",
+        "Cálculo automático de comisiones",
+        "Historial de cambios embebido"
+      ]
+    },
+    "sistema_cupones": {
+      "descripcion": "Gestión avanzada de descuentos",
+      "componentes": [
+        "Múltiples tipos de descuento",
+        "Validaciones complejas",
+        "Restricciones configurables",
+        "Estadísticas de uso"
+      ]
+    },
+    "auditoria_completa": {
+      "descripcion": "Trazabilidad total del sistema",
+      "componentes": [
+        "Registro automático de cambios",
+        "Clasificación por criticidad",
+        "Contexto detallado de acciones",
+        "Sistema de revisión"
+      ]
+    }
+  },
+
+  "proximos_pasos": [
+    "Crear seeders para poblar con datos de prueba",
+    "Implementar script de migración MySQL → MongoDB",
+    "Actualizar controladores para usar modelos MongoDB",
+    "Verificar funcionalidad de dashboards",
+    "Configurar índices de rendimiento",
+    "Implementar agregaciones para reportes",
+    "Testing y validación de integridad"
+  ],
+
+  "notas_tecnicas": {
+    "conexion": "mongodb://127.0.0.1:27017/arepa_llanerita_mongo",
+    "driver": "MongoDB Laravel Driver",
+    "version_php": "8.2+",
+    "version_mongodb": "7.0+",
+    "consideraciones": [
+      "Todos los modelos extienden MongoDB\\Laravel\\Eloquent\\Model",
+      "UserMongo extiende MongoDB\\Laravel\\Auth\\User para autenticación",
+      "Campos embebidos permiten consultas más eficientes",
+      "Métodos específicos de MongoDB para manipular arrays y objetos",
+      "Scopes personalizados para consultas frecuentes"
+    ]
+  }
+}

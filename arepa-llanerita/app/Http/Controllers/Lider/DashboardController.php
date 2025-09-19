@@ -28,7 +28,7 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         // Obtener el equipo del líder (referidos directos e indirectos)
-        $equipoDirecto = $user->referidos;
+        $equipoDirecto = User::where('referido_por', $user->_id)->get();
         $equipoTotal = $this->obtenerEquipoCompleto($user);
 
         // Estadísticas generales
@@ -78,7 +78,8 @@ class DashboardController extends Controller
         }
 
         $equipo = [];
-        foreach ($lider->referidos as $referido) {
+        $referidos = User::where('referido_por', $lider->_id)->get();
+        foreach ($referidos as $referido) {
             $equipo[] = $referido;
             if ($nivel < $maxNivel) {
                 $equipo = array_merge($equipo, $this->obtenerEquipoCompleto($referido, $nivel + 1, $maxNivel));
@@ -91,7 +92,7 @@ class DashboardController extends Controller
     private function calcularVentasMesActual($equipo)
     {
         $inicioMes = Carbon::now()->startOfMonth();
-        $equipoIds = collect($equipo)->pluck('id')->toArray();
+        $equipoIds = collect($equipo)->pluck('_id')->toArray();
 
         return Pedido::whereIn('vendedor_id', $equipoIds)
             ->where('created_at', '>=', $inicioMes)
@@ -119,17 +120,25 @@ class DashboardController extends Controller
 
     private function obtenerVentasPorDia($equipo)
     {
-        $equipoIds = collect($equipo)->pluck('id')->toArray();
+        $equipoIds = collect($equipo)->pluck('_id')->toArray();
         $fechaInicio = Carbon::now()->subDays(30);
+        $ventas = [];
 
-        return Pedido::whereIn('vendedor_id', $equipoIds)
-            ->where('created_at', '>=', $fechaInicio)
-            ->where('estado', '!=', 'cancelado')
-            ->selectRaw('DATE(created_at) as fecha, COUNT(*) as cantidad, SUM(total_final) as total')
-            ->groupBy('fecha')
-            ->orderBy('fecha')
-            ->get()
-            ->keyBy('fecha');
+        for ($i = 29; $i >= 0; $i--) {
+            $fecha = Carbon::now()->subDays($i);
+            $pedidosDia = Pedido::whereIn('vendedor_id', $equipoIds)
+                ->whereDate('created_at', $fecha)
+                ->where('estado', '!=', 'cancelado')
+                ->get();
+
+            $ventas[$fecha->format('Y-m-d')] = [
+                'fecha' => $fecha->format('Y-m-d'),
+                'cantidad' => $pedidosDia->count(),
+                'total' => $pedidosDia->sum('total_final')
+            ];
+        }
+
+        return collect($ventas);
     }
 
     private function obtenerTopPerformers($equipoDirecto)
@@ -137,23 +146,25 @@ class DashboardController extends Controller
         $inicioMes = Carbon::now()->startOfMonth();
 
         return $equipoDirecto->map(function ($miembro) use ($inicioMes) {
-            $ventasMes = Pedido::where('vendedor_id', $miembro->id)
+            $ventasMes = Pedido::where('vendedor_id', $miembro->_id)
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
                 ->sum('total_final');
 
-            $pedidosMes = Pedido::where('vendedor_id', $miembro->id)
+            $pedidosMes = Pedido::where('vendedor_id', $miembro->_id)
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
+                ->count();
+
+            $referidosMes = User::where('referido_por', $miembro->_id)
+                ->where('created_at', '>=', $inicioMes)
                 ->count();
 
             return [
                 'usuario' => $miembro,
                 'ventas_mes' => $ventasMes,
                 'pedidos_mes' => $pedidosMes,
-                'referidos_mes' => $miembro->referidos()
-                    ->where('created_at', '>=', $inicioMes)
-                    ->count()
+                'referidos_mes' => $referidosMes
             ];
         })
         ->sortByDesc('ventas_mes')
@@ -163,34 +174,33 @@ class DashboardController extends Controller
 
     private function obtenerActividadReciente($equipo)
     {
-        $equipoIds = collect($equipo)->pluck('id')->toArray();
+        $equipoIds = collect($equipo)->pluck('_id')->toArray();
 
         // Pedidos recientes
-        $pedidosRecientes = Pedido::with('vendedor', 'cliente')
-            ->whereIn('vendedor_id', $equipoIds)
+        $pedidosRecientes = Pedido::whereIn('vendedor_id', $equipoIds)
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get()
             ->map(function ($pedido) {
                 return [
                     'tipo' => 'pedido',
-                    'descripcion' => "Nueva venta por {$pedido->vendedor->name}",
+                    'descripcion' => "Nueva venta por {$pedido->vendedor_data['name']}",
                     'monto' => $pedido->total_final,
                     'fecha' => $pedido->created_at,
-                    'usuario' => $pedido->vendedor
+                    'usuario' => (object) $pedido->vendedor_data
                 ];
             });
 
         // Nuevos referidos
-        $nuevosReferidos = User::with('referidor')
-            ->whereIn('referido_por', $equipoIds)
+        $nuevosReferidos = User::whereIn('referido_por', $equipoIds)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
             ->map(function ($usuario) {
+                $referidor = User::where('_id', $usuario->referido_por)->first();
                 return [
                     'tipo' => 'referido',
-                    'descripcion' => "Nuevo referido de {$usuario->referidor->name}",
+                    'descripcion' => "Nuevo referido de {$referidor->name}",
                     'fecha' => $usuario->created_at,
                     'usuario' => $usuario
                 ];
@@ -204,29 +214,51 @@ class DashboardController extends Controller
 
     private function obtenerProductosMasVendidos($equipo)
     {
-        $equipoIds = collect($equipo)->pluck('id')->toArray();
+        $equipoIds = collect($equipo)->pluck('_id')->toArray();
         $inicioMes = Carbon::now()->startOfMonth();
 
-        return DB::table('pedido_detalles')
-            ->join('pedidos', 'pedido_detalles.pedido_id', '=', 'pedidos.id')
-            ->join('productos', 'pedido_detalles.producto_id', '=', 'productos.id')
-            ->whereIn('pedidos.vendedor_id', $equipoIds)
-            ->where('pedidos.created_at', '>=', $inicioMes)
-            ->where('pedidos.estado', '!=', 'cancelado')
-            ->selectRaw('
-                productos.nombre,
-                productos.precio,
-                SUM(pedido_detalles.cantidad) as cantidad_vendida,
-                SUM(pedido_detalles.total) as total_ventas
-            ')
-            ->groupBy('productos.id', 'productos.nombre', 'productos.precio')
-            ->orderByDesc('cantidad_vendida')
-            ->take(10)
-            ->get();
+        // Obtener pedidos del equipo del mes
+        $pedidosMes = Pedido::whereIn('vendedor_id', $equipoIds)
+                           ->where('created_at', '>=', $inicioMes)
+                           ->where('estado', '!=', 'cancelado')
+                           ->get();
+
+        $productosVendidos = [];
+
+        foreach ($pedidosMes as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'];
+                $cantidad = $detalle['cantidad'];
+
+                if (!isset($productosVendidos[$productoId])) {
+                    $productosVendidos[$productoId] = [
+                        'nombre' => $detalle['producto_data']['nombre'],
+                        'precio' => $detalle['producto_data']['precio'],
+                        'cantidad_vendida' => 0,
+                        'total_ventas' => 0
+                    ];
+                }
+
+                $productosVendidos[$productoId]['cantidad_vendida'] += $cantidad;
+                $productosVendidos[$productoId]['total_ventas'] += $detalle['subtotal'];
+            }
+        }
+
+        // Ordenar por cantidad vendida y tomar los top 10
+        uasort($productosVendidos, function($a, $b) {
+            return $b['cantidad_vendida'] <=> $a['cantidad_vendida'];
+        });
+
+        return collect(array_slice($productosVendidos, 0, 10, true));
     }
 
     private function obtenerMetas($user)
     {
+        $referidosEsteMes = User::where('referido_por', $user->_id)
+                                ->whereMonth('created_at', Carbon::now()->month)
+                                ->whereYear('created_at', Carbon::now()->year)
+                                ->count();
+
         return [
             'ventas_mes' => [
                 'objetivo' => $user->meta_mensual ?? 0,
@@ -235,8 +267,8 @@ class DashboardController extends Controller
             ],
             'equipo_mes' => [
                 'objetivo' => 10, // Meta de crecimiento del equipo
-                'actual' => $user->referidos()->whereMonth('created_at', Carbon::now()->month)->count(),
-                'progreso' => min(($user->referidos()->whereMonth('created_at', Carbon::now()->month)->count() / 10) * 100, 100)
+                'actual' => $referidosEsteMes,
+                'progreso' => min(($referidosEsteMes / 10) * 100, 100)
             ],
             'comisiones_mes' => [
                 'objetivo' => ($user->meta_mensual ?? 0) * 0.15, // 15% de comisión esperada
@@ -254,7 +286,7 @@ class DashboardController extends Controller
 
         return collect(range(0, $mesesAtras - 1))->map(function ($i) use ($user) {
             $fecha = Carbon::now()->subMonths($i);
-            $nuevos = $user->referidos()
+            $nuevos = User::where('referido_por', $user->_id)
                 ->whereYear('created_at', $fecha->year)
                 ->whereMonth('created_at', $fecha->month)
                 ->count();

@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Pedido extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'pedidos';
+
     protected $fillable = [
         'numero_pedido',
         'user_id',
+        'cliente_data', // Datos del cliente embebidos
         'vendedor_id',
+        'vendedor_data', // Datos del vendedor embebidos
         'estado',
         'total',
         'descuento',
@@ -20,47 +23,88 @@ class Pedido extends Model
         'telefono_entrega',
         'notas',
         'fecha_entrega_estimada',
+        'zona_entrega_id',
+        'zona_entrega_data',
+        'detalles', // Array embebido de productos
+        'historial_estados',
+        'metodo_pago',
+        'datos_entrega',
+        'comisiones_calculadas'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'total' => 'decimal:2',
-            'descuento' => 'decimal:2',
-            'total_final' => 'decimal:2',
-            'fecha_entrega_estimada' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'total' => 'decimal:2',
+        'descuento' => 'decimal:2',
+        'total_final' => 'decimal:2',
+        'fecha_entrega_estimada' => 'datetime',
+        'detalles' => 'array',
+        'historial_estados' => 'array',
+        'cliente_data' => 'array',
+        'vendedor_data' => 'array',
+        'zona_entrega_data' => 'array',
+        'datos_entrega' => 'array',
+        'comisiones_calculadas' => 'array'
+    ];
 
-    // Relaciones
-    public function cliente(): BelongsTo
+    // Relaciones de referencia para datos que cambian frecuentemente
+    public function cliente()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function vendedor(): BelongsTo
+    public function vendedor()
     {
         return $this->belongsTo(User::class, 'vendedor_id');
     }
 
-    public function zonaEntrega(): BelongsTo
+    public function comisiones()
     {
-        return $this->belongsTo(ZonaEntrega::class);
+        return $this->hasMany(Comision::class, 'pedido_id');
     }
 
-    public function detalles(): HasMany
+    // Métodos para manejar detalles embebidos
+    public function getDetallesAttribute()
     {
-        return $this->hasMany(DetallePedido::class);
+        return $this->attributes['detalles'] ?? [];
     }
 
-    public function comisiones(): HasMany
+    public function setDetallesAttribute($detalles)
     {
-        return $this->hasMany(Comision::class);
+        $this->attributes['detalles'] = $detalles;
     }
 
-    public function movimientosInventario(): HasMany
+    public function agregarDetalle($productoData, $cantidad, $precioUnitario)
     {
-        return $this->hasMany(MovimientoInventario::class);
+        $detalles = $this->detalles;
+        $subtotal = $cantidad * $precioUnitario;
+
+        $detalle = [
+            'producto_id' => $productoData['_id'],
+            'producto_data' => $productoData,
+            'cantidad' => $cantidad,
+            'precio_unitario' => $precioUnitario,
+            'subtotal' => $subtotal,
+            'fecha_agregado' => now()
+        ];
+
+        $detalles[] = $detalle;
+        $this->detalles = $detalles;
+
+        // Recalcular totales
+        $this->recalcularTotales();
+
+        return $this;
+    }
+
+    public function recalcularTotales()
+    {
+        $total = 0;
+        foreach ($this->detalles as $detalle) {
+            $total += $detalle['subtotal'];
+        }
+
+        $this->total = $total;
+        $this->total_final = $total - $this->descuento;
     }
 
     // Scopes
@@ -127,18 +171,24 @@ class Pedido extends Model
 
     public function totalItems(): int
     {
-        return $this->detalles->sum('cantidad');
+        return array_sum(array_column($this->detalles, 'cantidad'));
     }
 
-    public function tiempoPreparacionTotal(): int
+    public function cambiarEstado($nuevoEstado, $motivo = null, $usuarioId = null)
     {
-        $maxTiempo = 0;
-        foreach ($this->detalles as $detalle) {
-            if ($detalle->producto->tiempo_preparacion > $maxTiempo) {
-                $maxTiempo = $detalle->producto->tiempo_preparacion;
-            }
-        }
-        return $maxTiempo;
+        $historial = $this->historial_estados ?? [];
+        $historial[] = [
+            'estado_anterior' => $this->estado,
+            'estado_nuevo' => $nuevoEstado,
+            'motivo' => $motivo,
+            'fecha' => now(),
+            'usuario_id' => $usuarioId ?? auth()->id()
+        ];
+
+        $this->historial_estados = $historial;
+        $this->estado = $nuevoEstado;
+
+        return $this->save();
     }
 
     public function calcularComisionVendedor(): float
@@ -151,11 +201,45 @@ class Pedido extends Model
     {
         $formato = config('pedidos.formato_numero', 'ARE-{YYYY}-{NNNN}');
         $ultimoNumero = self::whereYear('created_at', now()->year)->count() + 1;
-        
+
         return str_replace(
             ['{YYYY}', '{NNNN}'],
             [now()->year, str_pad($ultimoNumero, 4, '0', STR_PAD_LEFT)],
             $formato
         );
+    }
+
+    public function asignarDatosEmbebidos()
+    {
+        // Embeber datos del cliente
+        if ($this->user_id && !$this->cliente_data) {
+            $cliente = User::find($this->user_id);
+            if ($cliente) {
+                $this->cliente_data = [
+                    '_id' => $cliente->_id,
+                    'name' => $cliente->name,
+                    'apellidos' => $cliente->apellidos,
+                    'email' => $cliente->email,
+                    'telefono' => $cliente->telefono,
+                    'cedula' => $cliente->cedula
+                ];
+            }
+        }
+
+        // Embeber datos del vendedor
+        if ($this->vendedor_id && !$this->vendedor_data) {
+            $vendedor = User::find($this->vendedor_id);
+            if ($vendedor) {
+                $this->vendedor_data = [
+                    '_id' => $vendedor->_id,
+                    'name' => $vendedor->name,
+                    'apellidos' => $vendedor->apellidos,
+                    'email' => $vendedor->email,
+                    'telefono' => $vendedor->telefono
+                ];
+            }
+        }
+
+        return $this->save();
     }
 }

@@ -31,83 +31,121 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
-        // Estadísticas básicas que funcionan
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finMes = Carbon::now()->endOfMonth();
+        $hoy = Carbon::today();
+
+        // Estadísticas reales de MongoDB
         $stats = [
-            'total_usuarios' => User::count() ?? 0,
-            'total_vendedores' => User::vendedores()->count() ?? 0,
-            'total_productos' => Producto::count() ?? 0,
-            'productos_stock_bajo' => 2, // Dato fijo por ahora
-            'pedidos_hoy' => 0, // Dato fijo por ahora
-            'pedidos_pendientes' => 0, // Dato fijo por ahora
-            'ventas_mes' => 450000, // Dato fijo por ahora
-            'comisiones_pendientes' => 125000, // Dato fijo por ahora
+            'total_usuarios' => User::count(),
+            'total_vendedores' => User::vendedores()->count(),
+            'total_productos' => Producto::count(),
+            'productos_stock_bajo' => Producto::stockBajo()->count(),
+            'pedidos_hoy' => Pedido::whereDate('created_at', $hoy)->count(),
+            'pedidos_pendientes' => Pedido::pendientes()->count(),
+            'ventas_mes' => Pedido::whereBetween('created_at', [$inicioMes, $finMes])
+                                 ->where('estado', '!=', 'cancelado')
+                                 ->sum('total_final'),
+            'comisiones_pendientes' => Comision::pendientes()->sum('monto'),
+            'ventas_hoy' => Pedido::whereDate('created_at', $hoy)
+                                 ->where('estado', '!=', 'cancelado')
+                                 ->sum('total_final'),
+            'clientes_activos' => User::where('rol', 'cliente')
+                                    ->where('activo', true)->count(),
+            'total_comisiones_mes' => Comision::whereBetween('created_at', [$inicioMes, $finMes])
+                                            ->sum('monto'),
         ];
 
-        // Pedidos recientes (datos de ejemplo por ahora)
-        $pedidos_recientes = collect([
-            (object)[
-                'id' => 1,
-                'numero_pedido' => 'PED-001',
-                'cliente' => (object)[
-                    'name' => 'Maria Gonzalez',
-                    'email' => 'maria.gonzalez@email.com'
-                ],
-                'vendedor' => (object)[
-                    'name' => 'Ana Lopez',
-                    'email' => 'ana.lopez@arepallanerita.com'
-                ],
-                'total_final' => 35000,
-                'estado' => 'entregado',
-                'created_at' => now()->subDays(1)
-            ],
-            (object)[
-                'id' => 2,
-                'numero_pedido' => 'PED-002',
-                'cliente' => (object)[
-                    'name' => 'Pedro Ramirez',
-                    'email' => 'pedro.ramirez@email.com'
-                ],
-                'vendedor' => (object)[
-                    'name' => 'Miguel Torres',
-                    'email' => 'miguel.torres@arepallanerita.com'
-                ],
-                'total_final' => 28000,
-                'estado' => 'pendiente',
-                'created_at' => now()->subDays(2)
-            ],
-        ]);
+        // Pedidos recientes reales
+        $pedidos_recientes = Pedido::orderBy('created_at', 'desc')
+                                  ->take(10)
+                                  ->get()
+                                  ->map(function ($pedido) {
+                                      return (object)[
+                                          'id' => $pedido->_id,
+                                          'numero_pedido' => $pedido->numero_pedido,
+                                          'cliente' => (object)[
+                                              'name' => $pedido->cliente_data['name'] ?? 'Cliente',
+                                              'email' => $pedido->cliente_data['email'] ?? ''
+                                          ],
+                                          'vendedor' => (object)[
+                                              'name' => $pedido->vendedor_data['name'] ?? 'Vendedor',
+                                              'email' => $pedido->vendedor_data['email'] ?? ''
+                                          ],
+                                          'total_final' => $pedido->total_final,
+                                          'estado' => $pedido->estado,
+                                          'created_at' => $pedido->created_at
+                                      ];
+                                  });
 
-        // Productos populares (datos de ejemplo)
-        $productos_populares = Producto::with('categoria')->take(5)->get();
+        // Productos más vendidos del mes
+        $productos_populares = $this->obtenerProductosPopulares();
 
-        return view('dashboard.admin', compact('stats', 'pedidos_recientes', 'productos_populares'));
+        // Gráfico de ventas de los últimos 7 días
+        $ventasSemanales = $this->obtenerVentasSemanales();
+
+        // Top vendedores del mes
+        $topVendedores = $this->obtenerTopVendedores();
+
+        return view('dashboard.admin', compact(
+            'stats',
+            'pedidos_recientes',
+            'productos_populares',
+            'ventasSemanales',
+            'topVendedores'
+        ));
     }
 
     private function liderDashboard()
     {
         $user = auth()->user();
+        $inicioMes = Carbon::now()->startOfMonth();
 
-        // Vendedores bajo este líder (referidos por él) - con valores por defecto
-        $equipo = User::where('referido_por', $user->id)
+        // Vendedores bajo este líder (referidos por él)
+        $equipo = User::where('referido_por', $user->_id)
                      ->where('rol', 'vendedor')
                      ->get()
-                     ->map(function ($miembro) {
-                         // Asegurar que todos los campos necesarios existen
-                         $miembro->ventas_mes_actual = $miembro->ventas_mes_actual ?? 0;
+                     ->map(function ($miembro) use ($inicioMes) {
+                         // Calcular ventas reales del mes
+                         $ventasMes = Pedido::where('vendedor_id', $miembro->_id)
+                                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                           ->where('estado', '!=', 'cancelado')
+                                           ->sum('total_final');
+
+                         $miembro->ventas_mes_actual = $ventasMes;
                          $miembro->meta_mensual = $miembro->meta_mensual ?? 0;
                          $miembro->total_referidos = $miembro->total_referidos ?? 0;
                          return $miembro;
                      });
 
+        // Ventas personales del líder
+        $ventasPersonales = Pedido::where('vendedor_id', $user->_id)
+                                 ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                 ->where('estado', '!=', 'cancelado')
+                                 ->sum('total_final');
+
+        // Comisiones del líder este mes
+        $comisionesMes = Comision::where('user_id', $user->_id)
+                                ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                ->sum('monto');
+
+        // Nuevos miembros del equipo este mes
+        $nuevosMes = User::where('referido_por', $user->_id)
+                        ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                        ->count();
+
         // Estadísticas reales del líder
         $stats = [
             'total_equipo' => $equipo->count(),
             'ventas_equipo_mes' => $equipo->sum('ventas_mes_actual'),
-            'ventas_personales' => $user->ventas_mes_actual ?? 0,
-            'comisiones_mes' => 150000,
-            'nuevos_mes' => 2,
+            'ventas_personales' => $ventasPersonales,
+            'comisiones_mes' => $comisionesMes,
+            'nuevos_mes' => $nuevosMes,
             'meta_mensual' => $user->meta_mensual ?? 0,
             'meta_equipo' => $equipo->sum('meta_mensual'),
+            'comisiones_pendientes' => Comision::where('user_id', $user->_id)
+                                              ->where('estado', 'pendiente')
+                                              ->sum('monto'),
         ];
 
         return view('dashboard.lider', compact('stats', 'equipo'));
@@ -116,34 +154,72 @@ class DashboardController extends Controller
     private function vendedorDashboard()
     {
         $user = auth()->user();
+        $inicioMes = Carbon::now()->startOfMonth();
+
+        // Ventas reales del mes
+        $ventasMes = Pedido::where('vendedor_id', $user->_id)
+                          ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                          ->where('estado', '!=', 'cancelado')
+                          ->sum('total_final');
+
+        // Pedidos del mes
+        $pedidosMes = Pedido::where('vendedor_id', $user->_id)
+                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                           ->count();
+
+        // Comisiones ganadas este mes
+        $comisionesGanadas = Comision::where('user_id', $user->_id)
+                                   ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                   ->sum('monto');
+
+        // Comisiones disponibles para retiro
+        $comisionesDisponibles = Comision::where('user_id', $user->_id)
+                                        ->where('estado', 'pendiente')
+                                        ->sum('monto');
+
+        // Nuevos referidos este mes
+        $nuevosReferidosMes = User::where('referido_por', $user->_id)
+                                 ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                 ->count();
+
+        // Referidos activos (que han hecho pedidos)
+        $referidosActivos = User::where('referido_por', $user->_id)
+                               ->whereHas('pedidosComoCliente')
+                               ->count();
 
         // Estadísticas del vendedor
         $stats = [
-            'ventas_mes' => $user->ventas_mes_actual ?? 0,
+            'ventas_mes' => $ventasMes,
             'meta_mensual' => $user->meta_mensual ?? 0,
-            'comisiones_ganadas' => $user->comisiones_ganadas ?? 0,
-            'comisiones_disponibles' => $user->comisiones_disponibles ?? 0,
+            'comisiones_ganadas' => $comisionesGanadas,
+            'comisiones_disponibles' => $comisionesDisponibles,
             'total_referidos' => $user->total_referidos ?? 0,
-            'nuevos_referidos_mes' => 1,
-            'pedidos_mes' => 3,
-            'referidos_activos' => 4,
+            'nuevos_referidos_mes' => $nuevosReferidosMes,
+            'pedidos_mes' => $pedidosMes,
+            'referidos_activos' => $referidosActivos,
+            'progreso_meta' => $user->meta_mensual > 0 ?
+                             round(($ventasMes / $user->meta_mensual) * 100, 2) : 0,
         ];
 
-        // Pedidos recientes (datos de ejemplo por ahora)
-        $pedidos_recientes = collect([
-            (object)[
-                'id' => 1,
-                'numero_pedido' => 'PED-001',
-                'cliente' => (object)[
-                    'name' => 'Maria Gonzalez',
-                    'email' => 'maria.gonzalez@email.com'
-                ],
-                'total_final' => 25000,
-                'estado' => 'entregado',
-                'productos_resumen' => '2x Arepa Reina Pepiada, 1x Arepa con Carne',
-                'created_at' => now()->subDays(2)
-            ],
-        ]);
+        // Pedidos recientes reales
+        $pedidos_recientes = Pedido::where('vendedor_id', $user->_id)
+                                  ->orderBy('created_at', 'desc')
+                                  ->take(5)
+                                  ->get()
+                                  ->map(function ($pedido) {
+                                      return (object)[
+                                          'id' => $pedido->_id,
+                                          'numero_pedido' => $pedido->numero_pedido,
+                                          'cliente' => (object)[
+                                              'name' => $pedido->cliente_data['name'] ?? 'Cliente',
+                                              'email' => $pedido->cliente_data['email'] ?? ''
+                                          ],
+                                          'total_final' => $pedido->total_final,
+                                          'estado' => $pedido->estado,
+                                          'productos_resumen' => $this->generarResumenProductosEmbebido($pedido),
+                                          'created_at' => $pedido->created_at
+                                      ];
+                                  });
 
         return view('dashboard.vendedor', compact('stats', 'pedidos_recientes'));
     }
@@ -164,39 +240,246 @@ class DashboardController extends Controller
         return $resumen;
     }
 
+    private function generarResumenProductosEmbebido($pedido)
+    {
+        $detalles = $pedido->detalles ?? [];
+        if (empty($detalles)) return 'Sin productos';
+
+        $resumen = collect($detalles)->map(function ($detalle) {
+            return $detalle['cantidad'] . 'x ' . $detalle['producto_data']['nombre'];
+        })->take(3)->implode(', ');
+
+        if (count($detalles) > 3) {
+            $resumen .= '...';
+        }
+
+        return $resumen;
+    }
+
     private function clienteDashboard()
     {
         $user = auth()->user();
+        $inicioMes = Carbon::now()->startOfMonth();
 
-        // Estadísticas del cliente
+        // Pedidos reales del cliente
+        $totalPedidos = Pedido::where('user_id', $user->_id)->count();
+        $pedidosMes = Pedido::where('user_id', $user->_id)
+                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                           ->count();
+
+        // Total gastado real
+        $totalGastado = Pedido::where('user_id', $user->_id)
+                             ->where('estado', '!=', 'cancelado')
+                             ->sum('total_final');
+
+        // Promedio de pedido
+        $pedidoPromedio = $totalPedidos > 0 ? $totalGastado / $totalPedidos : 0;
+
+        // Referidos reales
+        $totalReferidos = User::where('referido_por', $user->_id)->count();
+        $referidosConPedidos = User::where('referido_por', $user->_id)
+                                  ->whereHas('pedidosComoCliente')
+                                  ->count();
+
+        // Estadísticas reales del cliente
         $stats = [
-            'total_pedidos' => 3,
-            'pedidos_mes' => 1,
-            'total_gastado' => 85000,
-            'pedido_promedio' => 28333,
-            'total_referidos' => $user->total_referidos ?? 0,
-            'referidos_realizados' => $user->total_referidos ?? 0,
+            'total_pedidos' => $totalPedidos,
+            'pedidos_mes' => $pedidosMes,
+            'total_gastado' => $totalGastado,
+            'pedido_promedio' => $pedidoPromedio,
+            'total_referidos' => $totalReferidos,
+            'referidos_realizados' => $referidosConPedidos,
         ];
 
-        // Pedidos recientes (datos de ejemplo)
-        $pedidos_recientes = collect([
-            (object)[
-                'id' => 1,
-                'numero_pedido' => 'PED-001',
-                'vendedor' => (object)[
-                    'name' => 'Ana Lopez',
-                    'email' => 'ana.lopez@arepallanerita.com'
-                ],
-                'total_final' => 25000,
-                'estado' => 'entregado',
-                'productos_resumen' => '2x Arepa Reina Pepiada',
-                'created_at' => now()->subDays(3)
-            ],
-        ]);
+        // Pedidos recientes reales
+        $pedidos_recientes = Pedido::where('user_id', $user->_id)
+                                  ->orderBy('created_at', 'desc')
+                                  ->take(5)
+                                  ->get()
+                                  ->map(function ($pedido) {
+                                      return (object)[
+                                          'id' => $pedido->_id,
+                                          'numero_pedido' => $pedido->numero_pedido,
+                                          'vendedor' => (object)[
+                                              'name' => $pedido->vendedor_data['name'] ?? 'Vendedor',
+                                              'email' => $pedido->vendedor_data['email'] ?? ''
+                                          ],
+                                          'total_final' => $pedido->total_final,
+                                          'estado' => $pedido->estado,
+                                          'productos_resumen' => $this->generarResumenProductosEmbebido($pedido),
+                                          'created_at' => $pedido->created_at
+                                      ];
+                                  });
 
-        // Productos favoritos (datos de ejemplo)
-        $productos_favoritos = Producto::with('categoria')->take(4)->get();
+        // Productos favoritos (los más comprados por el cliente)
+        $productos_favoritos = $this->obtenerProductosFavoritosCliente($user->_id);
 
         return view('dashboard.cliente', compact('stats', 'pedidos_recientes', 'productos_favoritos'));
+    }
+
+    // Métodos auxiliares para el dashboard admin
+    private function obtenerProductosPopulares()
+    {
+        // Obtener productos más vendidos del mes basado en los detalles embebidos
+        $inicioMes = Carbon::now()->startOfMonth();
+        $pedidosMes = Pedido::whereBetween('created_at', [$inicioMes, Carbon::now()])
+                           ->where('estado', '!=', 'cancelado')
+                           ->get();
+
+        $productosVendidos = [];
+
+        foreach ($pedidosMes as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'];
+                $cantidad = $detalle['cantidad'];
+
+                if (!isset($productosVendidos[$productoId])) {
+                    $productosVendidos[$productoId] = [
+                        'producto_data' => $detalle['producto_data'],
+                        'cantidad_vendida' => 0,
+                        'total_ventas' => 0
+                    ];
+                }
+
+                $productosVendidos[$productoId]['cantidad_vendida'] += $cantidad;
+                $productosVendidos[$productoId]['total_ventas'] += $detalle['subtotal'];
+            }
+        }
+
+        // Ordenar por cantidad vendida y tomar los top 5
+        uasort($productosVendidos, function($a, $b) {
+            return $b['cantidad_vendida'] <=> $a['cantidad_vendida'];
+        });
+
+        return collect(array_slice($productosVendidos, 0, 5, true))
+               ->map(function($data, $productoId) {
+                   return (object)[
+                       'id' => $productoId,
+                       'nombre' => $data['producto_data']['nombre'],
+                       'cantidad_vendida' => $data['cantidad_vendida'],
+                       'total_ventas' => $data['total_ventas'],
+                       'categoria' => $data['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría'
+                   ];
+               });
+    }
+
+    private function obtenerVentasSemanales()
+    {
+        $ventas = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $fecha = Carbon::now()->subDays($i);
+            $ventasDia = Pedido::whereDate('created_at', $fecha)
+                              ->where('estado', '!=', 'cancelado')
+                              ->sum('total_final');
+
+            $ventas[] = [
+                'fecha' => $fecha->format('d/m'),
+                'ventas' => $ventasDia,
+                'dia' => $fecha->format('l')
+            ];
+        }
+
+        return collect($ventas);
+    }
+
+    private function obtenerTopVendedores()
+    {
+        $inicioMes = Carbon::now()->startOfMonth();
+
+        return User::vendedores()
+                  ->where('activo', true)
+                  ->get()
+                  ->map(function ($vendedor) use ($inicioMes) {
+                      $ventasMes = Pedido::where('vendedor_id', $vendedor->_id)
+                                        ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                        ->where('estado', '!=', 'cancelado')
+                                        ->sum('total_final');
+
+                      $pedidosMes = Pedido::where('vendedor_id', $vendedor->_id)
+                                         ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                                         ->where('estado', '!=', 'cancelado')
+                                         ->count();
+
+                      return [
+                          'vendedor' => $vendedor,
+                          'ventas_mes' => $ventasMes,
+                          'pedidos_mes' => $pedidosMes,
+                          'promedio_pedido' => $pedidosMes > 0 ? $ventasMes / $pedidosMes : 0
+                      ];
+                  })
+                  ->sortByDesc('ventas_mes')
+                  ->take(5)
+                  ->values();
+    }
+
+    private function obtenerProductosFavoritosCliente($clienteId)
+    {
+        // Obtener pedidos del cliente
+        $pedidosCliente = Pedido::where('user_id', $clienteId)
+                               ->where('estado', '!=', 'cancelado')
+                               ->get();
+
+        $productosComprados = [];
+
+        foreach ($pedidosCliente as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'];
+                $cantidad = $detalle['cantidad'];
+
+                if (!isset($productosComprados[$productoId])) {
+                    $productosComprados[$productoId] = [
+                        'producto_data' => $detalle['producto_data'],
+                        'cantidad_comprada' => 0,
+                        'veces_comprado' => 0
+                    ];
+                }
+
+                $productosComprados[$productoId]['cantidad_comprada'] += $cantidad;
+                $productosComprados[$productoId]['veces_comprado']++;
+            }
+        }
+
+        // Ordenar por cantidad comprada y tomar los top 4
+        uasort($productosComprados, function($a, $b) {
+            return $b['cantidad_comprada'] <=> $a['cantidad_comprada'];
+        });
+
+        $topProductos = collect(array_slice($productosComprados, 0, 4, true))
+                       ->map(function($data, $productoId) {
+                           return (object)[
+                               'id' => $productoId,
+                               'nombre' => $data['producto_data']['nombre'],
+                               'descripcion' => $data['producto_data']['descripcion'] ?? '',
+                               'precio' => $data['producto_data']['precio'],
+                               'imagen' => $data['producto_data']['imagen'] ?? null,
+                               'cantidad_comprada' => $data['cantidad_comprada'],
+                               'veces_comprado' => $data['veces_comprado'],
+                               'categoria' => $data['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría'
+                           ];
+                       });
+
+        // Si no hay suficientes productos favoritos, completar con productos populares
+        if ($topProductos->count() < 4) {
+            $productosPopulares = Producto::activos()
+                                        ->take(4 - $topProductos->count())
+                                        ->get()
+                                        ->map(function($producto) {
+                                            return (object)[
+                                                'id' => $producto->_id,
+                                                'nombre' => $producto->nombre,
+                                                'descripcion' => $producto->descripcion,
+                                                'precio' => $producto->precio,
+                                                'imagen' => $producto->imagen,
+                                                'cantidad_comprada' => 0,
+                                                'veces_comprado' => 0,
+                                                'categoria' => $producto->categoria_data['nombre'] ?? 'Sin categoría'
+                                            ];
+                                        });
+
+            $topProductos = $topProductos->merge($productosPopulares);
+        }
+
+        return $topProductos;
     }
 }

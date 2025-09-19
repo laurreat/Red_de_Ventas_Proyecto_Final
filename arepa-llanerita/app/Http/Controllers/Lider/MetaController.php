@@ -64,7 +64,7 @@ class MetaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'miembro_id' => 'required|exists:users,id',
+            'miembro_id' => 'required|string',
             'meta_mensual' => 'required|numeric|min:0',
             'mes' => 'required|date_format:Y-m',
             'notas' => 'nullable|string|max:500'

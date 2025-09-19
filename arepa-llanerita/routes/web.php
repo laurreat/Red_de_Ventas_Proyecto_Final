@@ -35,6 +35,11 @@ Route::middleware(['auth', 'role'])->group(function () {
     
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {
+        // Dashboard SPA del Administrador
+        Route::get('admin/spa', function () {
+            return view('dashboard.admin-spa');
+        })->name('admin.spa');
+
         // Gestión de usuarios
         Route::resource('admin/users', UserController::class, ['as' => 'admin']);
         Route::patch('admin/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('admin.users.toggle-active');

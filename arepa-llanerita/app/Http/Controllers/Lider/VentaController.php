@@ -59,7 +59,7 @@ class VentaController extends Controller
 
         // Filtro por cliente
         if ($cliente) {
-            $ventasQuery->whereHas('cliente', function($q) use ($cliente) {
+            $ventasQuery->where('cliente_data.name', function($q) use ($cliente) {
                 $q->where('name', 'like', "%{$cliente}%")
                   ->orWhere('email', 'like', "%{$cliente}%");
             });

@@ -14,10 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            CategoriasSeeder::class,    // Categorías de productos
-            ProductosSeeder::class,     // Catálogo de productos
-            UserSeeder::class,          // Solo administrador, sin datos demo
-            // PedidosSeeder::class,    // Comentado - no hay usuarios demo para pedidos
+            CompleteArepasSeeder::class,    // Seeder completo basado en BdArepas.sql
         ]);
     }
 }

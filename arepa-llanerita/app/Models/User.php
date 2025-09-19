@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    protected $connection = 'mongodb';
+    protected $collection = 'users';
 
     protected $fillable = [
         'name',
@@ -35,6 +37,9 @@ class User extends Authenticatable
         'ventas_mes_actual',
         'nivel_vendedor',
         'zonas_asignadas',
+        'referidos_data',
+        'historial_ventas',
+        'configuracion_personal'
     ];
 
     protected $hidden = [
@@ -42,74 +47,69 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'fecha_nacimiento' => 'date',
+        'ultimo_acceso' => 'datetime',
+        'activo' => 'boolean',
+        'total_referidos' => 'integer',
+        'comisiones_ganadas' => 'decimal:2',
+        'comisiones_disponibles' => 'decimal:2',
+        'meta_mensual' => 'decimal:2',
+        'ventas_mes_actual' => 'decimal:2',
+        'nivel_vendedor' => 'integer',
+        'zonas_asignadas' => 'array',
+        'referidos_data' => 'array',
+        'historial_ventas' => 'array',
+        'configuracion_personal' => 'array'
+    ];
+
+    // Relaciones embebidas - En MongoDB podemos embeber los referidos directamente
+    public function getReferidosAttribute()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'fecha_nacimiento' => 'date',
-            'ultimo_acceso' => 'datetime',
-            'activo' => 'boolean',
-            'total_referidos' => 'integer',
-            'comisiones_ganadas' => 'decimal:2',
-            'comisiones_disponibles' => 'decimal:2',
-            'meta_mensual' => 'decimal:2',
-            'ventas_mes_actual' => 'decimal:2',
-            'nivel_vendedor' => 'integer',
-            'zonas_asignadas' => 'json',
-        ];
+        return $this->referidos_data ?? [];
     }
 
-    // Relaciones
-    public function referidor(): BelongsTo
+    public function setReferidosAttribute($value)
     {
-        return $this->belongsTo(User::class, 'referido_por');
+        $this->attributes['referidos_data'] = $value;
     }
 
-    public function referidos(): HasMany
-    {
-        return $this->hasMany(User::class, 'referido_por');
-    }
-
-    public function pedidosComoVendedor(): HasMany
+    // Relaciones de referencia - Para datos que cambian frecuentemente
+    public function pedidosComoVendedor()
     {
         return $this->hasMany(Pedido::class, 'vendedor_id');
     }
 
-    // Alias para usar en los controladores
-    public function pedidosVendedor(): HasMany
-    {
-        return $this->pedidosComoVendedor();
-    }
-
-    public function pedidos(): HasMany
-    {
-        return $this->pedidosComoCliente();
-    }
-
-    public function pedidosComoCliente(): HasMany
+    public function pedidosComoCliente()
     {
         return $this->hasMany(Pedido::class, 'user_id');
     }
 
-    public function comisiones(): HasMany
+    public function comisiones()
     {
-        return $this->hasMany(Comision::class);
+        return $this->hasMany(Comision::class, 'user_id');
     }
 
-    public function referidosGestionados(): HasMany
+    public function notificaciones()
+    {
+        return $this->hasMany(Notificacion::class, 'user_id');
+    }
+
+    public function referidos()
     {
         return $this->hasMany(Referido::class, 'referidor_id');
     }
 
-    public function notificaciones(): HasMany
+    public function referidor()
     {
-        return $this->hasMany(Notificacion::class);
+        return $this->belongsTo(User::class, 'referido_por');
     }
 
-    public function movimientosInventario(): HasMany
+    public function pedidosVendedor()
     {
-        return $this->hasMany(MovimientoInventario::class);
+        return $this->hasMany(Pedido::class, 'vendedor_id');
     }
 
     // Scopes
@@ -179,7 +179,31 @@ class User extends Authenticatable
         if (!$this->meta_mensual || $this->meta_mensual == 0) {
             return 0;
         }
-        
+
         return ($this->ventas_mes_actual / $this->meta_mensual) * 100;
+    }
+
+    // Métodos específicos de MongoDB para manejar datos embebidos
+    public function agregarReferido($referidoData)
+    {
+        $referidos = $this->referidos_data ?? [];
+        $referidos[] = $referidoData;
+        $this->referidos_data = $referidos;
+        $this->total_referidos = count($referidos);
+        return $this->save();
+    }
+
+    public function agregarVentaAlHistorial($ventaData)
+    {
+        $historial = $this->historial_ventas ?? [];
+        $historial[] = array_merge($ventaData, ['fecha' => now()]);
+        $this->historial_ventas = $historial;
+        return $this->save();
+    }
+
+    public function actualizarConfiguracion($config)
+    {
+        $this->configuracion_personal = array_merge($this->configuracion_personal ?? [], $config);
+        return $this->save();
     }
 }
