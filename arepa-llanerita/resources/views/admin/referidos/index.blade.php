@@ -5,22 +5,99 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header -->
+    <!-- Header Profesional -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Visualización y gestión de la red de referidos MLM</p>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Red MLM - Arepa la Llanerita</h2>
+                            <p class="text-white-50 mb-0">Visualización y gestión avanzada de la red de referidos</p>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-light me-2" onclick="verVisualizacion()">
+                                <i class="bi bi-diagram-3 me-1"></i>
+                                Vista Gráfica
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="exportarRed()">
+                                <i class="bi bi-download me-1"></i>
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <button type="button" class="btn btn-outline-info me-2" onclick="verVisualizacion()">
-                        <i class="bi bi-diagram-3 me-1"></i>
-                        Vista Gráfica
-                    </button>
-                    <button type="button" class="btn btn-outline-success" onclick="exportarRed()">
-                        <i class="bi bi-download me-1"></i>
-                        Exportar Red
-                    </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buscador Profesional -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                             style="width: 40px; height: 40px; background-color: rgba(114, 47, 55, 0.1);">
+                            <i class="bi bi-search" style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">Buscar Usuario en la Red</h5>
+                            <small class="text-muted">Ingrese la cédula para visualizar la red específica de un usuario</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form id="searchUserForm" onsubmit="searchUserNetwork(event)">
+                        <div class="row align-items-end">
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <label class="form-label fw-medium">Número de Cédula</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-person-vcard text-muted"></i>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control border-start-0"
+                                           id="cedula_search"
+                                           name="cedula"
+                                           placeholder="Ej: 12345678"
+                                           value="{{ request('cedula') }}"
+                                           style="border-left: none !important;">
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <button type="submit" class="btn btn-primary w-100" style="background-color: var(--primary-color); border-color: var(--primary-color);">
+                                    <i class="bi bi-search me-2"></i>
+                                    Buscar Red
+                                </button>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <button type="button" class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                    Ver Red Completa
+                                </button>
+                            </div>
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <button type="button" class="btn btn-outline-info w-100" onclick="showRandomUser()">
+                                    <i class="bi bi-shuffle me-2"></i>
+                                    Aleatorio
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Usuario Seleccionado -->
+                    <div id="selected-user-info" class="mt-3" style="display: none;">
+                        <div class="alert alert-info border-0 shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle me-3 fs-4"></i>
+                                <div>
+                                    <strong>Red centrada en:</strong> <span id="selected-user-name"></span><br>
+                                    <small class="text-muted">Cédula: <span id="selected-user-cedula"></span> | Email: <span id="selected-user-email"></span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,59 +421,146 @@
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-diagram-2 me-2"></i>
-                        Vista Jerárquica (Primeros 3 Niveles)
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <!-- Controles de visualización -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="btn-group" role="group" aria-label="Tipo de visualización">
-                            <input type="radio" class="btn-check" name="viewType" id="treeView" value="tree" checked>
-                            <label class="btn btn-outline-primary btn-sm" for="treeView">
-                                <i class="bi bi-diagram-2 me-1"></i>Vista Árbol
-                            </label>
-
-                            <input type="radio" class="btn-check" name="viewType" id="forceView" value="force">
-                            <label class="btn btn-outline-primary btn-sm" for="forceView">
-                                <i class="bi bi-diagram-3 me-1"></i>Vista Fuerza
-                            </label>
+                <div class="card-header border-bottom-0" style="background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                 style="width: 45px; height: 45px; background: linear-gradient(135deg, #722f37, #8b3c44); box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);">
+                                <i class="bi bi-diagram-3 text-white fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0 fw-bold" style="color: var(--primary-color);">
+                                    Visualización de Red MLM
+                                </h5>
+                                <small class="text-muted">Representación interactiva y dinámica de la estructura de referidos</small>
+                            </div>
                         </div>
-
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="resetZoom()">
-                                <i class="bi bi-arrows-angle-expand"></i>
-                            </button>
-                            <button class="btn btn-outline-info btn-sm" onclick="exportSVG()">
-                                <i class="bi bi-download"></i>
-                            </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background: linear-gradient(45deg, #0d6efd, #6610f2); color: white; padding: 8px 12px;">
+                                <i class="bi bi-cpu me-1"></i>
+                                D3.js Interactivo
+                            </span>
+                            <span class="badge" style="background: linear-gradient(45deg, #198754, #20c997); color: white; padding: 8px 12px;">
+                                <i class="bi bi-graph-up me-1"></i>
+                                Tiempo Real
+                            </span>
                         </div>
                     </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Controles de visualización profesionales -->
+                    <div class="row mb-4">
+                        <div class="col-lg-8 col-md-6">
+                            <div class="card border-0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2 fw-semibold" style="color: var(--primary-color);">
+                                        <i class="bi bi-sliders me-2"></i>Modo de Visualización
+                                    </h6>
+                                    <div class="btn-group w-100" role="group" aria-label="Tipo de visualización">
+                                        <input type="radio" class="btn-check" name="viewType" id="treeView" value="tree" checked>
+                                        <label class="btn btn-outline-primary" for="treeView" style="border-color: var(--primary-color); color: var(--primary-color);">
+                                            <i class="bi bi-diagram-2 me-2"></i>
+                                            <div>
+                                                <div class="fw-medium">Vista Árbol</div>
+                                                <small class="text-muted d-block">Estructura jerárquica</small>
+                                            </div>
+                                        </label>
 
-                    <!-- Leyenda -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <div class="d-flex flex-wrap gap-3 small">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #722f37;"></div>
-                                    <span>Líder</span>
+                                        <input type="radio" class="btn-check" name="viewType" id="forceView" value="force">
+                                        <label class="btn btn-outline-primary" for="forceView" style="border-color: var(--primary-color); color: var(--primary-color);">
+                                            <i class="bi bi-diagram-3 me-2"></i>
+                                            <div>
+                                                <div class="fw-medium">Vista Fuerza</div>
+                                                <small class="text-muted d-block">Simulación física</small>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #0d6efd;"></div>
-                                    <span>Vendedor</span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #198754;"></div>
-                                    <span>+ de 5 referidos</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card border-0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2 fw-semibold" style="color: var(--primary-color);">
+                                        <i class="bi bi-gear me-2"></i>Controles
+                                    </h6>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="resetZoom()">
+                                            <i class="bi bi-arrows-angle-expand me-2"></i>Restablecer Zoom
+                                        </button>
+                                        <button class="btn btn-outline-info btn-sm" onclick="exportSVG()">
+                                            <i class="bi bi-download me-2"></i>Descargar SVG
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="network-container" style="height: 500px; border: 1px solid #dee2e6; border-radius: 0.375rem; position: relative; overflow: hidden;">
-                        <!-- El gráfico D3.js se renderizará aquí -->
+                    <!-- Leyenda Profesional -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-left: 4px solid var(--primary-color) !important;">
+                                <div class="card-body p-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-3">
+                                            <h6 class="mb-0 fw-semibold" style="color: var(--primary-color);">
+                                                <i class="bi bi-palette me-2"></i>Leyenda de Colores
+                                            </h6>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="d-flex flex-wrap gap-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle me-2 shadow-sm"
+                                                         style="width: 16px; height: 16px; background: linear-gradient(135deg, #722f37, #8b3c44);"></div>
+                                                    <span class="fw-medium" style="color: #722f37;">Líder</span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle me-2 shadow-sm"
+                                                         style="width: 16px; height: 16px; background: linear-gradient(135deg, #0d6efd, #6610f2);"></div>
+                                                    <span class="fw-medium" style="color: #0d6efd;">Vendedor</span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle me-2 shadow-sm"
+                                                         style="width: 16px; height: 16px; background: linear-gradient(135deg, #198754, #20c997);"></div>
+                                                    <span class="fw-medium" style="color: #198754;">Más de 5 referidos</span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle me-2 shadow-sm"
+                                                         style="width: 16px; height: 16px; background: linear-gradient(135deg, #ffc107, #fd7e14);"></div>
+                                                    <span class="fw-medium" style="color: #fd7e14;">Usuario seleccionado</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de visualización profesional -->
+                    <div class="position-relative">
+                        <div id="network-container"
+                             style="height: 600px;
+                                    border: 2px solid #dee2e6;
+                                    border-radius: 12px;
+                                    position: relative;
+                                    overflow: hidden;
+                                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
+                            <!-- El gráfico D3.js se renderizará aquí -->
+                        </div>
+
+                        <!-- Indicador de carga profesional -->
+                        <div id="loading-indicator" class="position-absolute top-50 start-50 translate-middle" style="display: none;">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary mb-3" role="status" style="color: var(--primary-color) !important;">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <div class="fw-medium" style="color: var(--primary-color);">Generando visualización...</div>
+                                <small class="text-muted">Procesando datos de la red MLM</small>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tooltip -->
@@ -434,9 +598,26 @@ const config = {
 
 // Datos para visualización (desde el controlador)
 const redData = {!! json_encode($redJerarquica ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+const usuarioSeleccionado = {!! json_encode($usuarioSeleccionado ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
 console.log('Red Data loaded:', redData);
 console.log('Red Data count:', redData ? redData.length : 0);
+console.log('Usuario seleccionado:', usuarioSeleccionado);
+
+// Mostrar información del usuario seleccionado si existe
+if (usuarioSeleccionado) {
+    const selectedInfo = document.getElementById('selected-user-info');
+    const selectedName = document.getElementById('selected-user-name');
+    const selectedCedula = document.getElementById('selected-user-cedula');
+    const selectedEmail = document.getElementById('selected-user-email');
+
+    if (selectedInfo && selectedName && selectedCedula && selectedEmail) {
+        selectedName.textContent = usuarioSeleccionado.name;
+        selectedCedula.textContent = usuarioSeleccionado.cedula;
+        selectedEmail.textContent = usuarioSeleccionado.email;
+        selectedInfo.style.display = 'block';
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, looking for network-container...');
@@ -992,6 +1173,78 @@ window.addEventListener('resize', function() {
             simulation.alpha(0.3).restart();
         }
     }
+});
+
+// Funciones para manejo de búsqueda
+function searchUserNetwork(event) {
+    event.preventDefault();
+    const cedula = document.getElementById('cedula_search').value.trim();
+
+    if (!cedula) {
+        alert('Por favor ingrese un número de cédula');
+        return;
+    }
+
+    // Mostrar indicador de carga
+    showLoadingIndicator();
+
+    // Construir URL con parámetro de búsqueda
+    const url = new URL(window.location.href);
+    url.searchParams.set('cedula', cedula);
+
+    // Redireccionar con el parámetro de búsqueda
+    window.location.href = url.toString();
+}
+
+function clearSearch() {
+    // Mostrar indicador de carga
+    showLoadingIndicator();
+
+    // Construir URL sin parámetros de búsqueda
+    const url = new URL(window.location.href);
+    url.searchParams.delete('cedula');
+    url.searchParams.delete('search');
+
+    // Redireccionar sin parámetros
+    window.location.href = url.toString();
+}
+
+function showRandomUser() {
+    // Mostrar indicador de carga
+    showLoadingIndicator();
+
+    // Lista de cédulas de ejemplo para demostración
+    const cedulasEjemplo = ['12345678', '87654321', '11111111', '22222222', '33333333'];
+    const cedulaAleatoria = cedulasEjemplo[Math.floor(Math.random() * cedulasEjemplo.length)];
+
+    document.getElementById('cedula_search').value = cedulaAleatoria;
+
+    // Buscar el usuario aleatorio
+    setTimeout(() => {
+        const form = document.getElementById('searchUserForm');
+        if (form) {
+            form.dispatchEvent(new Event('submit'));
+        }
+    }, 500);
+}
+
+function showLoadingIndicator() {
+    const indicator = document.getElementById('loading-indicator');
+    if (indicator) {
+        indicator.style.display = 'block';
+    }
+}
+
+function hideLoadingIndicator() {
+    const indicator = document.getElementById('loading-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// Ocultar indicador de carga cuando la página esté lista
+document.addEventListener('DOMContentLoaded', function() {
+    hideLoadingIndicator();
 });
 </script>
 @endsection

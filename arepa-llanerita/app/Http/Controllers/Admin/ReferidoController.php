@@ -23,8 +23,17 @@ class ReferidoController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $cedula = $request->get('cedula');
         $nivel = $request->get('nivel');
         $tipo = $request->get('tipo');
+        $usuarioSeleccionado = null;
+
+        // Si hay búsqueda por cédula, buscar el usuario específico
+        if ($cedula) {
+            $usuarioSeleccionado = User::where('cedula', $cedula)
+                ->whereIn('rol', ['vendedor', 'lider'])
+                ->first();
+        }
 
         // Consulta base de usuarios con referidos
         $usuariosQuery = User::with(['referidor', 'referidos'])
@@ -33,7 +42,8 @@ class ReferidoController extends Controller
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                       ->orWhere('email', 'like', '%' . $search . '%')
-                      ->orWhere('codigo_referido', 'like', '%' . $search . '%');
+                      ->orWhere('codigo_referido', 'like', '%' . $search . '%')
+                      ->orWhere('cedula', 'like', '%' . $search . '%');
                 });
             })
             ->when($tipo, function ($query) use ($tipo) {
@@ -60,14 +70,20 @@ class ReferidoController extends Controller
             ->get();
 
         // Estructura jerárquica para visualización
-        $redJerarquica = $this->construirRedJerarquica();
+        if ($usuarioSeleccionado) {
+            $redJerarquica = $this->construirRedCentradaEnUsuario($usuarioSeleccionado);
+        } else {
+            $redJerarquica = $this->construirRedJerarquica();
+        }
 
         return view('admin.referidos.index', compact(
             'usuarios',
             'stats',
             'redesActivas',
             'redJerarquica',
+            'usuarioSeleccionado',
             'search',
+            'cedula',
             'nivel',
             'tipo'
         ));
@@ -226,6 +242,83 @@ class ReferidoController extends Controller
         }
 
         return $this->formatearJerarquia($usuarios_raiz);
+    }
+
+    private function construirRedCentradaEnUsuario($usuario)
+    {
+        // Construir la red centrada en un usuario específico
+        // Incluye: el usuario, sus ascendentes (hasta el raíz), sus descendentes
+
+        $redCentrada = collect();
+
+        // 1. Obtener la línea ascendente (padres hasta el raíz)
+        $ascendentes = $this->obtenerLineaAscendente($usuario);
+
+        // 2. Obtener todos los descendentes
+        $descendentes = $this->obtenerTodosLosDescendentes($usuario);
+
+        // 3. Combinar y formatear
+        $todosLosUsuarios = $ascendentes->merge($descendentes)->unique('_id');
+
+        // 4. Encontrar el usuario raíz de esta línea
+        $usuarioRaiz = $ascendentes->where('referido_por', null)->first() ?? $usuario;
+
+        return $this->formatearJerarquiaPersonalizada(collect([$usuarioRaiz]), $todosLosUsuarios);
+    }
+
+    private function obtenerLineaAscendente($usuario)
+    {
+        $ascendentes = collect([$usuario]);
+        $usuarioActual = $usuario;
+
+        // Subir hasta el raíz
+        while ($usuarioActual->referido_por) {
+            $padre = User::find($usuarioActual->referido_por);
+            if ($padre) {
+                $ascendentes->prepend($padre);
+                $usuarioActual = $padre;
+            } else {
+                break;
+            }
+        }
+
+        return $ascendentes;
+    }
+
+    private function obtenerTodosLosDescendentes($usuario)
+    {
+        return $this->obtenerDescendentesRecursivo($usuario, collect());
+    }
+
+    private function obtenerDescendentesRecursivo($usuario, $descendentes)
+    {
+        $hijos = User::where('referido_por', $usuario->_id)->get();
+
+        foreach ($hijos as $hijo) {
+            $descendentes->push($hijo);
+            $descendentes = $this->obtenerDescendentesRecursivo($hijo, $descendentes);
+        }
+
+        return $descendentes;
+    }
+
+    private function formatearJerarquiaPersonalizada($usuariosRaiz, $todosLosUsuarios)
+    {
+        return $usuariosRaiz->map(function ($usuario) use ($todosLosUsuarios) {
+            // Solo incluir referidos que estén en nuestra lista filtrada
+            $referidos = $todosLosUsuarios->where('referido_por', $usuario->_id);
+
+            return [
+                'id' => $usuario->_id,
+                'name' => $usuario->name,
+                'email' => $usuario->email,
+                'cedula' => $usuario->cedula,
+                'tipo' => $usuario->rol,
+                'nivel' => 1,
+                'referidos_count' => $referidos->count(),
+                'hijos' => $this->formatearJerarquiaPersonalizada($referidos, $todosLosUsuarios)
+            ];
+        });
     }
 
     private function formatearJerarquia($usuarios, $nivel = 1)
