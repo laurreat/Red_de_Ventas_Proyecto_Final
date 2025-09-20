@@ -594,18 +594,123 @@ function renderTreeView() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Crear jerarquía
-    const root = d3.stratify()
-        .id(d => d.id)
-        .parentId(d => d.parentId)
-        (nodes);
+    // Crear una raíz artificial para evitar el error "multiple roots"
+    const rootNodes = nodes.filter(d => !d.parentId);
 
-    // Configurar layout de árbol
-    const treeLayout = d3.tree()
-        .size([width - 100, height - 100]);
+    if (rootNodes.length > 1) {
+        // Agregar nodo raíz artificial
+        const artificialRoot = {
+            id: 'artificial-root',
+            name: 'Red MLM',
+            email: '',
+            tipo: 'root',
+            level: -1,
+            referidos_count: rootNodes.length,
+            parentId: null
+        };
 
-    const treeData = treeLayout(root);
+        // Actualizar parentId de nodos raíz para que apunten a la raíz artificial
+        const modifiedNodes = nodes.map(node => {
+            if (!node.parentId) {
+                return { ...node, parentId: 'artificial-root' };
+            }
+            return node;
+        });
 
+        // Agregar la raíz artificial al inicio
+        const allNodes = [artificialRoot, ...modifiedNodes];
+
+        // Crear jerarquía
+        const root = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)
+            (allNodes);
+
+        // Configurar layout de árbol
+        const treeLayout = d3.tree()
+            .size([width - 100, height - 100]);
+
+        const treeData = treeLayout(root);
+
+        // Renderizar con la raíz artificial (pero oculta)
+        renderTreeWithArtificialRoot(treeData, width, height);
+
+    } else {
+        // Solo una raíz, proceder normalmente
+        const root = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)
+            (nodes);
+
+        // Configurar layout de árbol
+        const treeLayout = d3.tree()
+            .size([width - 100, height - 100]);
+
+        const treeData = treeLayout(root);
+
+        // Renderizar normalmente
+        renderTreeNormally(treeData, width, height);
+    }
+}
+
+function renderTreeWithArtificialRoot(treeData, width, height) {
+    // Filtrar enlaces que no involucren la raíz artificial
+    const filteredLinks = treeData.links().filter(d =>
+        d.source.data.id !== 'artificial-root' && d.target.data.id !== 'artificial-root'
+    );
+
+    // Crear enlaces (excluyendo los de la raíz artificial)
+    const links = g.selectAll('.link')
+        .data(filteredLinks)
+        .enter()
+        .append('path')
+        .attr('class', 'link')
+        .attr('d', d3.linkHorizontal()
+            .x(function(d) { return d.y + 50; })
+            .y(function(d) { return d.x + 50; })
+        )
+        .style('fill', 'none')
+        .style('stroke', '#ddd')
+        .style('stroke-width', 2);
+
+    // Filtrar nodos para excluir la raíz artificial
+    const filteredNodes = treeData.descendants().filter(d => d.data.id !== 'artificial-root');
+
+    // Crear nodos (excluyendo la raíz artificial)
+    const nodeGroup = g.selectAll('.node')
+        .data(filteredNodes)
+        .enter()
+        .append('g')
+        .attr('class', 'node')
+        .attr('transform', function(d) { return 'translate(' + (d.y + 50) + ', ' + (d.x + 50) + ')'; })
+        .style('cursor', 'pointer');
+
+    // Círculos de nodos
+    nodeGroup.append('circle')
+        .attr('r', function(d) {
+            return Math.max(config.nodeRadius.min,
+                Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
+        })
+        .style('fill', function(d) { return getNodeColor(d.data); })
+        .style('stroke', '#fff')
+        .style('stroke-width', 2);
+
+    // Etiquetas de nodos
+    nodeGroup.append('text')
+        .attr('dy', '0.31em')
+        .attr('x', function(d) { return d.children ? -15 : 15; })
+        .style('text-anchor', function(d) { return d.children ? 'end' : 'start'; })
+        .style('font-size', '12px')
+        .style('font-weight', '500')
+        .text(function(d) {
+            return d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name;
+        });
+
+    // Agregar eventos
+    addNodeEvents(nodeGroup);
+}
+
+function renderTreeNormally(treeData, width, height) {
     // Crear enlaces
     const links = g.selectAll('.link')
         .data(treeData.links())
@@ -613,8 +718,8 @@ function renderTreeView() {
         .append('path')
         .attr('class', 'link')
         .attr('d', d3.linkHorizontal()
-            .x(d => d.y + 50)
-            .y(d => d.x + 50)
+            .x(function(d) { return d.y + 50; })
+            .y(function(d) { return d.x + 50; })
         )
         .style('fill', 'none')
         .style('stroke', '#ddd')
@@ -631,20 +736,24 @@ function renderTreeView() {
 
     // Círculos de nodos
     nodeGroup.append('circle')
-        .attr('r', d => Math.max(config.nodeRadius.min,
-            Math.min(config.nodeRadius.max, 8 + d.data.referidos_count)))
-        .style('fill', d => getNodeColor(d.data))
+        .attr('r', function(d) {
+            return Math.max(config.nodeRadius.min,
+                Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
+        })
+        .style('fill', function(d) { return getNodeColor(d.data); })
         .style('stroke', '#fff')
         .style('stroke-width', 2);
 
     // Etiquetas de nodos
     nodeGroup.append('text')
         .attr('dy', '0.31em')
-        .attr('x', d => d.children ? -15 : 15)
-        .style('text-anchor', d => d.children ? 'end' : 'start')
+        .attr('x', function(d) { return d.children ? -15 : 15; })
+        .style('text-anchor', function(d) { return d.children ? 'end' : 'start'; })
         .style('font-size', '12px')
         .style('font-weight', '500')
-        .text(d => d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name);
+        .text(function(d) {
+            return d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name;
+        });
 
     // Agregar eventos
     addNodeEvents(nodeGroup);
@@ -662,12 +771,12 @@ function renderForceView() {
 
     // Crear simulación de fuerzas
     simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+        .force('link', d3.forceLink(links).id(function(d) { return d.id; }).distance(100))
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(d =>
-            Math.max(config.nodeRadius.min, Math.min(config.nodeRadius.max, 8 + d.referidos_count)) + 5
-        ));
+        .force('collision', d3.forceCollide().radius(function(d) {
+            return Math.max(config.nodeRadius.min, Math.min(config.nodeRadius.max, 8 + d.referidos_count)) + 5;
+        }));
 
     // Crear enlaces
     const link = g.selectAll('.link')
@@ -692,9 +801,11 @@ function renderForceView() {
 
     // Círculos de nodos
     nodeGroup.append('circle')
-        .attr('r', d => Math.max(config.nodeRadius.min,
-            Math.min(config.nodeRadius.max, 8 + d.referidos_count)))
-        .style('fill', d => getNodeColor(d))
+        .attr('r', function(d) {
+            return Math.max(config.nodeRadius.min,
+                Math.min(config.nodeRadius.max, 8 + d.referidos_count));
+        })
+        .style('fill', function(d) { return getNodeColor(d); })
         .style('stroke', '#fff')
         .style('stroke-width', 2);
 
@@ -705,7 +816,9 @@ function renderForceView() {
         .style('font-size', '10px')
         .style('font-weight', '500')
         .style('pointer-events', 'none')
-        .text(d => d.name.length > 10 ? d.name.substring(0, 10) + '...' : d.name);
+        .text(function(d) {
+            return d.name.length > 10 ? d.name.substring(0, 10) + '...' : d.name;
+        });
 
     // Agregar eventos
     addNodeEvents(nodeGroup);
@@ -713,10 +826,10 @@ function renderForceView() {
     // Actualizar posiciones en cada tick
     simulation.on('tick', function() {
         link
-            .attr('x1', d => d.source.x)
-            .attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.x)
-            .attr('y2', d => d.target.y);
+            .attr('x1', function(d) { return d.source.x; })
+            .attr('y1', function(d) { return d.source.y; })
+            .attr('x2', function(d) { return d.target.x; })
+            .attr('y2', function(d) { return d.target.y; });
 
         nodeGroup.attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; });
     });
