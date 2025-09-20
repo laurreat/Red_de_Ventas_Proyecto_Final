@@ -31,6 +31,63 @@
         </div>
     </div>
 
+    <!-- Mensajes de Estado -->
+    @if(session('success') || session('warning') || session('error') || session('info'))
+    <div class="row mb-4">
+        <div class="col-12">
+            @if(session('success'))
+            <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>Éxito:</strong> {{ session('success') }}
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+
+            @if(session('warning'))
+            <div class="alert alert-warning border-0 shadow-sm alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>Atención:</strong> {{ session('warning') }}
+                        <br><small class="text-muted">Verifique que la cédula sea correcta o que el usuario tenga rol de vendedor/líder.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-x-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>Error:</strong> {{ session('error') }}
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+
+            @if(session('info'))
+            <div class="alert alert-info border-0 shadow-sm alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>Información:</strong> {{ session('info') }}
+                        <br><small class="text-muted">Este usuario puede no tener referidos o puede estar en un nivel sin descendencia.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <!-- Buscador Profesional -->
     <div class="row mb-4">
         <div class="col-12">
@@ -87,17 +144,64 @@
                     </form>
 
                     <!-- Usuario Seleccionado -->
-                    <div id="selected-user-info" class="mt-3" style="display: none;">
-                        <div class="alert alert-info border-0 shadow-sm">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-info-circle me-3 fs-4"></i>
-                                <div>
-                                    <strong>Red centrada en:</strong> <span id="selected-user-name"></span><br>
-                                    <small class="text-muted">Cédula: <span id="selected-user-cedula"></span> | Email: <span id="selected-user-email"></span></small>
+                    @if($usuarioSeleccionado)
+                    <div class="mt-3">
+                        <div class="alert border-0 shadow-sm {{ $usuarioSeleccionado->rol === 'lider' ? 'alert-warning' : 'alert-info' }}">
+                            <div class="d-flex align-items-start">
+                                <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px; background-color: {{ $usuarioSeleccionado->rol === 'lider' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(13, 110, 253, 0.1)' }};">
+                                    <i class="bi {{ $usuarioSeleccionado->rol === 'lider' ? 'bi-star-fill' : 'bi-person-fill' }} fs-3"
+                                       style="color: {{ $usuarioSeleccionado->rol === 'lider' ? '#ffc107' : '#0d6efd' }};"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h6 class="mb-0 me-2">Red centrada en: <strong>{{ $usuarioSeleccionado->name }}</strong></h6>
+                                        <span class="badge bg-{{ $usuarioSeleccionado->rol === 'lider' ? 'warning' : 'primary' }}">
+                                            {{ ucfirst($usuarioSeleccionado->rol) }}
+                                        </span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-person-vcard me-1"></i>
+                                                <strong>Cédula:</strong> {{ $usuarioSeleccionado->cedula }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-envelope me-1"></i>
+                                                <strong>Email:</strong> {{ $usuarioSeleccionado->email }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                <strong>Registro:</strong> {{ $usuarioSeleccionado->created_at->format('d/m/Y') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        @if($usuarioSeleccionado->rol === 'vendedor')
+                                            <div class="alert alert-light border py-2 px-3 mb-0">
+                                                <small>
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    <strong>Visualización para Vendedor:</strong> Se muestra el líder directo, hermanos y referidos propios para control completo de la red.
+                                                </small>
+                                            </div>
+                                        @else
+                                            <div class="alert alert-light border py-2 px-3 mb-0">
+                                                <small>
+                                                    <i class="bi bi-star me-1"></i>
+                                                    <strong>Visualización para Líder:</strong> Se muestra la línea ascendente completa, hermanos y toda la descendencia.
+                                                </small>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -571,134 +675,46 @@
     </div>
     @endif
 
-    <!-- Información Adicional de la Red -->
-    <div class="row mt-4">
-        <!-- Métricas de la Red Actual -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
-                    <h6 class="mb-0 fw-semibold" style="color: #1976d2;">
-                        <i class="bi bi-graph-up me-2"></i>Métricas de Red
-                    </h6>
-                </div>
-                <div class="card-body">
+    <!-- Métricas de Red Compactas -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
                     <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h4 class="mb-1 fw-bold" style="color: var(--primary-color);" id="total-nodes">0</h4>
-                                <small class="text-muted">Nodos Totales</small>
-                            </div>
+                        <div class="col-lg-3 col-6 mb-2">
+                            <h5 class="mb-0 fw-bold" style="color: var(--primary-color);" id="total-nodes">0</h5>
+                            <small class="text-muted">Nodos</small>
                         </div>
-                        <div class="col-6">
-                            <h4 class="mb-1 fw-bold text-success" id="total-connections">0</h4>
+                        <div class="col-lg-3 col-6 mb-2">
+                            <h5 class="mb-0 fw-bold text-success" id="total-connections">0</h5>
                             <small class="text-muted">Conexiones</small>
                         </div>
-                    </div>
-                    <hr class="my-3">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h5 class="mb-1 fw-bold text-info" id="max-depth">0</h5>
-                                <small class="text-muted">Niveles</small>
-                            </div>
+                        <div class="col-lg-3 col-6 mb-2">
+                            <h5 class="mb-0 fw-bold text-info" id="max-depth">0</h5>
+                            <small class="text-muted">Niveles</small>
                         </div>
-                        <div class="col-6">
-                            <h5 class="mb-1 fw-bold text-warning" id="avg-referrals">0</h5>
+                        <div class="col-lg-3 col-6 mb-2">
+                            <h5 class="mb-0 fw-bold text-warning" id="avg-referrals">0</h5>
                             <small class="text-muted">Prom. Referidos</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Controles y Acciones -->
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);">
-                    <h6 class="mb-0 fw-semibold" style="color: #7b1fa2;">
-                        <i class="bi bi-tools me-2"></i>Herramientas
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm" onclick="expandAllNodes()">
-                            <i class="bi bi-arrows-expand me-2"></i>Expandir Todos
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="collapseAllNodes()">
-                            <i class="bi bi-arrows-collapse me-2"></i>Contraer Todos
-                        </button>
-                        <button class="btn btn-outline-info btn-sm" onclick="centerOnUser()">
-                            <i class="bi bi-bullseye me-2"></i>Centrar Vista
-                        </button>
-                        <button class="btn btn-outline-success btn-sm" onclick="downloadNetworkData()">
-                            <i class="bi bi-file-earmark-arrow-down me-2"></i>Exportar Datos
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Estadísticas Rápidas -->
-        <div class="col-lg-4 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);">
-                    <h6 class="mb-0 fw-semibold" style="color: #388e3c;">
-                        <i class="bi bi-speedometer2 me-2"></i>Análisis Rápido
-                    </h6>
-                </div>
-                <div class="card-body">
-                    @if($usuarioSeleccionado)
-                    <div class="text-center mb-3">
-                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
-                             style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color), #8b3c44);">
-                            <i class="bi bi-person-circle text-white fs-3"></i>
-                        </div>
-                        <h6 class="mb-1 fw-bold">{{ $usuarioSeleccionado->name }}</h6>
-                        <small class="text-muted">{{ ucfirst($usuarioSeleccionado->rol) }}</small>
-                    </div>
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <div class="fw-bold" style="color: var(--primary-color);">{{ $usuarioSeleccionado->total_referidos ?? 0 }}</div>
-                                <small class="text-muted">Referidos</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="fw-bold text-success">${{ number_format($usuarioSeleccionado->comisiones_ganadas ?? 0) }}</div>
-                            <small class="text-muted">Comisiones</small>
-                        </div>
-                    </div>
-                    @else
-                    <div class="text-center text-muted py-3">
-                        <i class="bi bi-info-circle fs-1 mb-2"></i>
-                        <p class="mb-0">Busque un usuario específico para ver su análisis detallado</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Footer con información adicional -->
-    <div class="row mt-4">
+    <!-- Secciones de estadísticas adicionales removidas para optimizar espacio -->
+
+    <!-- Footer optimizado -->
+    <div class="row mt-3">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body py-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Última actualización: {{ now()->format('d/m/Y H:i') }}
-                            </small>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <small class="text-muted">
-                                <i class="bi bi-people me-2"></i>
-                                Total de usuarios en el sistema: {{ $stats['total_vendedores'] + $stats['total_lideres'] }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>{{ now()->format('d/m/Y H:i') }}
+                </small>
+                <small class="text-muted">
+                    <i class="bi bi-people me-1"></i>{{ $stats['total_vendedores'] + $stats['total_lideres'] }} usuarios
+                </small>
             </div>
         </div>
     </div>
@@ -828,7 +844,18 @@ function initializeVisualization() {
 }
 
 function processData() {
-    console.log('Processing data...', redData);
+    console.log('=== PROCESANDO DATOS D3.js ===');
+    console.log('redData recibido:', redData);
+
+    @if($usuarioSeleccionado)
+    console.log('🎯 Usuario seleccionado desde PHP:', {
+        name: '{{ $usuarioSeleccionado->name }}',
+        cedula: '{{ $usuarioSeleccionado->cedula }}',
+        rol: '{{ $usuarioSeleccionado->rol }}'
+    });
+    console.log('📊 Datos estructurados recibidos para {{ $usuarioSeleccionado->name }}:', redData);
+    @endif
+
     nodes = [];
     links = [];
 
@@ -839,6 +866,7 @@ function processData() {
     }
 
     console.log('Data found, processing', redData.length, 'root nodes');
+    console.log('Primer nodo en redData:', redData[0]);
 
     // Convertir datos jerárquicos a formato de nodos y enlaces
     const nodeMap = new Map();
@@ -846,10 +874,20 @@ function processData() {
     function processNode(nodeData, level = 0, parentId = null) {
         const nodeId = nodeData.id;
 
+        // Debug: Log de cada nodo procesado
+        console.log(`Procesando nodo nivel ${level}:`, {
+            id: nodeId,
+            name: nodeData.name,
+            cedula: nodeData.cedula,
+            tipo: nodeData.tipo,
+            parentId: parentId
+        });
+
         const node = {
             id: nodeId,
             name: nodeData.name,
             email: nodeData.email,
+            cedula: nodeData.cedula,
             tipo: nodeData.tipo,
             level: level,
             referidos_count: nodeData.referidos_count,
@@ -868,9 +906,18 @@ function processData() {
             });
         }
 
-        // Procesar hijos recursivamente
-        if (nodeData.hijos && nodeData.hijos.length > 0) {
-            nodeData.hijos.forEach(child => {
+        // Procesar hijos recursivamente (manejar tanto arrays como objetos)
+        let children = nodeData.hijos;
+
+        // Convertir objeto a array si es necesario
+        if (children && typeof children === 'object' && !Array.isArray(children)) {
+            console.log('⚠️ Convirtiendo hijos de objeto a array para:', nodeData.name);
+            children = Object.values(children);
+        }
+
+        if (children && Array.isArray(children) && children.length > 0) {
+            console.log(`👶 Procesando ${children.length} hijos de ${nodeData.name}`);
+            children.forEach(child => {
                 processNode(child, level + 1, nodeId);
             });
         }
@@ -881,9 +928,22 @@ function processData() {
         processNode(rootNode, 0);
     });
 
-    console.log('Processing complete. Nodes:', nodes.length, 'Links:', links.length);
-    console.log('Nodes data:', nodes);
-    console.log('Links data:', links);
+    console.log('=== PROCESAMIENTO COMPLETO ===');
+    console.log('Total nodos procesados:', nodes.length);
+    console.log('Total enlaces:', links.length);
+    console.log('Nombres de todos los nodos:', nodes.map(n => `${n.name} (${n.cedula}) - Tipo: ${n.tipo}`));
+
+    // Verificar si hay nodos sin procesar
+    if (nodes.length === 0) {
+        console.error('❌ NO SE PROCESARON NODOS! Datos originales:', redData);
+        showEmptyState();
+        return;
+    } else {
+        console.log('✅ Nodos procesados correctamente');
+    }
+
+    console.log('Nodos completos:', nodes);
+    console.log('Enlaces:', links);
 
     // Actualizar métricas en tiempo real
     updateNetworkMetrics();
@@ -910,14 +970,30 @@ function renderTreeView() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Crear una raíz artificial para evitar el error "multiple roots"
+    // Obtener nodos raíz (sin padre)
     const rootNodes = nodes.filter(d => !d.parentId);
+    console.log('Root nodes found:', rootNodes.map(n => n.name));
+
+    // Para redes centradas en usuario específico, usar los datos tal como vienen
+    @if($usuarioSeleccionado)
+    const usuarioSeleccionado = {
+        name: '{{ $usuarioSeleccionado->name }}',
+        cedula: '{{ $usuarioSeleccionado->cedula }}',
+        rol: '{{ $usuarioSeleccionado->rol }}'
+    };
+    console.log('Usuario seleccionado:', usuarioSeleccionado);
+
+    // Usar los nodos tal como vienen, sin modificaciones
+    const modifiedNodes = nodes;
+    @else
+    // Para vista general, manejar múltiples raíces si es necesario
+    let modifiedNodes = nodes;
 
     if (rootNodes.length > 1) {
-        // Agregar nodo raíz artificial
+        // Solo crear nodo artificial si realmente hay múltiples raíces independientes
         const artificialRoot = {
             id: 'artificial-root',
-            name: 'Red MLM',
+            name: 'Red MLM Completa',
             email: '',
             tipo: 'root',
             level: -1,
@@ -926,110 +1002,58 @@ function renderTreeView() {
         };
 
         // Actualizar parentId de nodos raíz para que apunten a la raíz artificial
-        const modifiedNodes = nodes.map(node => {
+        modifiedNodes = nodes.map(node => {
             if (!node.parentId) {
                 return { ...node, parentId: 'artificial-root' };
             }
             return node;
         });
-
-        // Agregar la raíz artificial al inicio
-        const allNodes = [artificialRoot, ...modifiedNodes];
-
-        // Crear jerarquía
-        const root = d3.stratify()
-            .id(d => d.id)
-            .parentId(d => d.parentId)
-            (allNodes);
-
-        // Configurar layout de árbol
-        const treeLayout = d3.tree()
-            .size([width - 100, height - 100]);
-
-        const treeData = treeLayout(root);
-
-        // Renderizar con la raíz artificial (pero oculta)
-        renderTreeWithArtificialRoot(treeData, width, height);
-
-    } else {
-        // Solo una raíz, proceder normalmente
-        const root = d3.stratify()
-            .id(d => d.id)
-            .parentId(d => d.parentId)
-            (nodes);
-
-        // Configurar layout de árbol
-        const treeLayout = d3.tree()
-            .size([width - 100, height - 100]);
-
-        const treeData = treeLayout(root);
-
-        // Renderizar normalmente
-        renderTreeNormally(treeData, width, height);
+        // Agregar la raíz artificial al inicio solo si se creó
+        modifiedNodes = [artificialRoot, ...modifiedNodes];
     }
+    @endif
+
+    // Crear jerarquía con los nodos finales
+    const finalNodes = modifiedNodes || nodes;
+    const root = d3.stratify()
+        .id(d => d.id)
+        .parentId(d => d.parentId)
+        (finalNodes);
+
+    // Configurar layout de árbol
+    const treeLayout = d3.tree()
+        .size([width - 100, height - 100]);
+
+    const treeData = treeLayout(root);
+
+    // Renderizar árbol
+    renderTree(treeData, width, height);
 }
 
-function renderTreeWithArtificialRoot(treeData, width, height) {
-    // Filtrar enlaces que no involucren la raíz artificial
-    const filteredLinks = treeData.links().filter(d =>
-        d.source.data.id !== 'artificial-root' && d.target.data.id !== 'artificial-root'
-    );
+function renderTree(treeData, width, height) {
+    // Determinar si hay raíz artificial para filtrarla
+    const hasArtificialRoot = treeData.data && treeData.data.id === 'artificial-root';
 
-    // Crear enlaces (excluyendo los de la raíz artificial)
-    const links = g.selectAll('.link')
-        .data(filteredLinks)
-        .enter()
-        .append('path')
-        .attr('class', 'link')
-        .attr('d', d3.linkHorizontal()
-            .x(function(d) { return d.y + 50; })
-            .y(function(d) { return d.x + 50; })
-        )
-        .style('fill', 'none')
-        .style('stroke', '#ddd')
-        .style('stroke-width', 2);
+    // Filtrar enlaces y nodos según el contexto
+    let linksData = treeData.links();
+    let nodesData = treeData.descendants();
 
-    // Filtrar nodos para excluir la raíz artificial
-    const filteredNodes = treeData.descendants().filter(d => d.data.id !== 'artificial-root');
+    @if($usuarioSeleccionado)
+    // Para usuarios específicos, mostrar todos los nodos sin filtrar
+    console.log('Renderizando red específica para:', '{{ $usuarioSeleccionado->name }}');
+    @else
+    // Para vista general, filtrar raíz artificial si existe
+    if (hasArtificialRoot) {
+        linksData = linksData.filter(d =>
+            d.source.data.id !== 'artificial-root' && d.target.data.id !== 'artificial-root'
+        );
+        nodesData = nodesData.filter(d => d.data.id !== 'artificial-root');
+    }
+    @endif
 
-    // Crear nodos (excluyendo la raíz artificial)
-    const nodeGroup = g.selectAll('.node')
-        .data(filteredNodes)
-        .enter()
-        .append('g')
-        .attr('class', 'node')
-        .attr('transform', function(d) { return 'translate(' + (d.y + 50) + ', ' + (d.x + 50) + ')'; })
-        .style('cursor', 'pointer');
-
-    // Círculos de nodos
-    nodeGroup.append('circle')
-        .attr('r', function(d) {
-            return Math.max(config.nodeRadius.min,
-                Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
-        })
-        .style('fill', function(d) { return getNodeColor(d.data); })
-        .style('stroke', '#fff')
-        .style('stroke-width', 2);
-
-    // Etiquetas de nodos
-    nodeGroup.append('text')
-        .attr('dy', '0.31em')
-        .attr('x', function(d) { return d.children ? -15 : 15; })
-        .style('text-anchor', function(d) { return d.children ? 'end' : 'start'; })
-        .style('font-size', '12px')
-        .style('font-weight', '500')
-        .text(function(d) {
-            return d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name;
-        });
-
-    // Agregar eventos
-    addNodeEvents(nodeGroup);
-}
-
-function renderTreeNormally(treeData, width, height) {
     // Crear enlaces
     const links = g.selectAll('.link')
-        .data(treeData.links())
+        .data(linksData)
         .enter()
         .append('path')
         .attr('class', 'link')
@@ -1043,7 +1067,7 @@ function renderTreeNormally(treeData, width, height) {
 
     // Crear nodos
     const nodeGroup = g.selectAll('.node')
-        .data(treeData.descendants())
+        .data(nodesData)
         .enter()
         .append('g')
         .attr('class', 'node')
@@ -1056,7 +1080,14 @@ function renderTreeNormally(treeData, width, height) {
             return Math.max(config.nodeRadius.min,
                 Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
         })
-        .style('fill', function(d) { return getNodeColor(d.data); })
+        .style('fill', function(d) {
+            // Debug: verificar datos del nodo para color
+            console.log('Coloreando nodo:', {
+                d_data: d.data,
+                d_data_tipo: d.data ? d.data.tipo : 'N/A'
+            });
+            return getNodeColor(d.data);
+        })
         .style('stroke', '#fff')
         .style('stroke-width', 2);
 
@@ -1068,12 +1099,24 @@ function renderTreeNormally(treeData, width, height) {
         .style('font-size', '12px')
         .style('font-weight', '500')
         .text(function(d) {
-            return d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name;
+            // Debug: verificar qué datos están disponibles
+            console.log('Renderizando texto para nodo:', {
+                d_data_name: d.data ? d.data.name : 'N/A',
+                d_name: d.name,
+                d_data: d.data,
+                d_completo: d
+            });
+
+            // Usar d.data.name para vista de árbol (hierarchical data)
+            const name = d.data ? d.data.name : d.name;
+            return name && name.length > 15 ? name.substring(0, 15) + '...' : (name || 'Sin nombre');
         });
 
     // Agregar eventos
     addNodeEvents(nodeGroup);
 }
+
+// Funciones duplicadas eliminadas - se usa renderTree() unificada
 
 function renderForceView() {
     const container = document.getElementById('network-container');
@@ -1163,16 +1206,20 @@ function addNodeEvents(nodeSelection) {
 
     nodeSelection
         .on('mouseover', function(event, d) {
+            // Determinar si es vista de árbol (d.data) o vista de fuerza (d directo)
+            const nodeData = d.data || d;
+
             tooltip
                 .style('opacity', 1)
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 10) + 'px')
                 .html(`
-                    <strong>${d.name}</strong><br>
-                    Tipo: ${d.tipo}<br>
-                    Email: ${d.email}<br>
-                    Referidos: ${d.referidos_count}<br>
-                    Nivel: ${d.level + 1}
+                    <strong>${nodeData.name || 'Sin nombre'}</strong><br>
+                    Cédula: ${nodeData.cedula || 'N/A'}<br>
+                    Tipo: ${nodeData.tipo || 'N/A'}<br>
+                    Email: ${nodeData.email || 'N/A'}<br>
+                    Referidos: ${nodeData.referidos_count || 0}<br>
+                    Nivel: ${nodeData.nivel || (nodeData.level ? nodeData.level + 1 : 'N/A')}
                 `);
         })
         .on('mousemove', function(event) {
@@ -1236,20 +1283,65 @@ function showEmptyState() {
     const container = d3.select('#network-container');
     container.selectAll('*').remove();
 
-    const dataInfo = redData ? 'Datos recibidos: ' + JSON.stringify(redData) : 'No hay datos disponibles';
+    // Determinar el tipo de mensaje según el contexto
+    let message = '';
+    let submessage = '';
+    let icon = 'bi-diagram-3';
+    let color = '#6c757d';
+
+    @if($usuarioSeleccionado)
+        message = 'Red de {{ $usuarioSeleccionado->name }}';
+        submessage = 'Este usuario no tiene una red de referidos configurada o los datos no están disponibles.';
+        icon = 'bi-person-circle';
+        color = '#ffc107';
+    @elseif(request('cedula'))
+        message = 'No se encontraron datos';
+        submessage = 'No se encontró información de red para la cédula buscada: {{ request('cedula') }}';
+        icon = 'bi-search';
+        color = '#dc3545';
+    @else
+        message = 'Red MLM no disponible';
+        submessage = 'No hay datos de red disponibles en este momento. Puede ser que no existan usuarios con referidos en el sistema.';
+        icon = 'bi-diagram-3';
+        color = '#6c757d';
+    @endif
 
     container.append('div')
         .style('display', 'flex')
         .style('align-items', 'center')
         .style('justify-content', 'center')
         .style('height', '100%')
-        .style('color', '#6c757d')
+        .style('color', color)
         .style('flex-direction', 'column')
-        .html('<div style="text-align: center;">' +
-            '<i class="bi bi-diagram-3" style="font-size: 3rem;"></i>' +
-            '<p style="margin-top: 1rem;">No hay datos de red para mostrar</p>' +
-            '<small style="margin-top: 0.5rem; color: #999;">' + dataInfo + '</small>' +
-            '</div>');
+        .style('padding', '2rem')
+        .html(`
+            <div style="text-align: center; max-width: 400px;">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    margin: 0 auto 1.5rem;
+                    background: linear-gradient(135deg, ${color}20, ${color}10);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <i class="${icon}" style="font-size: 2.5rem; color: ${color};"></i>
+                </div>
+                <h5 style="margin-bottom: 1rem; color: #495057; font-weight: 600;">${message}</h5>
+                <p style="margin-bottom: 1.5rem; color: #6c757d; line-height: 1.5;">${submessage}</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="clearSearch()" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Ver Red Completa
+                    </button>
+                    <button onclick="showRandomUser()" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-shuffle me-1"></i>
+                        Usuario Aleatorio
+                    </button>
+                </div>
+            </div>
+        `);
 }
 
 function verVisualizacion() {
@@ -1313,15 +1405,26 @@ window.addEventListener('resize', function() {
 // Funciones para manejo de búsqueda
 function searchUserNetwork(event) {
     event.preventDefault();
-    const cedula = document.getElementById('cedula_search').value.trim();
+    const cedulaInput = document.getElementById('cedula_search');
+    const cedula = cedulaInput.value.trim();
 
+    // Validaciones en tiempo real
     if (!cedula) {
-        alert('Por favor ingrese un número de cédula');
+        showValidationError(cedulaInput, 'Por favor ingrese un número de cédula');
         return;
     }
 
-    // Mostrar indicador de carga
-    showLoadingIndicator();
+    // Validar formato de cédula (solo números, 6-12 dígitos)
+    if (!/^[0-9]{6,12}$/.test(cedula)) {
+        showValidationError(cedulaInput, 'La cédula debe contener solo números (6-12 dígitos)');
+        return;
+    }
+
+    // Limpiar errores de validación
+    clearValidationError(cedulaInput);
+
+    // Mostrar indicador de carga con mensaje específico
+    showLoadingIndicator('Buscando usuario con cédula: ' + cedula);
 
     // Construir URL con parámetro de búsqueda
     const url = new URL(window.location.href);
@@ -1331,9 +1434,74 @@ function searchUserNetwork(event) {
     window.location.href = url.toString();
 }
 
+function showValidationError(input, message) {
+    // Remover errores previos
+    clearValidationError(input);
+
+    // Agregar clase de error
+    input.classList.add('is-invalid');
+
+    // Crear elemento de error
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'invalid-feedback';
+    errorDiv.textContent = message;
+    errorDiv.id = input.id + '_error';
+
+    // Insertar después del input
+    input.parentNode.insertBefore(errorDiv, input.nextSibling);
+
+    // Focus en el input
+    input.focus();
+}
+
+function clearValidationError(input) {
+    // Remover clase de error
+    input.classList.remove('is-invalid');
+
+    // Remover mensaje de error si existe
+    const errorElement = document.getElementById(input.id + '_error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+// Validación en tiempo real mientras se escribe
+document.addEventListener('DOMContentLoaded', function() {
+    const cedulaInput = document.getElementById('cedula_search');
+    if (cedulaInput) {
+        cedulaInput.addEventListener('input', function() {
+            const value = this.value.trim();
+
+            // Limpiar errores previos si el campo está vacío
+            if (!value) {
+                clearValidationError(this);
+                return;
+            }
+
+            // Validar formato en tiempo real
+            if (!/^[0-9]*$/.test(value)) {
+                showValidationError(this, 'Solo se permiten números');
+            } else if (value.length > 12) {
+                showValidationError(this, 'La cédula no puede tener más de 12 dígitos');
+            } else if (value.length > 0 && value.length < 6) {
+                showValidationError(this, 'La cédula debe tener al menos 6 dígitos');
+            } else {
+                clearValidationError(this);
+            }
+        });
+
+        // Limpiar errores cuando se hace focus
+        cedulaInput.addEventListener('focus', function() {
+            if (this.value.trim() === '') {
+                clearValidationError(this);
+            }
+        });
+    }
+});
+
 function clearSearch() {
     // Mostrar indicador de carga
-    showLoadingIndicator();
+    showLoadingIndicator('Cargando red completa');
 
     // Construir URL sin parámetros de búsqueda
     const url = new URL(window.location.href);
@@ -1346,7 +1514,7 @@ function clearSearch() {
 
 function showRandomUser() {
     // Mostrar indicador de carga
-    showLoadingIndicator();
+    showLoadingIndicator('Seleccionando usuario aleatorio');
 
     // Lista de cédulas de ejemplo para demostración
     const cedulasEjemplo = ['12345678', '87654321', '11111111', '22222222', '33333333'];
@@ -1363,9 +1531,20 @@ function showRandomUser() {
     }, 500);
 }
 
-function showLoadingIndicator() {
+function showLoadingIndicator(customMessage = null) {
     const indicator = document.getElementById('loading-indicator');
     if (indicator) {
+        // Actualizar mensaje si se proporciona uno personalizado
+        if (customMessage) {
+            const messageElement = indicator.querySelector('.fw-medium');
+            const submessageElement = indicator.querySelector('.text-muted');
+            if (messageElement) {
+                messageElement.textContent = customMessage;
+            }
+            if (submessageElement) {
+                submessageElement.textContent = 'Procesando solicitud en tiempo real...';
+            }
+        }
         indicator.style.display = 'block';
     }
 }

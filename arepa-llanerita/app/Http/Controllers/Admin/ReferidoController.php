@@ -30,21 +30,64 @@ class ReferidoController extends Controller
 
         // Si hay búsqueda por cédula, buscar el usuario específico
         if ($cedula) {
-            $usuarioSeleccionado = User::where('cedula', $cedula)
-                ->whereIn('rol', ['vendedor', 'lider'])
-                ->first();
+            try {
+                // Validación en tiempo real: verificar formato de cédula
+                if (!preg_match('/^[0-9]{6,12}$/', $cedula)) {
+                    session()->flash('warning', "Formato de cédula inválido: {$cedula}. Debe contener solo números (6-12 dígitos).");
+                    return redirect()->route('admin.referidos.index');
+                }
 
-            // Si no se encuentra el usuario, crear uno ficticio para demostración
-            if (!$usuarioSeleccionado) {
-                $usuarioSeleccionado = (object) [
-                    '_id' => 'demo-user-' . $cedula,
-                    'name' => 'Usuario Demo - Cédula ' . $cedula,
-                    'email' => 'demo' . $cedula . '@ejemplo.com',
-                    'cedula' => $cedula,
-                    'rol' => 'vendedor',
-                    'total_referidos' => 3,
-                    'comisiones_ganadas' => 15000
+                // Verificar disponibilidad de conexión MongoDB
+                $conexionActiva = User::whereIn('rol', ['vendedor', 'lider'])->count();
+
+                $usuarioSeleccionado = User::where('cedula', $cedula)
+                    ->whereIn('rol', ['vendedor', 'lider'])
+                    ->first();
+
+                // Obtener estadísticas en tiempo real
+                $estadisticasActuales = [
+                    'total_usuarios_sistema' => User::whereIn('rol', ['vendedor', 'lider'])->count(),
+                    'usuarios_con_cedula' => User::whereIn('rol', ['vendedor', 'lider'])->whereNotNull('cedula')->count(),
+                    'ultimo_registro' => User::whereIn('rol', ['vendedor', 'lider'])->latest('created_at')->first()?->created_at,
+                    'busqueda_timestamp' => now()
                 ];
+
+                // Debug: mostrar información de búsqueda en tiempo real
+                \Log::info('Búsqueda por cédula en tiempo real:', [
+                    'cedula_buscada' => $cedula,
+                    'usuario_encontrado' => $usuarioSeleccionado ? $usuarioSeleccionado->name : 'No encontrado',
+                    'estadisticas_actuales' => $estadisticasActuales
+                ]);
+
+                // Mensajes contextuales basados en el estado actual
+                if (!$usuarioSeleccionado) {
+                    // Verificar si existe algún usuario con esa cédula en otros roles
+                    $usuarioOtroRol = User::where('cedula', $cedula)->first();
+
+                    if ($usuarioOtroRol) {
+                        session()->flash('warning', "Usuario encontrado con cédula {$cedula} pero tiene rol '{$usuarioOtroRol->rol}'. Solo se muestran vendedores y líderes en la red MLM.");
+                    } else {
+                        session()->flash('warning', "No se encontró ningún usuario con la cédula: {$cedula}. Total de usuarios en el sistema: {$estadisticasActuales['total_usuarios_sistema']} ({$estadisticasActuales['usuarios_con_cedula']} con cédula).");
+                    }
+                } else {
+                    session()->flash('success', "Usuario encontrado: {$usuarioSeleccionado->name} ({$usuarioSeleccionado->rol}). Cédula: {$usuarioSeleccionado->cedula}");
+                }
+
+            } catch (\MongoDB\Driver\Exception\ConnectionException $e) {
+                \Log::error('Error de conexión MongoDB:', [
+                    'cedula' => $cedula,
+                    'error' => $e->getMessage(),
+                    'timestamp' => now()
+                ]);
+                session()->flash('error', "Error de conexión a la base de datos. Por favor, intente nuevamente en unos momentos.");
+            } catch (\Exception $e) {
+                \Log::error('Error inesperado en búsqueda por cédula:', [
+                    'cedula' => $cedula,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'timestamp' => now()
+                ]);
+                session()->flash('error', "Error inesperado al buscar usuario. Error: " . $e->getMessage());
             }
         }
 
@@ -87,14 +130,30 @@ class ReferidoController extends Controller
             $redJerarquica = $this->construirRedCentradaEnUsuario($usuarioSeleccionado);
 
             // Debug: Log para verificar datos
-            \Log::info('Red centrada en usuario:', [
-                'usuario' => $usuarioSeleccionado->name,
-                'cedula' => $usuarioSeleccionado->cedula,
-                'red_count' => $redJerarquica->count(),
-                'red_data' => $redJerarquica->toArray()
+            \Log::info('Red centrada en usuario - DATOS FINALES:', [
+                'usuario_seleccionado' => [
+                    'name' => $usuarioSeleccionado->name,
+                    'cedula' => $usuarioSeleccionado->cedula,
+                    'rol' => $usuarioSeleccionado->rol
+                ],
+                'red_count' => is_array($redJerarquica) ? count($redJerarquica) : (is_object($redJerarquica) && method_exists($redJerarquica, 'count') ? $redJerarquica->count() : 0),
+                'red_estructura_completa' => $redJerarquica,
+                'tipo_datos' => gettype($redJerarquica)
             ]);
+
+            // Si la red está vacía, informar al usuario
+            if (empty($redJerarquica)) {
+                session()->flash('info', "El usuario {$usuarioSeleccionado->name} no tiene una red de referidos configurada.");
+            }
         } else {
             $redJerarquica = $this->construirRedJerarquica();
+        }
+
+        // Asegurar que redJerarquica siempre sea un array para el frontend
+        if (is_object($redJerarquica) && method_exists($redJerarquica, 'toArray')) {
+            $redJerarquica = $redJerarquica->toArray();
+        } elseif (!is_array($redJerarquica)) {
+            $redJerarquica = [];
         }
 
         return view('admin.referidos.index', compact(
@@ -230,7 +289,7 @@ class ReferidoController extends Controller
 
         // Si aún no hay usuarios, crear datos de ejemplo
         if ($usuarios_raiz->count() === 0) {
-            return collect([
+            return [
                 [
                     'id' => 'demo-1',
                     'name' => 'Usuario Demo 1',
@@ -259,7 +318,7 @@ class ReferidoController extends Controller
                         ]
                     ]
                 ]
-            ]);
+            ];
         }
 
         return $this->formatearJerarquia($usuarios_raiz);
@@ -267,115 +326,181 @@ class ReferidoController extends Controller
 
     private function construirRedCentradaEnUsuario($usuario)
     {
-        // Construir la red centrada en un usuario específico
-        // Incluye: el usuario, sus ascendentes (hasta el raíz), sus descendentes
+        // Construir la red centrada en un usuario específico con control total
+        // Para vendedores: incluir líder y hermanos para contexto completo
+        // Para líderes: incluir línea ascendente completa y descendentes
 
         try {
-            // 1. Obtener la línea ascendente (padres hasta el raíz)
-            $ascendentes = $this->obtenerLineaAscendente($usuario);
+            \Log::info('Construyendo red centrada en usuario:', [
+                'usuario' => $usuario->name,
+                'rol' => $usuario->rol,
+                'cedula' => $usuario->cedula
+            ]);
 
-            // 2. Obtener todos los descendentes
-            $descendentes = $this->obtenerTodosLosDescendentes($usuario);
-
-            // 3. Combinar y formatear (asegurar que no haya duplicados)
-            $todosLosUsuarios = $ascendentes->merge($descendentes)->unique('_id');
-
-            // 4. Encontrar el usuario raíz de esta línea
-            $usuarioRaiz = $ascendentes->whereNull('referido_por')->first();
-
-            // Si no hay raíz en los ascendentes, usar el usuario más alto
-            if (!$usuarioRaiz) {
-                $usuarioRaiz = $ascendentes->first() ?? $usuario;
+            // Estrategia diferente según el rol del usuario
+            if ($usuario->rol === 'vendedor') {
+                return $this->construirRedParaVendedor($usuario);
+            } else {
+                return $this->construirRedParaLider($usuario);
             }
 
-            // 5. Construir la jerarquía completa
-            return $this->formatearJerarquiaPersonalizada(collect([$usuarioRaiz]), $todosLosUsuarios, 0);
-
         } catch (\Exception $e) {
-            // En caso de error, devolver datos demo para el usuario seleccionado
-            return $this->generarDatosDemoParaUsuario($usuario);
+            \Log::error('Error construyendo red centrada en usuario:', [
+                'usuario_id' => $usuario->_id ?? 'N/A',
+                'usuario_name' => $usuario->name ?? 'N/A',
+                'usuario_rol' => $usuario->rol ?? 'N/A',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [];
         }
     }
 
-    private function generarDatosDemoParaUsuario($usuario)
+    private function construirRedParaVendedor($vendedor)
     {
-        // Generar red demo centrada en el usuario seleccionado
-        $baseId = $usuario->_id ?? 'user-' . $usuario->cedula;
+        // Para vendedores: mostrar su líder directo, hermanos y sus propios referidos
+        \Log::info('=== CONSTRUYENDO RED PARA VENDEDOR ===', [
+            'vendedor' => $vendedor->name,
+            'cedula' => $vendedor->cedula,
+            'referido_por' => $vendedor->referido_por
+        ]);
 
-        return collect([[
-            'id' => $baseId,
-            'name' => $usuario->name,
-            'email' => $usuario->email,
-            'cedula' => $usuario->cedula,
-            'tipo' => $usuario->rol ?? 'vendedor',
-            'nivel' => 1,
-            'referidos_count' => 3,
-            'hijos' => [
-                [
-                    'id' => $baseId . '-hijo-1',
-                    'name' => 'Referido Demo 1',
-                    'email' => 'referido1@demo.com',
-                    'cedula' => '11111111',
-                    'tipo' => 'vendedor',
-                    'nivel' => 2,
-                    'referidos_count' => 2,
-                    'hijos' => [
-                        [
-                            'id' => $baseId . '-nieto-1',
-                            'name' => 'Sub-referido Demo 1',
-                            'email' => 'subreferido1@demo.com',
-                            'cedula' => '11111112',
-                            'tipo' => 'vendedor',
-                            'nivel' => 3,
-                            'referidos_count' => 0,
-                            'hijos' => []
-                        ],
-                        [
-                            'id' => $baseId . '-nieto-2',
-                            'name' => 'Sub-referido Demo 2',
-                            'email' => 'subreferido2@demo.com',
-                            'cedula' => '11111113',
-                            'tipo' => 'vendedor',
-                            'nivel' => 3,
-                            'referidos_count' => 0,
-                            'hijos' => []
-                        ]
-                    ]
-                ],
-                [
-                    'id' => $baseId . '-hijo-2',
-                    'name' => 'Referido Demo 2',
-                    'email' => 'referido2@demo.com',
-                    'cedula' => '22222222',
-                    'tipo' => 'lider',
-                    'nivel' => 2,
-                    'referidos_count' => 1,
-                    'hijos' => [
-                        [
-                            'id' => $baseId . '-nieto-3',
-                            'name' => 'Sub-referido Demo 3',
-                            'email' => 'subreferido3@demo.com',
-                            'cedula' => '22222223',
-                            'tipo' => 'vendedor',
-                            'nivel' => 3,
-                            'referidos_count' => 0,
-                            'hijos' => []
-                        ]
-                    ]
-                ],
-                [
-                    'id' => $baseId . '-hijo-3',
-                    'name' => 'Referido Demo 3',
-                    'email' => 'referido3@demo.com',
-                    'cedula' => '33333333',
-                    'tipo' => 'vendedor',
-                    'nivel' => 2,
-                    'referidos_count' => 0,
-                    'hijos' => []
-                ]
-            ]
-        ]]);
+        $todosLosUsuarios = collect([$vendedor]);
+
+        // 1. Obtener el líder directo (referidor)
+        $liderDirecto = null;
+        if ($vendedor->referido_por) {
+            \Log::info('Buscando líder directo...', ['referido_por_id' => $vendedor->referido_por]);
+            $liderDirecto = User::find($vendedor->referido_por);
+            if ($liderDirecto) {
+                $todosLosUsuarios->push($liderDirecto);
+                \Log::info('✅ Líder directo encontrado:', [
+                    'lider' => $liderDirecto->name,
+                    'cedula' => $liderDirecto->cedula,
+                    'rol' => $liderDirecto->rol
+                ]);
+            } else {
+                \Log::warning('❌ No se encontró el líder directo');
+            }
+        } else {
+            \Log::info('ℹ️ Vendedor no tiene referidor (es raíz)');
+        }
+
+        // 2. Obtener hermanos (otros referidos del mismo líder)
+        if ($liderDirecto) {
+            \Log::info('Buscando hermanos del vendedor...');
+            $hermanos = User::where('referido_por', $liderDirecto->_id)
+                ->where('_id', '!=', $vendedor->_id)
+                ->get();
+
+            \Log::info('✅ Hermanos encontrados:', [
+                'cantidad' => $hermanos->count(),
+                'hermanos' => $hermanos->map(function($h) {
+                    return ['name' => $h->name, 'cedula' => $h->cedula, 'rol' => $h->rol];
+                })->toArray()
+            ]);
+
+            foreach ($hermanos as $hermano) {
+                $todosLosUsuarios->push($hermano);
+            }
+        }
+
+        // 3. Obtener todos los descendentes del vendedor
+        $descendentes = $this->obtenerTodosLosDescendentes($vendedor);
+        $todosLosUsuarios = $todosLosUsuarios->merge($descendentes);
+
+        // 4. Si hay líder, también incluir algunos de sus otros referidos para contexto
+        if ($liderDirecto) {
+            $otrosReferidosLider = User::where('referido_por', $liderDirecto->_id)
+                ->where('_id', '!=', $vendedor->_id)
+                ->with(['referidos'])
+                ->get();
+
+            foreach ($otrosReferidosLider as $otroReferido) {
+                if (!$todosLosUsuarios->contains('_id', $otroReferido->_id)) {
+                    $todosLosUsuarios->push($otroReferido);
+                }
+                // Incluir también algunos de sus referidos
+                $subReferidos = $this->obtenerTodosLosDescendentes($otroReferido);
+                $todosLosUsuarios = $todosLosUsuarios->merge($subReferidos);
+            }
+        }
+
+        // Quitar duplicados
+        $todosLosUsuarios = $todosLosUsuarios->unique('_id');
+
+        \Log::info('📊 RESUMEN USUARIOS RECOPILADOS:', [
+            'total_usuarios' => $todosLosUsuarios->count(),
+            'usuarios' => $todosLosUsuarios->map(function($u) {
+                return [
+                    'name' => $u->name,
+                    'cedula' => $u->cedula,
+                    'rol' => $u->rol,
+                    'referido_por' => $u->referido_por
+                ];
+            })->toArray()
+        ]);
+
+        // 5. Usar al líder como raíz, o al vendedor si no tiene líder
+        $usuarioRaiz = $liderDirecto ?? $vendedor;
+
+        \Log::info('🎯 USUARIO RAÍZ SELECCIONADO:', [
+            'raiz' => $usuarioRaiz->name,
+            'cedula' => $usuarioRaiz->cedula,
+            'rol' => $usuarioRaiz->rol
+        ]);
+
+        $resultado = $this->formatearJerarquiaPersonalizada(collect([$usuarioRaiz]), $todosLosUsuarios, 0);
+
+        \Log::info('🏁 RESULTADO FINAL RED VENDEDOR:', [
+            'estructura_generada' => $resultado,
+            'cantidad_nodos_raiz' => count($resultado)
+        ]);
+
+        return $resultado;
     }
+
+    private function construirRedParaLider($lider)
+    {
+        // Para líderes: mostrar línea ascendente completa y toda su descendencia
+        \Log::info('Construyendo red para líder:', ['lider' => $lider->name]);
+
+        // 1. Obtener la línea ascendente completa
+        $ascendentes = $this->obtenerLineaAscendente($lider);
+
+        // 2. Obtener todos los descendentes
+        $descendentes = $this->obtenerTodosLosDescendentes($lider);
+
+        // 3. Obtener hermanos del líder (otros referidos de su referidor)
+        $hermanos = collect();
+        if ($lider->referido_por) {
+            $hermanos = User::where('referido_por', $lider->referido_por)
+                ->where('_id', '!=', $lider->_id)
+                ->get();
+
+            // Incluir también los referidos de los hermanos para contexto completo
+            foreach ($hermanos as $hermano) {
+                $referidosHermano = $this->obtenerTodosLosDescendentes($hermano);
+                $descendentes = $descendentes->merge($referidosHermano);
+            }
+        }
+
+        // 4. Combinar todos los usuarios (sin duplicados)
+        $todosLosUsuarios = $ascendentes
+            ->merge($descendentes)
+            ->merge($hermanos)
+            ->unique('_id');
+
+        // 5. Encontrar el usuario raíz de la línea
+        $usuarioRaiz = $ascendentes->whereNull('referido_por')->first();
+        if (!$usuarioRaiz) {
+            $usuarioRaiz = $ascendentes->first() ?? $lider;
+        }
+
+        return $this->formatearJerarquiaPersonalizada(collect([$usuarioRaiz]), $todosLosUsuarios, 0);
+    }
+
 
     private function obtenerLineaAscendente($usuario)
     {
@@ -415,9 +540,21 @@ class ReferidoController extends Controller
 
     private function formatearJerarquiaPersonalizada($usuariosRaiz, $todosLosUsuarios, $nivel = 0)
     {
+        \Log::info("🔧 FORMATEANDO JERARQUÍA NIVEL {$nivel}:", [
+            'usuarios_raiz_count' => $usuariosRaiz->count(),
+            'usuarios_raiz_nombres' => $usuariosRaiz->pluck('name')->toArray(),
+            'todos_usuarios_count' => $todosLosUsuarios->count()
+        ]);
+
         return $usuariosRaiz->map(function ($usuario) use ($todosLosUsuarios, $nivel) {
             // Solo incluir referidos que estén en nuestra lista filtrada
             $referidos = $todosLosUsuarios->where('referido_por', $usuario->_id);
+
+            \Log::info("👤 Procesando usuario '{$usuario->name}' (nivel {$nivel}):", [
+                'usuario_id' => $usuario->_id,
+                'referidos_encontrados' => $referidos->count(),
+                'referidos_nombres' => $referidos->pluck('name')->toArray()
+            ]);
 
             $nodoData = [
                 'id' => $usuario->_id,
@@ -432,11 +569,13 @@ class ReferidoController extends Controller
 
             // Procesar hijos recursivamente solo si hay referidos en nuestra lista filtrada
             if ($referidos->count() > 0) {
-                $nodoData['hijos'] = $this->formatearJerarquiaPersonalizada($referidos, $todosLosUsuarios, $nivel + 1);
+                $hijosArray = $this->formatearJerarquiaPersonalizada($referidos, $todosLosUsuarios, $nivel + 1);
+                // Asegurar que los hijos sean un array indexado numéricamente
+                $nodoData['hijos'] = array_values($hijosArray);
             }
 
             return $nodoData;
-        });
+        })->values()->toArray(); // usar values() para reindexar el array
     }
 
     private function formatearJerarquia($usuarios, $nivel = 1)
@@ -452,9 +591,9 @@ class ReferidoController extends Controller
                 'tipo' => $usuario->rol,
                 'nivel' => $nivel,
                 'referidos_count' => $referidos->count(),
-                'hijos' => $nivel < 3 ? $this->formatearJerarquia($referidos, $nivel + 1) : []
+                'hijos' => $nivel < 3 ? array_values($this->formatearJerarquia($referidos, $nivel + 1)) : []
             ];
-        });
+        })->values()->toArray();
     }
 
     private function obtenerRedCompleta($usuario, $niveles = 5)
