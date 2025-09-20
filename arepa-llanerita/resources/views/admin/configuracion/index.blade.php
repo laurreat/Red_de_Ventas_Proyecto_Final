@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', '- Configuración')
-@section('page-title', 'Configuración del Sistema')
+@section('title', 'Configuración del Sistema')
 
 @section('content')
 <div class="container-fluid">
@@ -10,17 +9,88 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
+                    <h2>Configuración del Sistema</h2>
                     <p class="text-muted mb-0">Configuración general del sistema</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-primary me-2" onclick="showComingSoon('Importar Configuración')">
-                        <i class="bi bi-upload me-1"></i>
-                        Importar
+                    <button class="btn btn-outline-info me-2" onclick="crearBackup()">
+                        <i class="bi bi-download me-1"></i>
+                        Crear Backup
                     </button>
-                    <button class="btn btn-primary" onclick="showComingSoon('Guardar Cambios')">
-                        <i class="bi bi-check me-1"></i>
-                        Guardar Cambios
+                    <button class="btn btn-outline-warning me-2" onclick="limpiarCache()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Limpiar Cache
                     </button>
+                    <button class="btn btn-primary" onclick="mostrarInfoSistema()">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Info Sistema
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Estadísticas del Sistema -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-2 text-primary"></i>
+                    <h4 class="mt-2">{{ $estadisticas['usuarios_totales'] ?? 0 }}</h4>
+                    <small class="text-muted">Usuarios</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-cart fs-2 text-success"></i>
+                    <h4 class="mt-2">{{ $estadisticas['pedidos_totales'] ?? 0 }}</h4>
+                    <small class="text-muted">Pedidos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-box fs-2 text-warning"></i>
+                    <h4 class="mt-2">{{ $estadisticas['productos_totales'] ?? 0 }}</h4>
+                    <small class="text-muted">Productos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-dollar fs-2 text-info"></i>
+                    <h4 class="mt-2">${{ number_format($estadisticas['ventas_mes_actual'] ?? 0) }}</h4>
+                    <small class="text-muted">Ventas Este Mes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-hdd fs-2 text-secondary"></i>
+                    <h5 class="mt-2">{{ $estadisticas['espacio_storage']['usado'] ?? 'N/A' }}</h5>
+                    <small class="text-muted">Espacio Usado</small>
                 </div>
             </div>
         </div>
@@ -30,141 +100,213 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-gear me-2"></i>
                         Configuración General
                     </h5>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#configGeneral">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Nombre de la Empresa</label>
-                                <input type="text" class="form-control" value="Arepa la Llanerita" readonly>
+                    <form method="POST" action="{{ route('admin.configuracion.update-general') }}">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Nombre de la Empresa</label>
+                                    <input type="text" name="nombre_empresa" class="form-control"
+                                           value="{{ $configuraciones['general']['nombre_empresa'] ?? 'Arepa la Llanerita' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Teléfono</label>
+                                    <input type="text" name="telefono_empresa" class="form-control"
+                                           value="{{ $configuraciones['general']['telefono_empresa'] ?? '+57 300 123 4567' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Email</label>
+                                    <input type="email" name="email_empresa" class="form-control"
+                                           value="{{ $configuraciones['general']['email_empresa'] ?? 'info@arepallanerita.com' }}">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Teléfono</label>
-                                <input type="text" class="form-control" value="+57 300 123 4567" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Email</label>
-                                <input type="email" class="form-control" value="info@arepallanerita.com" readonly>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Dirección</label>
+                                    <textarea name="direccion_empresa" class="form-control" rows="2">{{ $configuraciones['general']['direccion_empresa'] ?? 'Calle 123 #45-67, Bogotá, Colombia' }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Zona Horaria</label>
+                                    <select name="timezone" class="form-select">
+                                        <option value="America/Bogota" {{ ($configuraciones['general']['timezone'] ?? 'America/Bogota') == 'America/Bogota' ? 'selected' : '' }}>America/Bogota</option>
+                                        <option value="America/Lima" {{ ($configuraciones['general']['timezone'] ?? '') == 'America/Lima' ? 'selected' : '' }}>America/Lima</option>
+                                        <option value="America/Caracas" {{ ($configuraciones['general']['timezone'] ?? '') == 'America/Caracas' ? 'selected' : '' }}>America/Caracas</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Moneda</label>
+                                    <select name="moneda" class="form-select">
+                                        <option value="COP" {{ ($configuraciones['general']['moneda'] ?? 'COP') == 'COP' ? 'selected' : '' }}>COP - Peso Colombiano</option>
+                                        <option value="USD" {{ ($configuraciones['general']['moneda'] ?? '') == 'USD' ? 'selected' : '' }}>USD - Dólar</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Moneda</label>
-                                <select class="form-select" disabled>
-                                    <option selected>COP - Peso Colombiano</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Zona Horaria</label>
-                                <select class="form-select" disabled>
-                                    <option selected>America/Bogota</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Idioma</label>
-                                <select class="form-select" disabled>
-                                    <option selected>Español</option>
-                                </select>
+                        <div class="collapse" id="configGeneral">
+                            <div class="border-top pt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check"></i> Guardar Cambios
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#configGeneral">
+                                    <i class="bi bi-x"></i> Cancelar
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Zonas de Entrega -->
-        <div class="col-xl-6 mb-4">
+    <!-- Configuración MLM -->
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-geo-alt me-2"></i>
-                        Zonas de Entrega
+                        <i class="bi bi-diagram-3 me-2"></i>
+                        Configuración MLM / Red de Ventas
                     </h5>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Agregar Zona')">
-                        <i class="bi bi-plus"></i>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#configMlm">
+                        <i class="bi bi-pencil"></i> Editar
                     </button>
                 </div>
                 <div class="card-body p-4">
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">Centro de Bogotá</div>
-                                <small class="text-muted">Costo: $5,000 - Tiempo: 30-45 min</small>
+                    <form method="POST" action="{{ route('admin.configuracion.update-mlm') }}">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Comisión Directa (%)</label>
+                                    <input type="number" name="comision_directa" class="form-control" step="0.1" min="0" max="100"
+                                           value="{{ $configuraciones['mlm']['comision_directa'] ?? 10.0 }}">
+                                    <small class="text-muted">Comisión por venta directa</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Comisión por Referido (%)</label>
+                                    <input type="number" name="comision_referido" class="form-control" step="0.1" min="0" max="100"
+                                           value="{{ $configuraciones['mlm']['comision_referido'] ?? 3.0 }}">
+                                    <small class="text-muted">Comisión por ventas de referidos</small>
+                                </div>
                             </div>
-                            <span class="badge bg-success">Activa</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">Norte de Bogotá</div>
-                                <small class="text-muted">Costo: $7,000 - Tiempo: 45-60 min</small>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Comisión de Líder (%)</label>
+                                    <input type="number" name="comision_lider" class="form-control" step="0.1" min="0" max="100"
+                                           value="{{ $configuraciones['mlm']['comision_lider'] ?? 2.0 }}">
+                                    <small class="text-muted">Comisión adicional para líderes</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Bonificación Líder (%)</label>
+                                    <input type="number" name="bonificacion_lider" class="form-control" step="0.1" min="0" max="100"
+                                           value="{{ $configuraciones['mlm']['bonificacion_lider'] ?? 5.0 }}">
+                                    <small class="text-muted">Bonificación por liderazgo</small>
+                                </div>
                             </div>
-                            <span class="badge bg-success">Activa</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">Sur de Bogotá</div>
-                                <small class="text-muted">Costo: $8,000 - Tiempo: 60-90 min</small>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Niveles Máximos</label>
+                                    <input type="number" name="niveles_maximos" class="form-control" min="1" max="10"
+                                           value="{{ $configuraciones['mlm']['niveles_maximos'] ?? 5 }}">
+                                    <small class="text-muted">Profundidad máxima de la red</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Mínimo Ventas/Mes (COP)</label>
+                                    <input type="number" name="minimo_ventas_mes" class="form-control" min="0"
+                                           value="{{ $configuraciones['mlm']['minimo_ventas_mes'] ?? 100000 }}">
+                                    <small class="text-muted">Ventas mínimas para mantener comisiones</small>
+                                </div>
                             </div>
-                            <span class="badge bg-warning">Limitada</span>
                         </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button class="btn btn-outline-secondary" onclick="showComingSoon('Gestionar Zonas')">
-                            Gestionar Todas las Zonas
-                        </button>
-                    </div>
+                        <div class="collapse" id="configMlm">
+                            <div class="border-top pt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check"></i> Guardar Configuración MLM
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#configMlm">
+                                    <i class="bi bi-x"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Cupones y Promociones -->
-        <div class="col-xl-6 mb-4">
+    <!-- Configuración de Pedidos -->
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-ticket-perforated me-2"></i>
-                        Cupones Activos
+                        <i class="bi bi-cart me-2"></i>
+                        Configuración de Pedidos
                     </h5>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Crear Cupón')">
-                        <i class="bi bi-plus"></i>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#configPedidos">
+                        <i class="bi bi-pencil"></i> Editar
                     </button>
                 </div>
                 <div class="card-body p-4">
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">BIENVENIDO10</div>
-                                <small class="text-muted">10% descuento - Nuevos clientes</small>
+                    <form method="POST" action="{{ route('admin.configuracion.update-pedidos') }}">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Tiempo de Preparación (min)</label>
+                                    <input type="number" name="tiempo_preparacion" class="form-control" min="5" max="180"
+                                           value="{{ $configuraciones['pedidos']['tiempo_preparacion'] ?? 30 }}">
+                                    <small class="text-muted">Tiempo estimado de preparación</small>
+                                </div>
                             </div>
-                            <span class="badge bg-success">Activo</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">VERANO2024</div>
-                                <small class="text-muted">15% descuento - Promoción verano</small>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Costo de Envío (COP)</label>
+                                    <input type="number" name="costo_envio" class="form-control" min="0"
+                                           value="{{ $configuraciones['pedidos']['costo_envio'] ?? 5000 }}">
+                                    <small class="text-muted">Costo base de envío</small>
+                                </div>
                             </div>
-                            <span class="badge bg-warning">Próximamente</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <div class="fw-medium">REFERIDO5</div>
-                                <small class="text-muted">$5,000 descuento - Por referido</small>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium" style="color: black;">Envío Gratis Desde (COP)</label>
+                                    <input type="number" name="envio_gratis_desde" class="form-control" min="0"
+                                           value="{{ $configuraciones['pedidos']['envio_gratis_desde'] ?? 50000 }}">
+                                    <small class="text-muted">Monto mínimo para envío gratis</small>
+                                </div>
                             </div>
-                            <span class="badge bg-success">Activo</span>
                         </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button class="btn btn-outline-secondary" onclick="showComingSoon('Gestionar Cupones')">
-                            Gestionar Todos los Cupones
-                        </button>
-                    </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 style="color: black;">Estados de Pedidos Disponibles:</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($configuraciones['pedidos']['estados_disponibles'] ?? [] as $key => $estado)
+                                        <span class="badge bg-secondary">{{ $estado }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse" id="configPedidos">
+                            <div class="border-top pt-3 mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check"></i> Guardar Configuración de Pedidos
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#configPedidos">
+                                    <i class="bi bi-x"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -174,124 +316,240 @@
         <!-- Notificaciones -->
         <div class="col-xl-6 mb-4">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-bell me-2"></i>
                         Configuración de Notificaciones
                     </h5>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#configNotif">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
                 </div>
                 <div class="card-body p-4">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                        <label class="form-check-label">
-                            Notificaciones de nuevos pedidos
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                        <label class="form-check-label">
-                            Alertas de stock bajo
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" disabled>
-                        <label class="form-check-label">
-                            Recordatorios de comisiones
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                        <label class="form-check-label">
-                            Notificaciones por email
-                        </label>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button class="btn btn-outline-secondary" onclick="showComingSoon('Configurar Notificaciones')">
-                            Configurar Notificaciones
-                        </button>
-                    </div>
+                    <form method="POST" action="{{ route('admin.configuracion.update-notificaciones') }}">
+                        @csrf
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="email_pedidos" id="email_pedidos"
+                                   {{ ($configuraciones['notificaciones']['email_pedidos'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="email_pedidos" style="color: black;">
+                                Notificaciones de nuevos pedidos por email
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="email_comisiones" id="email_comisiones"
+                                   {{ ($configuraciones['notificaciones']['email_comisiones'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="email_comisiones" style="color: black;">
+                                Notificaciones de comisiones por email
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="email_nuevos_referidos" id="email_referidos"
+                                   {{ ($configuraciones['notificaciones']['email_nuevos_referidos'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="email_referidos" style="color: black;">
+                                Notificaciones de nuevos referidos
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="sms_pedidos_entregados" id="sms_entregados"
+                                   {{ ($configuraciones['notificaciones']['sms_pedidos_entregados'] ?? false) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="sms_entregados" style="color: black;">
+                                SMS cuando pedidos son entregados
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="whatsapp_recordatorios" id="whatsapp_recordatorios"
+                                   {{ ($configuraciones['notificaciones']['whatsapp_recordatorios'] ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="whatsapp_recordatorios" style="color: black;">
+                                Recordatorios por WhatsApp
+                            </label>
+                        </div>
+                        <div class="collapse" id="configNotif">
+                            <div class="border-top pt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check"></i> Guardar Notificaciones
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#configNotif">
+                                    <i class="bi bi-x"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Seguridad -->
+        <!-- Información del Sistema -->
         <div class="col-xl-6 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-shield-check me-2"></i>
-                        Seguridad del Sistema
+                        Estado del Sistema
                     </h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row">
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
+                        <div class="col-6 mb-3">
+                            <div class="text-center p-3 border rounded">
                                 <h4 class="text-success">✓</h4>
-                                <small class="text-muted">SSL Activado</small>
+                                <small class="text-muted">Sistema Activo</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 class="text-success">✓</h4>
-                                <small class="text-muted">Backups Diarios</small>
+                        <div class="col-6 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="{{ ($configuraciones['sistema']['backup_automatico'] ?? true) ? 'text-success' : 'text-warning' }}">{{ ($configuraciones['sistema']['backup_automatico'] ?? true) ? '✓' : '⚠' }}</h4>
+                                <small class="text-muted">Backups {{ ($configuraciones['sistema']['backup_automatico'] ?? true) ? 'Activos' : 'Inactivos' }}</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 class="text-warning">⚠</h4>
-                                <small class="text-muted">2FA Opcional</small>
+                        <div class="col-6 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="text-info">{{ $configuraciones['sistema']['version'] ?? '1.0.0' }}</h4>
+                                <small class="text-muted">Versión</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center p-3 border rounded mb-3">
-                                <h4 class="text-success">✓</h4>
-                                <small class="text-muted">Logs Activos</small>
+                        <div class="col-6 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="text-primary">{{ $configuraciones['sistema']['logs_dias_retention'] ?? 30 }}d</h4>
+                                <small class="text-muted">Retención Logs</small>
                             </div>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <button class="btn btn-outline-secondary" onclick="showComingSoon('Configurar Seguridad')">
-                            Configurar Seguridad
-                        </button>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-warning btn-sm" onclick="limpiarLogs()">
+                                    <i class="bi bi-trash"></i> Limpiar Logs Antiguos
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estado de Desarrollo -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="text-center py-4">
-                        <i class="bi bi-sliders fs-1 text-muted"></i>
-                        <h4 class="mt-3 text-muted">Módulo en Desarrollo</h4>
-                        <p class="text-muted">Las configuraciones avanzadas estarán disponibles próximamente.</p>
-                        <p class="text-muted"><strong>Funcionalidades planeadas:</strong></p>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Configuración completa de empresa</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Gestión de zonas de entrega</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Sistema de cupones avanzado</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Configuración de notificaciones</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Configuración de seguridad</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Backup automático</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Logs del sistema</li>
-                                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Integración con APIs</li>
-                                </ul>
-                            </div>
-                        </div>
+</div>
+
+<!-- Modal para Información del Sistema -->
+<div class="modal fade" id="infoSistemaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Información del Sistema</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="infoSistemaContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@endsection
+
+@section('scripts')
+<script>
+function crearBackup() {
+    if(confirm('¿Deseas crear un backup del sistema? Esto puede tomar unos minutos.')) {
+        fetch('{{ route("admin.configuracion.backup") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert('Backup creado exitosamente: ' + data.filename);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error al crear backup: ' + error.message);
+        });
+    }
+}
+
+function limpiarCache() {
+    if(confirm('¿Deseas limpiar el cache del sistema?')) {
+        fetch('{{ route("admin.configuracion.limpiar-cache") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert('Cache limpiado exitosamente');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error al limpiar cache: ' + error.message);
+        });
+    }
+}
+
+function limpiarLogs() {
+    if(confirm('¿Deseas limpiar los logs antiguos del sistema?')) {
+        fetch('{{ route("admin.configuracion.limpiar-logs") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert(data.message);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error al limpiar logs: ' + error.message);
+        });
+    }
+}
+
+function mostrarInfoSistema() {
+    fetch('{{ route("admin.configuracion.info-sistema") }}')
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                let html = '<div class="row">';
+                Object.keys(data.data).forEach(key => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="border p-3 rounded">
+                                <strong style="color: black;">${key.replace('_', ' ').toUpperCase()}:</strong><br>
+                                <span style="color: black;">${data.data[key]}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('infoSistemaContent').innerHTML = html;
+            } else {
+                document.getElementById('infoSistemaContent').innerHTML = '<div class="alert alert-danger">Error al cargar información</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('infoSistemaContent').innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+        });
+
+    new bootstrap.Modal(document.getElementById('infoSistemaModal')).show();
+}
+</script>
 @endsection

@@ -111,12 +111,12 @@ Route::middleware(['auth', 'role:administrador,lider'])
 
 | Rol | Email | Password | Estado |
 |-----|-------|----------|--------|
-| Admin | admin@arepallanerita.com | admin123 | ✅ Activo |
-| Líder | carlos.rodriguez@arepallanerita.com | lider123 | ✅ Activo |
-| Vendedor | ana.lopez@arepallanerita.com | vendedor123 | ✅ Activo |
-| Vendedor | miguel.torres@arepallanerita.com | vendedor123 | ✅ Activo |
-| Cliente | maria.gonzalez@email.com | cliente123 | ✅ Activo |
-| Cliente | pedro.ramirez@email.com | cliente123 | ✅ Activo |
+| Admin | <admin@arepallanerita.com> | admin123 | ✅ Activo |
+| Líder | <carlos.rodriguez@arepallanerita.com> | lider123 | ✅ Activo |
+| Vendedor | <ana.lopez@arepallanerita.com> | vendedor123 | ✅ Activo |
+| Vendedor | <miguel.torres@arepallanerita.com> | vendedor123 | ✅ Activo |
+| Cliente | <maria.gonzalez@email.com> | cliente123 | ✅ Activo |
+| Cliente | <pedro.ramirez@email.com> | cliente123 | ✅ Activo |
 
 **⚠️ IMPORTANTE**: Estas credenciales deben migrarse de MySQL a MongoDB manteniendo la misma autenticación.
 

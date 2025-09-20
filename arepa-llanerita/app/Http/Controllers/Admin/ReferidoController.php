@@ -46,17 +46,16 @@ class ReferidoController extends Controller
         $stats = [
             'total_vendedores' => User::where('rol', 'vendedor')->count(),
             'total_lideres' => User::where('rol', 'lider')->count(),
-            'usuarios_con_referidos' => User::whereHas('referidos')->count(),
+            'usuarios_con_referidos' => User::where('total_referidos', '>', 0)->count(),
             'usuarios_sin_referidor' => User::whereNull('referido_por')->whereIn('rol', ['vendedor', 'lider'])->count(),
             'promedio_referidos' => $this->calcularPromedioReferidos(),
             'red_mas_grande' => $this->obtenerRedMasGrande()
         ];
 
         // Redes más activas (top 10)
-        $redesActivas = User::withCount('referidos')
-            ->whereIn('rol', ['vendedor', 'lider'])
-            ->having('referidos_count', '>', 0)
-            ->orderByDesc('referidos_count')
+        $redesActivas = User::whereIn('rol', ['vendedor', 'lider'])
+            ->where('total_referidos', '>', 0)
+            ->orderBy('total_referidos', 'desc')
             ->take(10)
             ->get();
 
@@ -76,15 +75,22 @@ class ReferidoController extends Controller
 
     public function show($id)
     {
-        $usuario = User::with(['referidor', 'referidos.referidos', 'pedidos'])
-            ->findOrFail($id);
+        $usuario = User::find($id);
+
+        if (!$usuario) {
+            return redirect()->route('admin.referidos.index')
+                ->with('error', 'Usuario no encontrado');
+        }
 
         // Obtener toda la red del usuario (hasta 5 niveles)
         $redCompleta = $this->obtenerRedCompleta($usuario, 5);
 
+        // Obtener referidos directos para estadísticas
+        $referidosDirectos = User::where('referido_por', $usuario->_id)->get();
+
         // Estadísticas del usuario
         $statsUsuario = [
-            'referidos_directos' => $usuario->referidos->count(),
+            'referidos_directos' => $referidosDirectos->count(),
             'referidos_totales' => $this->contarReferidosTotales($usuario),
             'ventas_referidos' => $this->calcularVentasReferidos($usuario),
             'comisiones_referidos' => $this->calcularComisionesReferidos($usuario),
@@ -105,33 +111,35 @@ class ReferidoController extends Controller
 
     public function red($id = null)
     {
-        // Si no se especifica ID, mostrar desde la raíz
-        if (!$id) {
-            $usuarios_raiz = User::whereNull('referido_por')
-                ->whereIn('rol', ['vendedor', 'lider'])
-                ->with(['referidos' => function ($query) {
-                    $query->with('referidos.referidos');
-                }])
-                ->get();
+        try {
+            // Si no se especifica ID, mostrar desde la raíz
+            if (!$id) {
+                $usuarios_raiz = User::whereNull('referido_por')
+                    ->whereIn('rol', ['vendedor', 'lider'])
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $this->formatearParaVisualizacion($usuarios_raiz)
+                ]);
+            }
+
+            $usuario = User::find($id);
+
+            if (!$usuario) {
+                return response()->json(['success' => false, 'message' => 'Usuario no encontrado']);
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $this->formatearParaVisualizacion($usuarios_raiz)
+                'data' => $this->formatearParaVisualizacion([$usuario])
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener red: ' . $e->getMessage()
+            ], 500);
         }
-
-        $usuario = User::with(['referidos' => function ($query) {
-            $query->with('referidos.referidos');
-        }])->find($id);
-
-        if (!$usuario) {
-            return response()->json(['success' => false, 'message' => 'Usuario no encontrado']);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $this->formatearParaVisualizacion([$usuario])
-        ]);
     }
 
     public function estadisticas()
@@ -150,7 +158,7 @@ class ReferidoController extends Controller
 
     private function calcularPromedioReferidos()
     {
-        $usuarios_con_referidos = User::whereHas('referidos')->count();
+        $usuarios_con_referidos = User::where('total_referidos', '>', 0)->count();
         $total_referidos = User::whereNotNull('referido_por')->count();
 
         return $usuarios_con_referidos > 0 ? round($total_referidos / $usuarios_con_referidos, 2) : 0;
@@ -158,14 +166,13 @@ class ReferidoController extends Controller
 
     private function obtenerRedMasGrande()
     {
-        $usuario = User::withCount('referidos')
-            ->whereIn('rol', ['vendedor', 'lider'])
-            ->orderByDesc('referidos_count')
+        $usuario = User::whereIn('rol', ['vendedor', 'lider'])
+            ->orderBy('total_referidos', 'desc')
             ->first();
 
         return $usuario ? [
             'usuario' => $usuario->name,
-            'referidos' => $usuario->referidos_count
+            'referidos' => $usuario->total_referidos ?? 0
         ] : null;
     }
 
@@ -173,9 +180,6 @@ class ReferidoController extends Controller
     {
         $usuarios_raiz = User::whereNull('referido_por')
             ->whereIn('rol', ['vendedor', 'lider'])
-            ->with(['referidos' => function ($query) {
-                $query->with('referidos.referidos');
-            }])
             ->take(10) // Limitar para performance
             ->get();
 
@@ -185,14 +189,17 @@ class ReferidoController extends Controller
     private function formatearJerarquia($usuarios, $nivel = 1)
     {
         return $usuarios->map(function ($usuario) use ($nivel) {
+            // Obtener referidos directos
+            $referidos = User::where('referido_por', $usuario->_id)->get();
+
             return [
-                'id' => $usuario->id,
+                'id' => $usuario->_id,
                 'name' => $usuario->name,
                 'email' => $usuario->email,
                 'tipo' => $usuario->rol,
                 'nivel' => $nivel,
-                'referidos_count' => $usuario->referidos->count(),
-                'hijos' => $nivel < 3 ? $this->formatearJerarquia($usuario->referidos, $nivel + 1) : []
+                'referidos_count' => $referidos->count(),
+                'hijos' => $nivel < 3 ? $this->formatearJerarquia($referidos, $nivel + 1) : []
             ];
         });
     }
@@ -202,7 +209,9 @@ class ReferidoController extends Controller
         if ($niveles <= 0) return [];
 
         $red = [];
-        foreach ($usuario->referidos as $referido) {
+        $referidos = User::where('referido_por', $usuario->_id)->get();
+
+        foreach ($referidos as $referido) {
             $red[] = [
                 'usuario' => $referido,
                 'nivel' => 6 - $niveles,
@@ -215,20 +224,30 @@ class ReferidoController extends Controller
 
     private function contarReferidosTotales($usuario)
     {
-        $count = $usuario->referidos->count();
-        foreach ($usuario->referidos as $referido) {
+        $referidos = User::where('referido_por', $usuario->_id)->get();
+        $count = $referidos->count();
+
+        foreach ($referidos as $referido) {
             $count += $this->contarReferidosTotales($referido);
         }
+
         return $count;
     }
 
     private function calcularVentasReferidos($usuario)
     {
         $ventas = 0;
-        foreach ($usuario->referidos as $referido) {
-            $ventas += $referido->pedidos()->where('estado', 'entregado')->sum('total_final');
+        $referidos = User::where('referido_por', $usuario->_id)->get();
+
+        foreach ($referidos as $referido) {
+            // Usar el modelo Pedido en lugar de la relación
+            $pedidosReferido = \App\Models\Pedido::where('vendedor_id', $referido->_id)
+                ->where('estado', 'entregado')
+                ->sum('total_final');
+            $ventas += $pedidosReferido ?? 0;
             $ventas += $this->calcularVentasReferidos($referido);
         }
+
         return $ventas;
     }
 
@@ -241,17 +260,22 @@ class ReferidoController extends Controller
     {
         $nivel = 1;
         $actual = $usuario;
-        while ($actual->referidor) {
+
+        while ($actual->referido_por) {
             $nivel++;
-            $actual = $actual->referidor;
+            $actual = User::find($actual->referido_por);
+            if (!$actual) {
+                break; // Evitar loop infinito si no se encuentra el referidor
+            }
         }
+
         return $nivel;
     }
 
     private function obtenerActividadReciente($usuario)
     {
         // Obtener registros recientes de referidos directos
-        return $usuario->referidos()
+        return User::where('referido_por', $usuario->_id)
             ->where('created_at', '>=', now()->subDays(30))
             ->orderBy('created_at', 'desc')
             ->take(10)
@@ -261,14 +285,17 @@ class ReferidoController extends Controller
     private function formatearParaVisualizacion($usuarios)
     {
         return $usuarios->map(function ($usuario) {
+            // Obtener referidos directos de este usuario
+            $referidos = User::where('referido_por', $usuario->_id)->get();
+
             return [
-                'id' => $usuario->id,
+                'id' => $usuario->_id,
                 'name' => $usuario->name,
                 'email' => $usuario->email,
                 'tipo' => $usuario->rol,
                 'codigo_referido' => $usuario->codigo_referido,
-                'referidos_count' => $usuario->referidos->count(),
-                'children' => $this->formatearParaVisualizacion($usuario->referidos)
+                'referidos_count' => $referidos->count(),
+                'children' => $this->formatearParaVisualizacion($referidos)
             ];
         });
     }
@@ -281,21 +308,29 @@ class ReferidoController extends Controller
 
     private function obtenerCrecimientoMensual()
     {
-        return User::whereIn('rol', ['vendedor', 'lider'])
-            ->selectRaw('YEAR(created_at) as año, MONTH(created_at) as mes, COUNT(*) as cantidad')
+        $usuarios = User::whereIn('rol', ['vendedor', 'lider'])
             ->where('created_at', '>=', now()->subYear())
-            ->groupBy('año', 'mes')
-            ->orderBy('año', 'desc')
-            ->orderBy('mes', 'desc')
             ->get();
+
+        return $usuarios->groupBy(function ($usuario) {
+            return $usuario->created_at->format('Y-m');
+        })->map(function ($usuariosMes, $periodo) {
+            [$año, $mes] = explode('-', $periodo);
+            return (object)[
+                'año' => (int)$año,
+                'mes' => (int)$mes,
+                'cantidad' => $usuariosMes->count()
+            ];
+        })->sortByDesc(function ($item) {
+            return $item->año * 100 + $item->mes;
+        })->values();
     }
 
     private function obtenerTopReferidores()
     {
-        return User::withCount('referidos')
-            ->whereIn('rol', ['vendedor', 'lider'])
-            ->having('referidos_count', '>', 0)
-            ->orderByDesc('referidos_count')
+        return User::whereIn('rol', ['vendedor', 'lider'])
+            ->where('total_referidos', '>', 0)
+            ->orderBy('total_referidos', 'desc')
             ->take(10)
             ->get();
     }
@@ -303,7 +338,7 @@ class ReferidoController extends Controller
     private function calcularConversionReferidos()
     {
         $total_usuarios = User::whereIn('rol', ['vendedor', 'lider'])->count();
-        $usuarios_con_referidos = User::whereHas('referidos')->count();
+        $usuarios_con_referidos = User::where('total_referidos', '>', 0)->count();
 
         return $total_usuarios > 0 ? round(($usuarios_con_referidos / $total_usuarios) * 100, 2) : 0;
     }

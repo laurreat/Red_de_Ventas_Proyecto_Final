@@ -339,7 +339,7 @@
     </div>
 
     <!-- Visualización Jerárquica (muestra solo algunos niveles por performance) -->
-    @if($redJerarquica->count() > 0)
+    @if($redJerarquica && $redJerarquica->count() > 0)
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -432,10 +432,12 @@ const config = {
 };
 
 // Datos para visualización (desde el controlador)
-const redData = @json($redJerarquica);
+const redData = @json($redJerarquica ?? []);
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeVisualization();
+    if (document.getElementById('network-container')) {
+        initializeVisualization();
+    }
 
     // Event listeners para cambio de vista
     document.querySelectorAll('input[name="viewType"]').forEach(input => {
@@ -482,7 +484,7 @@ function processData() {
     nodes = [];
     links = [];
 
-    if (!redData || redData.length === 0) {
+    if (!redData || !Array.isArray(redData) || redData.length === 0) {
         showEmptyState();
         return;
     }
@@ -712,7 +714,8 @@ function addNodeEvents(nodeSelection) {
         })
         .on('click', function(event, d) {
             // Abrir detalles del usuario
-            window.open(`{{ route('admin.referidos.show', '') }}/${d.id}`, '_blank');
+            const baseUrl = '{{ url("admin/referidos") }}';
+            window.open(`${baseUrl}/${d.id}`, '_blank');
         });
 }
 

@@ -131,7 +131,7 @@
             transform: rotate(180deg);
         }
 
-        .dropdown-menu {
+        .sidebar .dropdown-menu {
             background: transparent;
             border: none;
             box-shadow: none;
@@ -418,6 +418,23 @@
         /* Específico para dropdowns del header */
         .admin-header .dropdown-menu {
             z-index: 1080 !important;
+            background-color: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175) !important;
+            position: absolute !important;
+        }
+
+        /* Asegurar fondo sólido para dropdowns del header */
+        .admin-header .dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ffffff;
+            z-index: -1;
+            border-radius: 0.375rem;
         }
 
         /* Bootstrap dropdown fix */
@@ -434,10 +451,73 @@
             z-index: 1100 !important;
         }
 
+        /* Estilos para items del dropdown del header */
+        .admin-header .dropdown-item {
+            color: #212529 !important;
+            background-color: transparent !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .admin-header .dropdown-item:hover,
+        .admin-header .dropdown-item:focus {
+            background-color: #f8f9fa !important;
+            color: #0d6efd !important;
+        }
+
+        .admin-header .dropdown-header {
+            color: #6c757d !important;
+            background-color: transparent !important;
+        }
+
+        .admin-header .dropdown-divider {
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        /* Específico para el dropdown de notificaciones */
+        .admin-header .dropdown-menu[style*="width: 320px"] {
+            background-color: #ffffff !important;
+            min-width: 320px !important;
+        }
+
+        .admin-header .notification-item {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .admin-header .notification-item:hover {
+            background-color: #f8f9fa !important;
+        }
+
+        .admin-header .notification-item:last-child {
+            border-bottom: none;
+        }
+
         /* Contenedor global para evitar stacking context issues */
         .container-fluid {
             position: relative;
             z-index: 1;
+        }
+
+        /* Asegurar que todo el contenido del dropdown tenga fondo sólido */
+        .admin-header .dropdown-menu * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Forzar estilo para elementos específicos del header */
+        .admin-header .dropdown-menu .border-bottom {
+            background-color: #ffffff !important;
+        }
+
+        /* Estilo para texto en dropdowns del header */
+        .admin-header .dropdown-menu .text-muted {
+            color: #6c757d !important;
+        }
+
+        .admin-header .dropdown-menu h6 {
+            color: #212529 !important;
         }
 
         /* Todos los elementos del contenido principal deben estar por debajo del header */
@@ -509,7 +589,7 @@
                         <i class="bi bi-person-plus"></i>
                         Crear Usuario
                     </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Roles y Permisos')">
+                    <a href="{{ route('admin.roles.index') }}" class="dropdown-item">
                         <i class="bi bi-shield-check"></i>
                         Roles y Permisos
                     </a>
@@ -565,14 +645,14 @@
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Respaldos')">
+                <a href="{{ route('admin.respaldos.index') }}" class="nav-link">
                     <i class="bi bi-cloud-download"></i>
                     Respaldos
                 </a>
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Logs del Sistema')">
+                <a href="{{ route('admin.logs.index') }}" class="nav-link">
                     <i class="bi bi-file-text"></i>
                     Logs del Sistema
                 </a>
@@ -602,7 +682,7 @@
                             <h6 class="mb-0">Notificaciones</h6>
                             <small class="text-muted">3 nuevas</small>
                         </div>
-                        <div class="p-3 text-center text-muted">
+                        <div class="notification-item text-center text-muted">
                             <i class="bi bi-bell-slash fs-4"></i>
                             <p class="mb-0 mt-2">Sistema de notificaciones próximamente</p>
                         </div>
@@ -630,13 +710,13 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Mi Perfil')">
+                            <a class="dropdown-item" href="{{ route('admin.perfil.index') }}">
                                 <i class="bi bi-person me-2"></i>
                                 Mi Perfil
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Configuración')">
+                            <a class="dropdown-item" href="{{ route('admin.configuracion-personal.index') }}">
                                 <i class="bi bi-gear me-2"></i>
                                 Configuración
                             </a>

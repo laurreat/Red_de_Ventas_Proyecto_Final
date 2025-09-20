@@ -107,8 +107,12 @@ class UserController extends Controller
             'rol' => $request->rol,
             'activo' => $request->boolean('activo', true),
             'referido_por' => $request->referido_por,
-            'meta_mensual' => $request->meta_mensual,
+            'meta_mensual' => $request->meta_mensual ?? 0.00,
             'codigo_referido' => $this->generarCodigoReferido(),
+            'comisiones_ganadas' => 0.00,
+            'comisiones_disponibles' => 0.00,
+            'ventas_mes_actual' => 0.00,
+            'total_referidos' => 0,
         ]);
 
         // Actualizar contador de referidos si tiene referidor

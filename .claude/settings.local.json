@@ -30,7 +30,9 @@
       "Bash(timeout:*)",
       "Bash(mongosh:*)",
       "Bash(mongo:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

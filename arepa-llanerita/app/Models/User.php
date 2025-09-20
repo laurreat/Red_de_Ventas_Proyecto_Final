@@ -26,6 +26,7 @@ class User extends Authenticatable
         'departamento',
         'fecha_nacimiento',
         'rol',
+        'role_id',
         'activo',
         'ultimo_acceso',
         'referido_por',
@@ -110,6 +111,11 @@ class User extends Authenticatable
     public function pedidosVendedor()
     {
         return $this->hasMany(Pedido::class, 'vendedor_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     // Scopes
@@ -204,6 +210,90 @@ class User extends Authenticatable
     public function actualizarConfiguracion($config)
     {
         $this->configuracion_personal = array_merge($this->configuracion_personal ?? [], $config);
+        return $this->save();
+    }
+
+    // Métodos de permisos
+    public function hasPermission($permission): bool
+    {
+        if (!$this->activo) {
+            return false;
+        }
+
+        // Administradores tienen todos los permisos
+        if ($this->esAdmin()) {
+            return true;
+        }
+
+        // Verificar por rol personalizado
+        if ($this->role_id) {
+            $role = $this->role;
+            if ($role && $role->active) {
+                return $role->hasPermission($permission);
+            }
+        }
+
+        // Verificar por rol del sistema (legacy)
+        $systemRoles = Role::getSystemRoles();
+        if (isset($systemRoles[$this->rol])) {
+            $rolePermissions = $systemRoles[$this->rol]['permissions'];
+            return in_array($permission, $rolePermissions);
+        }
+
+        return false;
+    }
+
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function hasAllPermissions(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if (!$this->hasPermission($permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function getPermissions(): array
+    {
+        if ($this->esAdmin()) {
+            return array_keys(Permission::getSystemPermissions());
+        }
+
+        if ($this->role_id) {
+            $role = $this->role;
+            if ($role && $role->active) {
+                return $role->permissions ?? [];
+            }
+        }
+
+        // Fallback a rol del sistema
+        $systemRoles = Role::getSystemRoles();
+        if (isset($systemRoles[$this->rol])) {
+            return $systemRoles[$this->rol]['permissions'];
+        }
+
+        return [];
+    }
+
+    public function assignRole($roleId): bool
+    {
+        $this->role_id = $roleId;
+        return $this->save();
+    }
+
+    public function removeRole(): bool
+    {
+        $this->role_id = null;
         return $this->save();
     }
 }

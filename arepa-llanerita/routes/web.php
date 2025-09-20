@@ -1,12 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 
 // Página principal - siempre mostrar login
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect()->route('dashboard');
     }
     return redirect()->route('login');
@@ -14,8 +15,8 @@ Route::get('/', function () {
 
 // Ruta específica para logout y redirección al login
 Route::get('/inicio', function () {
-    if (auth()->check()) {
-        auth()->logout();
+    if (Auth::check()) {
+        Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
     }
@@ -52,6 +53,14 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::resource('admin/pedidos', \App\Http\Controllers\Admin\PedidoController::class, ['as' => 'admin']);
         Route::patch('admin/pedidos/{pedido}/status', [\App\Http\Controllers\Admin\PedidoController::class, 'updateStatus'])->name('admin.pedidos.update-status');
 
+        // Roles y Permisos
+        Route::resource('admin/roles', \App\Http\Controllers\Admin\RoleController::class, ['as' => 'admin']);
+        Route::patch('admin/roles/{role}/toggle', [\App\Http\Controllers\Admin\RoleController::class, 'toggleActive'])->name('admin.roles.toggle');
+        Route::get('admin/roles/permissions/list', [\App\Http\Controllers\Admin\RoleController::class, 'permissions'])->name('admin.roles.permissions');
+        Route::post('admin/roles/initialize-system', [\App\Http\Controllers\Admin\RoleController::class, 'initializeSystemRoles'])->name('admin.roles.initialize');
+        Route::get('admin/roles/{role}/assign-users', [\App\Http\Controllers\Admin\RoleController::class, 'assignUsers'])->name('admin.roles.assign-users');
+        Route::post('admin/roles/{role}/update-users', [\App\Http\Controllers\Admin\RoleController::class, 'updateUserRoles'])->name('admin.roles.update-users');
+
         // Reportes
         Route::get('admin/reportes/ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'ventas'])->name('admin.reportes.ventas');
         Route::get('admin/reportes/productos', [\App\Http\Controllers\Admin\ReporteController::class, 'productos'])->name('admin.reportes.productos');
@@ -80,6 +89,45 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('admin/configuracion/limpiar-cache', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'limpiarCache'])->name('admin.configuracion.limpiar-cache');
         Route::post('admin/configuracion/limpiar-logs', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'limpiarLogs'])->name('admin.configuracion.limpiar-logs');
         Route::get('admin/configuracion/info-sistema', [\App\Http\Controllers\Admin\ConfiguracionController::class, 'infoSistema'])->name('admin.configuracion.info-sistema');
+
+        // Respaldos
+        Route::get('admin/respaldos', [\App\Http\Controllers\Admin\RespaldoController::class, 'index'])->name('admin.respaldos.index');
+        Route::post('admin/respaldos/create', [\App\Http\Controllers\Admin\RespaldoController::class, 'create'])->name('admin.respaldos.create');
+        Route::get('admin/respaldos/{filename}/download', [\App\Http\Controllers\Admin\RespaldoController::class, 'download'])->name('admin.respaldos.download');
+        Route::delete('admin/respaldos/{filename}', [\App\Http\Controllers\Admin\RespaldoController::class, 'delete'])->name('admin.respaldos.delete');
+        Route::post('admin/respaldos/{filename}/restore', [\App\Http\Controllers\Admin\RespaldoController::class, 'restore'])->name('admin.respaldos.restore');
+        Route::post('admin/respaldos/schedule', [\App\Http\Controllers\Admin\RespaldoController::class, 'schedule'])->name('admin.respaldos.schedule');
+        Route::post('admin/respaldos/cleanup', [\App\Http\Controllers\Admin\RespaldoController::class, 'cleanup'])->name('admin.respaldos.cleanup');
+
+        // Logs del Sistema
+        Route::get('admin/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
+        Route::get('admin/logs/{filename}', [\App\Http\Controllers\Admin\LogController::class, 'show'])->name('admin.logs.show');
+        Route::get('admin/logs/{filename}/download', [\App\Http\Controllers\Admin\LogController::class, 'download'])->name('admin.logs.download');
+        Route::delete('admin/logs/{filename}', [\App\Http\Controllers\Admin\LogController::class, 'delete'])->name('admin.logs.delete');
+        Route::post('admin/logs/clear', [\App\Http\Controllers\Admin\LogController::class, 'clear'])->name('admin.logs.clear');
+        Route::post('admin/logs/cleanup', [\App\Http\Controllers\Admin\LogController::class, 'cleanup'])->name('admin.logs.cleanup');
+        Route::post('admin/logs/export', [\App\Http\Controllers\Admin\LogController::class, 'export'])->name('admin.logs.export');
+        Route::get('admin/logs-stats', [\App\Http\Controllers\Admin\LogController::class, 'stats'])->name('admin.logs.stats');
+
+        // Mi Perfil
+        Route::get('admin/perfil', [\App\Http\Controllers\Admin\PerfilController::class, 'index'])->name('admin.perfil.index');
+        Route::post('admin/perfil', [\App\Http\Controllers\Admin\PerfilController::class, 'update'])->name('admin.perfil.update');
+        Route::post('admin/perfil/password', [\App\Http\Controllers\Admin\PerfilController::class, 'updatePassword'])->name('admin.perfil.update-password');
+        Route::post('admin/perfil/notifications', [\App\Http\Controllers\Admin\PerfilController::class, 'updateNotifications'])->name('admin.perfil.update-notifications');
+        Route::post('admin/perfil/privacy', [\App\Http\Controllers\Admin\PerfilController::class, 'updatePrivacy'])->name('admin.perfil.update-privacy');
+        Route::delete('admin/perfil/avatar', [\App\Http\Controllers\Admin\PerfilController::class, 'deleteAvatar'])->name('admin.perfil.delete-avatar');
+        Route::get('admin/perfil/download', [\App\Http\Controllers\Admin\PerfilController::class, 'downloadData'])->name('admin.perfil.download-data');
+        Route::get('admin/perfil/activity', [\App\Http\Controllers\Admin\PerfilController::class, 'activity'])->name('admin.perfil.activity');
+
+        // Configuración Personal
+        Route::get('admin/configuracion-personal', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'index'])->name('admin.configuracion-personal.index');
+        Route::post('admin/configuracion-personal/interfaz', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateInterfaz'])->name('admin.configuracion-personal.update-interfaz');
+        Route::post('admin/configuracion-personal/notificaciones', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateNotificaciones'])->name('admin.configuracion-personal.update-notificaciones');
+        Route::post('admin/configuracion-personal/privacidad', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updatePrivacidad'])->name('admin.configuracion-personal.update-privacidad');
+        Route::post('admin/configuracion-personal/seguridad', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateSeguridad'])->name('admin.configuracion-personal.update-seguridad');
+        Route::post('admin/configuracion-personal/dashboard', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateDashboard'])->name('admin.configuracion-personal.update-dashboard');
+        Route::post('admin/configuracion-personal/reset', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'reset'])->name('admin.configuracion-personal.reset');
+        Route::get('admin/configuracion-personal/export', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'export'])->name('admin.configuracion-personal.export');
     });
     
     // Rutas para Líderes y Administradores

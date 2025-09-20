@@ -24,32 +24,32 @@ class PedidoController extends Controller
 
     public function index(Request $request)
     {
-        $query = Pedido::with(['cliente', 'vendedor', 'detalles.producto']);
+        $query = Pedido::query();
 
         // Filtros
-        if ($request->has('estado') && $request->estado != '') {
+        if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
 
-        if ($request->has('vendedor') && $request->vendedor != '') {
+        if ($request->filled('vendedor')) {
             $query->where('vendedor_id', $request->vendedor);
         }
 
-        if ($request->has('fecha_desde') && $request->fecha_desde != '') {
+        if ($request->filled('fecha_desde')) {
             $query->whereDate('created_at', '>=', $request->fecha_desde);
         }
 
-        if ($request->has('fecha_hasta') && $request->fecha_hasta != '') {
+        if ($request->filled('fecha_hasta')) {
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
         }
 
-        if ($request->has('buscar') && $request->buscar != '') {
-            $query->where(function($q) use ($request) {
-                $q->where('numero_pedido', 'like', '%' . $request->buscar . '%')
-                  ->orWhereHas('cliente', function($clienteQuery) use ($request) {
-                      $clienteQuery->where('name', 'like', '%' . $request->buscar . '%')
-                                   ->orWhere('email', 'like', '%' . $request->buscar . '%');
-                  });
+        if ($request->filled('buscar')) {
+            $search = $request->buscar;
+            $query->where(function($q) use ($search) {
+                $q->where('numero_pedido', 'like', "%{$search}%")
+                  ->orWhere('cliente_data.name', 'like', "%{$search}%")
+                  ->orWhere('cliente_data.email', 'like', "%{$search}%")
+                  ->orWhere('vendedor_data.name', 'like', "%{$search}%");
             });
         }
 
@@ -85,7 +85,6 @@ class PedidoController extends Controller
 
     public function show(Pedido $pedido)
     {
-        $pedido->load(['cliente', 'vendedor', 'detalles.producto.categoria']);
         return view('admin.pedidos.show', compact('pedido'));
     }
 
@@ -101,54 +100,102 @@ class PedidoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cliente_id' => 'required|string',
-            'vendedor_id' => 'nullable|exists:users,id',
+            'user_id' => 'required|string|exists:users,_id',
+            'vendedor_id' => 'nullable|string|exists:users,_id',
             'productos' => 'required|array|min:1',
             'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
             'descuento' => 'nullable|numeric|min:0',
-            'observaciones' => 'nullable|string|max:500'
+            'notas' => 'nullable|string|max:500',
+            'direccion_entrega' => 'required|string',
+            'telefono_entrega' => 'required|string'
         ]);
 
-        $numeroPedido = 'PED-' . str_pad(Pedido::count() + 1, 6, '0', STR_PAD_LEFT);
+        $cliente = User::find($request->user_id);
+        $vendedor = $request->vendedor_id ? User::find($request->vendedor_id) : null;
 
-        $pedido = Pedido::create([
-            'numero_pedido' => $numeroPedido,
-            'cliente_id' => $request->cliente_id,
+        $pedido = new Pedido([
+            'numero_pedido' => $this->generarNumeroPedido(),
+            'user_id' => $request->user_id,
             'vendedor_id' => $request->vendedor_id,
             'estado' => 'pendiente',
-            'observaciones' => $request->observaciones,
-            'descuento' => $request->descuento ?? 0,
+            'descuento' => $request->descuento ?? 0.00,
+            'notas' => $request->notas,
+            'direccion_entrega' => $request->direccion_entrega,
+            'telefono_entrega' => $request->telefono_entrega,
+            'cliente_data' => [
+                '_id' => $cliente->_id,
+                'name' => $cliente->name,
+                'apellidos' => $cliente->apellidos,
+                'email' => $cliente->email,
+                'telefono' => $cliente->telefono,
+                'cedula' => $cliente->cedula
+            ]
         ]);
 
-        $subtotal = 0;
+        if ($vendedor) {
+            $pedido->vendedor_data = [
+                '_id' => $vendedor->_id,
+                'name' => $vendedor->name,
+                'apellidos' => $vendedor->apellidos,
+                'email' => $vendedor->email,
+                'telefono' => $vendedor->telefono
+            ];
+        }
+
+        $detalles = [];
+        $total = 0;
 
         foreach ($request->productos as $productoData) {
             $producto = Producto::find($productoData['id']);
+            if (!$producto) {
+                continue;
+            }
+
             $cantidad = $productoData['cantidad'];
-            $precio = $producto->precio;
-            $total = $precio * $cantidad;
+            $precioUnitario = $producto->precio;
+            $subtotal = $cantidad * $precioUnitario;
 
-            $pedido->detalles()->create([
-                'producto_id' => $producto->id,
+            $detalles[] = [
+                'producto_id' => $producto->_id,
+                'producto_data' => [
+                    '_id' => $producto->_id,
+                    'nombre' => $producto->nombre,
+                    'precio' => $producto->precio,
+                    'imagen' => $producto->imagen
+                ],
                 'cantidad' => $cantidad,
-                'precio_unitario' => $precio,
-                'total' => $total
-            ]);
+                'precio_unitario' => $precioUnitario,
+                'subtotal' => $subtotal,
+                'fecha_agregado' => now()
+            ];
 
-            $subtotal += $total;
+            $total += $subtotal;
 
             // Actualizar stock del producto
             $producto->decrement('stock', $cantidad);
         }
 
-        $pedido->update([
-            'subtotal' => $subtotal,
-            'total_final' => $subtotal - $pedido->descuento
-        ]);
+        $pedido->detalles = $detalles;
+        $pedido->total = $total;
+        $pedido->total_final = $total - $pedido->descuento;
+
+        $pedido->save();
 
         return redirect()->route('admin.pedidos.index')
             ->with('success', 'Pedido creado exitosamente.');
+    }
+
+    private function generarNumeroPedido(): string
+    {
+        $formato = 'ARE-{YYYY}-{NNNN}';
+        $ultimoNumero = Pedido::whereYear('created_at', now()->year)->count() + 1;
+
+        return str_replace(
+            ['{YYYY}', '{NNNN}'],
+            [now()->year, str_pad($ultimoNumero, 4, '0', STR_PAD_LEFT)],
+            $formato
+        );
     }
 
     public function edit(Pedido $pedido)

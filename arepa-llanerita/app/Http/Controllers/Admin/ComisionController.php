@@ -29,31 +29,49 @@ class ComisionController extends Controller
         $fechaFin = $request->get('fecha_fin', now()->format('Y-m-d'));
         $vendedorId = $request->get('vendedor_id');
 
-        // Comisiones calculadas por vendedor
-        $comisionesQuery = DB::table('pedidos')
-            ->join('users', 'pedidos.vendedor_id', '=', 'users.id')
-            ->select(
-                'users.id',
-                'users.name',
-                'users.email',
-                'users.telefono',
-                'users.created_at as fecha_registro',
-                DB::raw('COUNT(pedidos.id) as total_pedidos'),
-                DB::raw('COUNT(CASE WHEN pedidos.estado = "entregado" THEN 1 END) as pedidos_entregados'),
-                DB::raw('SUM(CASE WHEN pedidos.estado = "entregado" THEN pedidos.total_final ELSE 0 END) as total_ventas'),
-                DB::raw('SUM(CASE WHEN pedidos.estado = "entregado" THEN pedidos.total_final ELSE 0 END) * 0.1 as comision_ganada'),
-                DB::raw('SUM(CASE WHEN pedidos.estado != "entregado" AND pedidos.estado != "cancelado" THEN pedidos.total_final ELSE 0 END) * 0.1 as comision_pendiente')
-            )
-            ->whereDate('pedidos.created_at', '>=', $fechaInicio)
-            ->whereDate('pedidos.created_at', '<=', $fechaFin)
-            ->whereNotNull('pedidos.vendedor_id')
-            ->when($vendedorId, function ($query) use ($vendedorId) {
-                return $query->where('users.id', $vendedorId);
-            })
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.telefono', 'users.created_at')
-            ->orderByDesc('total_ventas');
+        // Obtener pedidos en el rango de fechas
+        $pedidosQuery = Pedido::whereDate('created_at', '>=', $fechaInicio)
+            ->whereDate('created_at', '<=', $fechaFin)
+            ->whereNotNull('vendedor_id');
 
-        $comisiones = $comisionesQuery->get();
+        if ($vendedorId) {
+            $pedidosQuery->where('vendedor_id', $vendedorId);
+        }
+
+        $pedidos = $pedidosQuery->get();
+
+        // Agrupar y calcular comisiones por vendedor
+        $comisionesPorVendedor = $pedidos->groupBy('vendedor_id')->map(function ($pedidosVendedor) {
+            $vendedorId = $pedidosVendedor->first()->vendedor_id;
+            $vendedor = User::find($vendedorId);
+
+            if (!$vendedor) {
+                return null;
+            }
+
+            $totalPedidos = $pedidosVendedor->count();
+            $pedidosEntregados = $pedidosVendedor->where('estado', 'entregado');
+            $totalVentas = $pedidosEntregados->sum('total_final');
+            $comisionGanada = $totalVentas * 0.1;
+
+            $pedidosPendientes = $pedidosVendedor->whereNotIn('estado', ['entregado', 'cancelado']);
+            $comisionPendiente = $pedidosPendientes->sum('total_final') * 0.1;
+
+            return (object)[
+                'id' => $vendedor->_id,
+                'name' => $vendedor->name,
+                'email' => $vendedor->email,
+                'telefono' => $vendedor->telefono,
+                'fecha_registro' => $vendedor->created_at,
+                'total_pedidos' => $totalPedidos,
+                'pedidos_entregados' => $pedidosEntregados->count(),
+                'total_ventas' => $totalVentas,
+                'comision_ganada' => $comisionGanada,
+                'comision_pendiente' => $comisionPendiente
+            ];
+        })->filter()->sortByDesc('total_ventas');
+
+        $comisiones = $comisionesPorVendedor;
 
         // Estadísticas generales
         $stats = [
@@ -66,19 +84,19 @@ class ComisionController extends Controller
         ];
 
         // Comisiones por día
-        $comisionesPorDia = DB::table('pedidos')
-            ->select(
-                DB::raw('DATE(created_at) as fecha'),
-                DB::raw('COUNT(*) as pedidos'),
-                DB::raw('SUM(CASE WHEN estado = "entregado" THEN total_final ELSE 0 END) as ventas'),
-                DB::raw('SUM(CASE WHEN estado = "entregado" THEN total_final ELSE 0 END) * 0.1 as comisiones')
-            )
-            ->whereDate('created_at', '>=', $fechaInicio)
-            ->whereDate('created_at', '<=', $fechaFin)
-            ->whereNotNull('vendedor_id')
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('fecha')
-            ->get();
+        $comisionesPorDia = $pedidos->groupBy(function ($pedido) {
+            return $pedido->created_at->format('Y-m-d');
+        })->map(function ($pedidosDia, $fecha) {
+            $pedidosEntregados = $pedidosDia->where('estado', 'entregado');
+            $ventas = $pedidosEntregados->sum('total_final');
+
+            return (object)[
+                'fecha' => $fecha,
+                'pedidos' => $pedidosDia->count(),
+                'ventas' => $ventas,
+                'comisiones' => $ventas * 0.1
+            ];
+        })->sortBy('fecha')->values();
 
         // Top 5 vendedores
         $topVendedores = $comisiones->take(5);
@@ -125,20 +143,27 @@ class ComisionController extends Controller
         ];
 
         // Comisiones por mes (últimos 6 meses)
-        $comisionesPorMes = DB::table('pedidos')
-            ->select(
-                DB::raw('YEAR(created_at) as año'),
-                DB::raw('MONTH(created_at) as mes'),
-                DB::raw('COUNT(*) as pedidos'),
-                DB::raw('SUM(CASE WHEN estado = "entregado" THEN total_final ELSE 0 END) as ventas'),
-                DB::raw('SUM(CASE WHEN estado = "entregado" THEN total_final ELSE 0 END) * 0.1 as comision')
-            )
-            ->where('vendedor_id', $id)
+        $pedidosUltimosMeses = Pedido::where('vendedor_id', $id)
             ->where('created_at', '>=', now()->subMonths(6))
-            ->groupBy(DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
-            ->orderBy('año', 'desc')
-            ->orderBy('mes', 'desc')
             ->get();
+
+        $comisionesPorMes = $pedidosUltimosMeses->groupBy(function ($pedido) {
+            return $pedido->created_at->format('Y-m');
+        })->map(function ($pedidosMes, $periodoMes) {
+            $pedidosEntregados = $pedidosMes->where('estado', 'entregado');
+            $ventas = $pedidosEntregados->sum('total_final');
+
+            [$año, $mes] = explode('-', $periodoMes);
+
+            return (object)[
+                'año' => (int)$año,
+                'mes' => (int)$mes,
+                'periodo' => $periodoMes,
+                'pedidos' => $pedidosMes->count(),
+                'ventas' => $ventas,
+                'comision' => $ventas * 0.1
+            ];
+        })->sortByDesc('periodo')->values();
 
         return view('admin.comisiones.show', compact(
             'vendedor',

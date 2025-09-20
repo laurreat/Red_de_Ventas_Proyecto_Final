@@ -155,7 +155,7 @@
                     @if(auth()->user()->meta_mensual > 0)
                     <div class="badge bg-info fs-6">
                         <i class="bi bi-target me-1"></i>
-                        Meta: ${{ number_format(auth()->user()->meta_mensual, 0) }}
+                        Meta: ${{ number_format((float)auth()->user()->meta_mensual, 0) }}
                     </div>
                     @endif
                 </div>
@@ -336,7 +336,7 @@
                             </div>
                             <div class="progress" style="height: 10px;">
                                 <div class="progress-bar"
-                                     style="width: {{ min($progresoMetas['porcentaje_cumplimiento'], 100) }}%"></div>
+                                     style="width: {{ min($progresoMetas['porcentaje_cumplimiento'], 100) }}%%;"></div>
                             </div>
                             <div class="d-flex justify-content-between mt-2 small text-muted">
                                 <span>{{ $progresoMetas['dias_restantes'] }} días restantes</span>

@@ -172,7 +172,7 @@
                         <i class="bi bi-list-ul me-2"></i>
                         Pedidos Recientes
                     </h5>
-                    <a href="#" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Gestión de Pedidos')"
+                    <a href="{{ route('admin.pedidos.index') }}" class="btn btn-sm btn-outline-primary"
                        style="border-color: var(--primary-color); color: var(--primary-color);">
                         Ver todos
                     </a>
