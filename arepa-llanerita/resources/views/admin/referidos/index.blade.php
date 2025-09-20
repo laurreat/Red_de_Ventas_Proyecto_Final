@@ -570,6 +570,138 @@
         </div>
     </div>
     @endif
+
+    <!-- Información Adicional de la Red -->
+    <div class="row mt-4">
+        <!-- Métricas de la Red Actual -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                    <h6 class="mb-0 fw-semibold" style="color: #1976d2;">
+                        <i class="bi bi-graph-up me-2"></i>Métricas de Red
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="mb-1 fw-bold" style="color: var(--primary-color);" id="total-nodes">0</h4>
+                                <small class="text-muted">Nodos Totales</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="mb-1 fw-bold text-success" id="total-connections">0</h4>
+                            <small class="text-muted">Conexiones</small>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h5 class="mb-1 fw-bold text-info" id="max-depth">0</h5>
+                                <small class="text-muted">Niveles</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="mb-1 fw-bold text-warning" id="avg-referrals">0</h5>
+                            <small class="text-muted">Prom. Referidos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles y Acciones -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);">
+                    <h6 class="mb-0 fw-semibold" style="color: #7b1fa2;">
+                        <i class="bi bi-tools me-2"></i>Herramientas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="expandAllNodes()">
+                            <i class="bi bi-arrows-expand me-2"></i>Expandir Todos
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="collapseAllNodes()">
+                            <i class="bi bi-arrows-collapse me-2"></i>Contraer Todos
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="centerOnUser()">
+                            <i class="bi bi-bullseye me-2"></i>Centrar Vista
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="downloadNetworkData()">
+                            <i class="bi bi-file-earmark-arrow-down me-2"></i>Exportar Datos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Rápidas -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-bottom-0" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);">
+                    <h6 class="mb-0 fw-semibold" style="color: #388e3c;">
+                        <i class="bi bi-speedometer2 me-2"></i>Análisis Rápido
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if($usuarioSeleccionado)
+                    <div class="text-center mb-3">
+                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                             style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color), #8b3c44);">
+                            <i class="bi bi-person-circle text-white fs-3"></i>
+                        </div>
+                        <h6 class="mb-1 fw-bold">{{ $usuarioSeleccionado->name }}</h6>
+                        <small class="text-muted">{{ ucfirst($usuarioSeleccionado->rol) }}</small>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <div class="fw-bold" style="color: var(--primary-color);">{{ $usuarioSeleccionado->total_referidos ?? 0 }}</div>
+                                <small class="text-muted">Referidos</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-success">${{ number_format($usuarioSeleccionado->comisiones_ganadas ?? 0) }}</div>
+                            <small class="text-muted">Comisiones</small>
+                        </div>
+                    </div>
+                    @else
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-info-circle fs-1 mb-2"></i>
+                        <p class="mb-0">Busque un usuario específico para ver su análisis detallado</p>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer con información adicional -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Última actualización: {{ now()->format('d/m/Y H:i') }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted">
+                                <i class="bi bi-people me-2"></i>
+                                Total de usuarios en el sistema: {{ $stats['total_vendedores'] + $stats['total_lideres'] }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- D3.js Library -->
@@ -752,6 +884,9 @@ function processData() {
     console.log('Processing complete. Nodes:', nodes.length, 'Links:', links.length);
     console.log('Nodes data:', nodes);
     console.log('Links data:', links);
+
+    // Actualizar métricas en tiempo real
+    updateNetworkMetrics();
 }
 
 function updateVisualization() {
@@ -1246,5 +1381,143 @@ function hideLoadingIndicator() {
 document.addEventListener('DOMContentLoaded', function() {
     hideLoadingIndicator();
 });
+
+// Funciones para las nuevas herramientas
+function updateNetworkMetrics() {
+    // Actualizar métricas de la red
+    document.getElementById('total-nodes').textContent = nodes.length;
+    document.getElementById('total-connections').textContent = links.length;
+
+    // Calcular niveles máximos
+    const maxLevel = Math.max(...nodes.map(n => n.level || 0)) + 1;
+    document.getElementById('max-depth').textContent = maxLevel;
+
+    // Calcular promedio de referidos
+    const totalReferrals = nodes.reduce((sum, n) => sum + (n.referidos_count || 0), 0);
+    const avgReferrals = nodes.length > 0 ? (totalReferrals / nodes.length).toFixed(1) : 0;
+    document.getElementById('avg-referrals').textContent = avgReferrals;
+}
+
+function expandAllNodes() {
+    console.log('Expandiendo todos los nodos...');
+    // En vista de fuerza, aumentar la distancia entre nodos
+    if (currentViewType === 'force' && simulation) {
+        simulation.force('link').distance(150);
+        simulation.alpha(0.3).restart();
+    }
+    // En vista de árbol, no hay mucho que expandir, pero podemos aumentar el zoom
+    if (currentViewType === 'tree') {
+        svg.transition()
+            .duration(750)
+            .call(zoom.scaleBy, 1.2);
+    }
+}
+
+function collapseAllNodes() {
+    console.log('Contrayendo todos los nodos...');
+    // En vista de fuerza, reducir la distancia entre nodos
+    if (currentViewType === 'force' && simulation) {
+        simulation.force('link').distance(80);
+        simulation.alpha(0.3).restart();
+    }
+    // En vista de árbol, reducir el zoom
+    if (currentViewType === 'tree') {
+        svg.transition()
+            .duration(750)
+            .call(zoom.scaleBy, 0.8);
+    }
+}
+
+function centerOnUser() {
+    console.log('Centrando vista...');
+    // Resetear zoom y posición
+    resetZoom();
+
+    // Si hay un usuario seleccionado, intentar centrarlo
+    if (usuarioSeleccionado && nodes.length > 0) {
+        const userNode = nodes.find(n => n.id === usuarioSeleccionado._id);
+        if (userNode && currentViewType === 'force') {
+            // En vista de fuerza, aplicar fuerza hacia el centro en el usuario
+            setTimeout(() => {
+                if (simulation) {
+                    userNode.fx = simulation.force('center').x();
+                    userNode.fy = simulation.force('center').y();
+                    simulation.alpha(0.3).restart();
+
+                    // Liberar la posición fija después de un momento
+                    setTimeout(() => {
+                        userNode.fx = null;
+                        userNode.fy = null;
+                    }, 2000);
+                }
+            }, 100);
+        }
+    }
+}
+
+function downloadNetworkData() {
+    console.log('Descargando datos de la red...');
+
+    // Preparar datos completos para exportación
+    const networkAnalysis = {
+        timestamp: new Date().toISOString(),
+        usuario_seleccionado: usuarioSeleccionado,
+        metricas: {
+            total_nodos: nodes.length,
+            total_conexiones: links.length,
+            niveles_maximos: Math.max(...nodes.map(n => n.level || 0)) + 1,
+            promedio_referidos: nodes.length > 0 ?
+                (nodes.reduce((sum, n) => sum + (n.referidos_count || 0), 0) / nodes.length).toFixed(2) : 0
+        },
+        distribucion_por_tipo: {
+            lideres: nodes.filter(n => n.tipo === 'lider').length,
+            vendedores: nodes.filter(n => n.tipo === 'vendedor').length
+        },
+        distribucion_por_nivel: {},
+        nodos: nodes.map(node => ({
+            id: node.id,
+            nombre: node.name,
+            email: node.email,
+            cedula: node.cedula || 'N/A',
+            tipo: node.tipo,
+            nivel: node.level + 1,
+            referidos_count: node.referidos_count,
+            parent_id: node.parentId
+        })),
+        conexiones: links.map(link => ({
+            origen: typeof link.source === 'object' ? link.source.id : link.source,
+            destino: typeof link.target === 'object' ? link.target.id : link.target
+        }))
+    };
+
+    // Calcular distribución por nivel
+    nodes.forEach(node => {
+        const nivel = node.level + 1;
+        networkAnalysis.distribucion_por_nivel[nivel] =
+            (networkAnalysis.distribucion_por_nivel[nivel] || 0) + 1;
+    });
+
+    // Crear y descargar archivo JSON
+    const blob = new Blob([JSON.stringify(networkAnalysis, null, 2)], {
+        type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+
+    const filename = usuarioSeleccionado ?
+        'red-mlm-' + usuarioSeleccionado.cedula + '-' + new Date().toISOString().split('T')[0] + '.json' :
+        'red-mlm-completa-' + new Date().toISOString().split('T')[0] + '.json';
+
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // Mostrar mensaje de éxito
+    console.log('Datos descargados como:', filename);
+}
 </script>
 @endsection
