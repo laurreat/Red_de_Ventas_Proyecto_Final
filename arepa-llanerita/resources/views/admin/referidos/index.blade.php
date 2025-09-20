@@ -197,10 +197,10 @@
                                             </div>
                                         </td>
                                         <td>
-                                            @if($usuario->tipo_usuario == 'lider')
+                                            @if($usuario->rol == 'lider')
                                                 <span class="badge bg-warning text-dark">Líder</span>
                                             @else
-                                                <span class="badge bg-primary">Vendedor</span>
+                                                <span class="badge bg-primary">{{ ucfirst($usuario->rol) }}</span>
                                             @endif
                                         </td>
                                         <td>
@@ -227,11 +227,11 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('admin.referidos.show', $usuario->id) }}"
+                                                <a href="{{ route('admin.referidos.show', $usuario->_id) }}"
                                                    class="btn btn-sm btn-outline-info" title="Ver red">
                                                     <i class="bi bi-diagram-3"></i>
                                                 </a>
-                                                <a href="{{ route('admin.users.show', $usuario->id) }}"
+                                                <a href="{{ route('admin.users.show', $usuario->_id) }}"
                                                    class="btn btn-sm btn-outline-primary" title="Ver perfil">
                                                     <i class="bi bi-person"></i>
                                                 </a>
@@ -286,11 +286,11 @@
                                     </div>
                                     <div>
                                         <div class="fw-medium">{{ $usuario->name }}</div>
-                                        <small class="text-muted">{{ ucfirst($usuario->tipo_usuario) }}</small>
+                                        <small class="text-muted">{{ ucfirst($usuario->rol) }}</small>
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold" style="color: var(--primary-color);">{{ $usuario->referidos_count }}</div>
+                                    <div class="fw-bold" style="color: var(--primary-color);">{{ $usuario->total_referidos ?? 0 }}</div>
                                     <small class="text-muted">referidos</small>
                                 </div>
                             </div>
@@ -350,15 +350,56 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div id="network-container" style="height: 400px; border: 1px solid #dee2e6; border-radius: 0.375rem;">
-                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <div class="text-center">
-                                <i class="bi bi-diagram-3 fs-1"></i>
-                                <p class="mt-2">Visualización de Red MLM</p>
-                                <small>Integración con D3.js próximamente</small>
+                    <!-- Controles de visualización -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="btn-group" role="group" aria-label="Tipo de visualización">
+                            <input type="radio" class="btn-check" name="viewType" id="treeView" value="tree" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="treeView">
+                                <i class="bi bi-diagram-2 me-1"></i>Vista Árbol
+                            </label>
+
+                            <input type="radio" class="btn-check" name="viewType" id="forceView" value="force">
+                            <label class="btn btn-outline-primary btn-sm" for="forceView">
+                                <i class="bi bi-diagram-3 me-1"></i>Vista Fuerza
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="resetZoom()">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="exportSVG()">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap gap-3 small">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #722f37;"></div>
+                                    <span>Líder</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #0d6efd;"></div>
+                                    <span>Vendedor</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: #198754;"></div>
+                                    <span>+ de 5 referidos</span>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div id="network-container" style="height: 500px; border: 1px solid #dee2e6; border-radius: 0.375rem; position: relative; overflow: hidden;">
+                        <!-- El gráfico D3.js se renderizará aquí -->
+                    </div>
+
+                    <!-- Tooltip -->
+                    <div id="network-tooltip" style="position: absolute; pointer-events: none; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; opacity: 0; z-index: 1000; transition: opacity 0.2s;"></div>
                 </div>
             </div>
         </div>
@@ -366,17 +407,430 @@
     @endif
 </div>
 
+<!-- D3.js Library -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
 <script>
+let svg, g, zoom;
+let currentViewType = 'tree';
+let simulation;
+let nodes = [];
+let links = [];
+
+// Configuración de colores y estilos
+const config = {
+    colors: {
+        lider: '#722f37',
+        vendedor: '#0d6efd',
+        active: '#198754',
+        default: '#6c757d'
+    },
+    nodeRadius: {
+        min: 8,
+        max: 20
+    }
+};
+
+// Datos para visualización (desde el controlador)
+const redData = @json($redJerarquica);
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeVisualization();
+
+    // Event listeners para cambio de vista
+    document.querySelectorAll('input[name="viewType"]').forEach(input => {
+        input.addEventListener('change', function() {
+            currentViewType = this.value;
+            updateVisualization();
+        });
+    });
+});
+
+function initializeVisualization() {
+    const container = document.getElementById('network-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Limpiar contenedor
+    d3.select('#network-container').selectAll('*').remove();
+
+    // Crear SVG
+    svg = d3.select('#network-container')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width} ${height}`);
+
+    // Grupo principal para zoom/pan
+    g = svg.append('g');
+
+    // Configurar zoom
+    zoom = d3.zoom()
+        .scaleExtent([0.1, 3])
+        .on('zoom', function(event) {
+            g.attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
+
+    // Procesar datos y crear visualización inicial
+    processData();
+    updateVisualization();
+}
+
+function processData() {
+    nodes = [];
+    links = [];
+
+    if (!redData || redData.length === 0) {
+        showEmptyState();
+        return;
+    }
+
+    // Convertir datos jerárquicos a formato de nodos y enlaces
+    const nodeMap = new Map();
+
+    function processNode(nodeData, level = 0, parentId = null) {
+        const nodeId = nodeData.id;
+
+        const node = {
+            id: nodeId,
+            name: nodeData.name,
+            email: nodeData.email,
+            tipo: nodeData.tipo,
+            level: level,
+            referidos_count: nodeData.referidos_count,
+            parentId: parentId,
+            children: nodeData.hijos || []
+        };
+
+        nodes.push(node);
+        nodeMap.set(nodeId, node);
+
+        // Crear enlace con el padre si existe
+        if (parentId) {
+            links.push({
+                source: parentId,
+                target: nodeId
+            });
+        }
+
+        // Procesar hijos recursivamente
+        if (nodeData.hijos && nodeData.hijos.length > 0) {
+            nodeData.hijos.forEach(child => {
+                processNode(child, level + 1, nodeId);
+            });
+        }
+    }
+
+    // Procesar todos los nodos raíz
+    redData.forEach(rootNode => {
+        processNode(rootNode, 0);
+    });
+}
+
+function updateVisualization() {
+    if (nodes.length === 0) {
+        showEmptyState();
+        return;
+    }
+
+    // Limpiar visualización anterior
+    g.selectAll('*').remove();
+
+    if (currentViewType === 'tree') {
+        renderTreeView();
+    } else {
+        renderForceView();
+    }
+}
+
+function renderTreeView() {
+    const container = document.getElementById('network-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Crear jerarquía
+    const root = d3.stratify()
+        .id(d => d.id)
+        .parentId(d => d.parentId)
+        (nodes);
+
+    // Configurar layout de árbol
+    const treeLayout = d3.tree()
+        .size([width - 100, height - 100]);
+
+    const treeData = treeLayout(root);
+
+    // Crear enlaces
+    const links = g.selectAll('.link')
+        .data(treeData.links())
+        .enter()
+        .append('path')
+        .attr('class', 'link')
+        .attr('d', d3.linkHorizontal()
+            .x(d => d.y + 50)
+            .y(d => d.x + 50)
+        )
+        .style('fill', 'none')
+        .style('stroke', '#ddd')
+        .style('stroke-width', 2);
+
+    // Crear nodos
+    const nodeGroup = g.selectAll('.node')
+        .data(treeData.descendants())
+        .enter()
+        .append('g')
+        .attr('class', 'node')
+        .attr('transform', d => `translate(${d.y + 50}, ${d.x + 50})`)
+        .style('cursor', 'pointer');
+
+    // Círculos de nodos
+    nodeGroup.append('circle')
+        .attr('r', d => Math.max(config.nodeRadius.min,
+            Math.min(config.nodeRadius.max, 8 + d.data.referidos_count)))
+        .style('fill', d => getNodeColor(d.data))
+        .style('stroke', '#fff')
+        .style('stroke-width', 2);
+
+    // Etiquetas de nodos
+    nodeGroup.append('text')
+        .attr('dy', '0.31em')
+        .attr('x', d => d.children ? -15 : 15)
+        .style('text-anchor', d => d.children ? 'end' : 'start')
+        .style('font-size', '12px')
+        .style('font-weight', '500')
+        .text(d => d.data.name.length > 15 ? d.data.name.substring(0, 15) + '...' : d.data.name);
+
+    // Agregar eventos
+    addNodeEvents(nodeGroup);
+}
+
+function renderForceView() {
+    const container = document.getElementById('network-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Detener simulación anterior si existe
+    if (simulation) {
+        simulation.stop();
+    }
+
+    // Crear simulación de fuerzas
+    simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(d =>
+            Math.max(config.nodeRadius.min, Math.min(config.nodeRadius.max, 8 + d.referidos_count)) + 5
+        ));
+
+    // Crear enlaces
+    const link = g.selectAll('.link')
+        .data(links)
+        .enter()
+        .append('line')
+        .attr('class', 'link')
+        .style('stroke', '#ddd')
+        .style('stroke-width', 2);
+
+    // Crear nodos
+    const nodeGroup = g.selectAll('.node')
+        .data(nodes)
+        .enter()
+        .append('g')
+        .attr('class', 'node')
+        .style('cursor', 'pointer')
+        .call(d3.drag()
+            .on('start', dragstarted)
+            .on('drag', dragged)
+            .on('end', dragended));
+
+    // Círculos de nodos
+    nodeGroup.append('circle')
+        .attr('r', d => Math.max(config.nodeRadius.min,
+            Math.min(config.nodeRadius.max, 8 + d.referidos_count)))
+        .style('fill', d => getNodeColor(d))
+        .style('stroke', '#fff')
+        .style('stroke-width', 2);
+
+    // Etiquetas de nodos
+    nodeGroup.append('text')
+        .attr('dy', '0.31em')
+        .style('text-anchor', 'middle')
+        .style('font-size', '10px')
+        .style('font-weight', '500')
+        .style('pointer-events', 'none')
+        .text(d => d.name.length > 10 ? d.name.substring(0, 10) + '...' : d.name);
+
+    // Agregar eventos
+    addNodeEvents(nodeGroup);
+
+    // Actualizar posiciones en cada tick
+    simulation.on('tick', function() {
+        link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+
+        nodeGroup.attr('transform', d => `translate(${d.x}, ${d.y})`);
+    });
+}
+
+function getNodeColor(node) {
+    if (node.tipo === 'lider') return config.colors.lider;
+    if (node.referidos_count > 5) return config.colors.active;
+    if (node.tipo === 'vendedor') return config.colors.vendedor;
+    return config.colors.default;
+}
+
+function addNodeEvents(nodeSelection) {
+    const tooltip = d3.select('#network-tooltip');
+
+    nodeSelection
+        .on('mouseover', function(event, d) {
+            tooltip
+                .style('opacity', 1)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px')
+                .html(`
+                    <strong>${d.name}</strong><br>
+                    Tipo: ${d.tipo}<br>
+                    Email: ${d.email}<br>
+                    Referidos: ${d.referidos_count}<br>
+                    Nivel: ${d.level + 1}
+                `);
+        })
+        .on('mousemove', function(event) {
+            tooltip
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            // Abrir detalles del usuario
+            window.open(`{{ route('admin.referidos.show', '') }}/${d.id}`, '_blank');
+        });
+}
+
+// Funciones de drag para vista de fuerza
+function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+}
+
+function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+}
+
+function resetZoom() {
+    svg.transition()
+        .duration(750)
+        .call(zoom.transform, d3.zoomIdentity);
+}
+
+function exportSVG() {
+    const svgElement = document.querySelector('#network-container svg');
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svgElement);
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'red-mlm.svg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function showEmptyState() {
+    const container = d3.select('#network-container');
+    container.selectAll('*').remove();
+
+    container.append('div')
+        .style('display', 'flex')
+        .style('align-items', 'center')
+        .style('justify-content', 'center')
+        .style('height', '100%')
+        .style('color', '#6c757d')
+        .html(`
+            <div style="text-align: center;">
+                <i class="bi bi-diagram-3" style="font-size: 3rem;"></i>
+                <p style="margin-top: 1rem;">No hay datos de red para mostrar</p>
+            </div>
+        `);
+}
+
 function verVisualizacion() {
-    alert('Vista gráfica en desarrollo - Se integrará con D3.js para visualización interactiva');
+    // Enfocar en el contenedor de visualización
+    document.getElementById('network-container').scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+    });
 }
 
 function exportarRed() {
-    alert('Funcionalidad de exportación en desarrollo');
+    // Preparar datos para exportación
+    const exportData = {
+        timestamp: new Date().toISOString(),
+        total_nodos: nodes.length,
+        total_enlaces: links.length,
+        nodos: nodes.map(node => ({
+            id: node.id,
+            nombre: node.name,
+            email: node.email,
+            tipo: node.tipo,
+            nivel: node.level + 1,
+            referidos_count: node.referidos_count
+        })),
+        enlaces: links.map(link => ({
+            origen: typeof link.source === 'object' ? link.source.id : link.source,
+            destino: typeof link.target === 'object' ? link.target.id : link.target
+        }))
+    };
+
+    // Crear y descargar archivo JSON
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `red-mlm-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
-// Datos para visualización (preparados para D3.js)
-const redData = @json($redJerarquica);
-console.log('Datos de red MLM:', redData);
+// Redimensionar al cambiar tamaño de ventana
+window.addEventListener('resize', function() {
+    if (svg) {
+        const container = document.getElementById('network-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        svg.attr('viewBox', `0 0 ${width} ${height}`);
+
+        if (currentViewType === 'force' && simulation) {
+            simulation.force('center', d3.forceCenter(width / 2, height / 2));
+            simulation.alpha(0.3).restart();
+        }
+    }
+});
 </script>
 @endsection
