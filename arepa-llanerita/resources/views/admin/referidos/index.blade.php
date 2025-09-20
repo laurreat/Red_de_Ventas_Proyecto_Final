@@ -433,7 +433,7 @@ const config = {
 };
 
 // Datos para visualización (desde el controlador)
-const redData = @json($redJerarquica ?? []);
+const redData = {!! json_encode($redJerarquica ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
 console.log('Red Data loaded:', redData);
 console.log('Red Data count:', redData ? redData.length : 0);
@@ -444,13 +444,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (typeof d3 === 'undefined') {
         console.error('D3.js not loaded! Check internet connection or CDN.');
-        document.getElementById('network-container')?.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #dc3545; flex-direction: column;">
-                <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
-                <p style="margin-top: 1rem;">Error: D3.js no se pudo cargar</p>
-                <small>Verifique su conexión a internet</small>
-            </div>
-        `;
+        const errorContainer = document.getElementById('network-container');
+        if (errorContainer) {
+            errorContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #dc3545; flex-direction: column;">' +
+                '<i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>' +
+                '<p style="margin-top: 1rem;">Error: D3.js no se pudo cargar</p>' +
+                '<small>Verifique su conexión a internet</small>' +
+                '</div>';
+        }
         return;
     }
 
@@ -494,7 +495,7 @@ function initializeVisualization() {
         .append('svg')
         .attr('width', '100%')
         .attr('height', '100%')
-        .attr('viewBox', `0 0 ${width} ${height}`);
+        .attr('viewBox', '0 0 ' + width + ' ' + height);
 
     // Grupo principal para zoom/pan
     g = svg.append('g');
@@ -625,7 +626,7 @@ function renderTreeView() {
         .enter()
         .append('g')
         .attr('class', 'node')
-        .attr('transform', d => `translate(${d.y + 50}, ${d.x + 50})`)
+        .attr('transform', function(d) { return 'translate(' + (d.y + 50) + ', ' + (d.x + 50) + ')'; })
         .style('cursor', 'pointer');
 
     // Círculos de nodos
@@ -717,7 +718,7 @@ function renderForceView() {
             .attr('x2', d => d.target.x)
             .attr('y2', d => d.target.y);
 
-        nodeGroup.attr('transform', d => `translate(${d.x}, ${d.y})`);
+        nodeGroup.attr('transform', function(d) { return 'translate(' + d.x + ', ' + d.y + ')'; });
     });
 }
 
@@ -756,7 +757,7 @@ function addNodeEvents(nodeSelection) {
         .on('click', function(event, d) {
             // Abrir detalles del usuario
             const baseUrl = '{{ url("admin/referidos") }}';
-            window.open(`${baseUrl}/${d.id}`, '_blank');
+            window.open(baseUrl + '/' + d.id, '_blank');
         });
 }
 
@@ -806,7 +807,7 @@ function showEmptyState() {
     const container = d3.select('#network-container');
     container.selectAll('*').remove();
 
-    const dataInfo = redData ? `Datos recibidos: ${JSON.stringify(redData)}` : 'No hay datos disponibles';
+    const dataInfo = redData ? 'Datos recibidos: ' + JSON.stringify(redData) : 'No hay datos disponibles';
 
     container.append('div')
         .style('display', 'flex')
@@ -815,13 +816,11 @@ function showEmptyState() {
         .style('height', '100%')
         .style('color', '#6c757d')
         .style('flex-direction', 'column')
-        .html(`
-            <div style="text-align: center;">
-                <i class="bi bi-diagram-3" style="font-size: 3rem;"></i>
-                <p style="margin-top: 1rem;">No hay datos de red para mostrar</p>
-                <small style="margin-top: 0.5rem; color: #999;">${dataInfo}</small>
-            </div>
-        `);
+        .html('<div style="text-align: center;">' +
+            '<i class="bi bi-diagram-3" style="font-size: 3rem;"></i>' +
+            '<p style="margin-top: 1rem;">No hay datos de red para mostrar</p>' +
+            '<small style="margin-top: 0.5rem; color: #999;">' + dataInfo + '</small>' +
+            '</div>');
 }
 
 function verVisualizacion() {
@@ -860,7 +859,7 @@ function exportarRed() {
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `red-mlm-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = 'red-mlm-' + new Date().toISOString().split('T')[0] + '.json';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -873,7 +872,7 @@ window.addEventListener('resize', function() {
         const container = document.getElementById('network-container');
         const width = container.clientWidth;
         const height = container.clientHeight;
-        svg.attr('viewBox', `0 0 ${width} ${height}`);
+        svg.attr('viewBox', '0 0 ' + width + ' ' + height);
 
         if (currentViewType === 'force' && simulation) {
             simulation.force('center', d3.forceCenter(width / 2, height / 2));
