@@ -178,10 +178,52 @@ class ReferidoController extends Controller
 
     private function construirRedJerarquica()
     {
+        // Buscar usuarios raíz (sin referidor)
         $usuarios_raiz = User::whereNull('referido_por')
             ->whereIn('rol', ['vendedor', 'lider'])
             ->take(10) // Limitar para performance
             ->get();
+
+        // Si no hay usuarios raíz, tomar cualquier usuario para mostrar algo
+        if ($usuarios_raiz->count() === 0) {
+            $usuarios_raiz = User::whereIn('rol', ['vendedor', 'lider'])
+                ->take(5)
+                ->get();
+        }
+
+        // Si aún no hay usuarios, crear datos de ejemplo
+        if ($usuarios_raiz->count() === 0) {
+            return collect([
+                [
+                    'id' => 'demo-1',
+                    'name' => 'Usuario Demo 1',
+                    'email' => 'demo1@ejemplo.com',
+                    'tipo' => 'lider',
+                    'nivel' => 1,
+                    'referidos_count' => 3,
+                    'hijos' => [
+                        [
+                            'id' => 'demo-2',
+                            'name' => 'Usuario Demo 2',
+                            'email' => 'demo2@ejemplo.com',
+                            'tipo' => 'vendedor',
+                            'nivel' => 2,
+                            'referidos_count' => 1,
+                            'hijos' => []
+                        ],
+                        [
+                            'id' => 'demo-3',
+                            'name' => 'Usuario Demo 3',
+                            'email' => 'demo3@ejemplo.com',
+                            'tipo' => 'vendedor',
+                            'nivel' => 2,
+                            'referidos_count' => 2,
+                            'hijos' => []
+                        ]
+                    ]
+                ]
+            ]);
+        }
 
         return $this->formatearJerarquia($usuarios_raiz);
     }

@@ -339,7 +339,8 @@
     </div>
 
     <!-- Visualización Jerárquica (muestra solo algunos niveles por performance) -->
-    @if($redJerarquica && $redJerarquica->count() > 0)
+    {{-- Mostrar siempre para debug --}}
+    @if(true)
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -434,9 +435,33 @@ const config = {
 // Datos para visualización (desde el controlador)
 const redData = @json($redJerarquica ?? []);
 
+console.log('Red Data loaded:', redData);
+console.log('Red Data count:', redData ? redData.length : 0);
+
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('network-container')) {
+    console.log('DOM loaded, looking for network-container...');
+    console.log('D3.js available:', typeof d3 !== 'undefined');
+
+    if (typeof d3 === 'undefined') {
+        console.error('D3.js not loaded! Check internet connection or CDN.');
+        document.getElementById('network-container')?.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #dc3545; flex-direction: column;">
+                <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                <p style="margin-top: 1rem;">Error: D3.js no se pudo cargar</p>
+                <small>Verifique su conexión a internet</small>
+            </div>
+        `;
+        return;
+    }
+
+    const container = document.getElementById('network-container');
+    console.log('Container found:', !!container);
+
+    if (container) {
+        console.log('Initializing visualization...');
         initializeVisualization();
+    } else {
+        console.log('No network-container found, visualization section may not be displayed');
     }
 
     // Event listeners para cambio de vista
@@ -449,9 +474,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeVisualization() {
+    console.log('Starting initializeVisualization...');
     const container = document.getElementById('network-container');
+
+    if (!container) {
+        console.error('Network container not found!');
+        return;
+    }
+
     const width = container.clientWidth;
     const height = container.clientHeight;
+    console.log('Container dimensions:', width, 'x', height);
 
     // Limpiar contenedor
     d3.select('#network-container').selectAll('*').remove();
@@ -481,13 +514,17 @@ function initializeVisualization() {
 }
 
 function processData() {
+    console.log('Processing data...', redData);
     nodes = [];
     links = [];
 
     if (!redData || !Array.isArray(redData) || redData.length === 0) {
+        console.log('No data available, showing empty state');
         showEmptyState();
         return;
     }
+
+    console.log('Data found, processing', redData.length, 'root nodes');
 
     // Convertir datos jerárquicos a formato de nodos y enlaces
     const nodeMap = new Map();
@@ -529,6 +566,10 @@ function processData() {
     redData.forEach(rootNode => {
         processNode(rootNode, 0);
     });
+
+    console.log('Processing complete. Nodes:', nodes.length, 'Links:', links.length);
+    console.log('Nodes data:', nodes);
+    console.log('Links data:', links);
 }
 
 function updateVisualization() {
@@ -761,8 +802,11 @@ function exportSVG() {
 }
 
 function showEmptyState() {
+    console.log('Showing empty state');
     const container = d3.select('#network-container');
     container.selectAll('*').remove();
+
+    const dataInfo = redData ? `Datos recibidos: ${JSON.stringify(redData)}` : 'No hay datos disponibles';
 
     container.append('div')
         .style('display', 'flex')
@@ -770,10 +814,12 @@ function showEmptyState() {
         .style('justify-content', 'center')
         .style('height', '100%')
         .style('color', '#6c757d')
+        .style('flex-direction', 'column')
         .html(`
             <div style="text-align: center;">
                 <i class="bi bi-diagram-3" style="font-size: 3rem;"></i>
                 <p style="margin-top: 1rem;">No hay datos de red para mostrar</p>
+                <small style="margin-top: 0.5rem; color: #999;">${dataInfo}</small>
             </div>
         `);
 }
