@@ -1,160 +1,265 @@
 /**
  * Admin SPA Main Application
- * Inicializador principal del dashboard SPA
+ * Inicializador principal del dashboard SPA con pre-carga de módulos
  */
 
-// Variables globales
-let adminCore = null;
+class AdminSPA {
+    constructor() {
+        this.adminCore = null;
+        this.modules = {};
+        this.preloadedModules = new Set();
+        this.isInitialized = false;
 
-// Inicializar aplicación cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing Admin SPA...');
-
-    // Verificar dependencias
-    if (typeof AdminCore === 'undefined') {
-        console.error('AdminCore not loaded');
-        return;
+        this.init();
     }
 
-    // Inicializar núcleo
-    adminCore = new AdminCore();
-    window.adminCore = adminCore; // Hacer disponible globalmente
+    async init() {
+        try {
+            console.log('Initializing Admin SPA...');
 
-    // Registrar módulos cuando estén disponibles
-    registerModules();
+            // Verificar dependencias
+            if (typeof AdminCore === 'undefined') {
+                console.error('AdminCore not loaded');
+                return;
+            }
 
-    // Configurar manejo de errores global
-    setupGlobalErrorHandling();
+            // Inicializar núcleo
+            this.adminCore = new AdminCore();
+            window.adminCore = this.adminCore; // Hacer disponible globalmente
 
-    // Configurar eventos de visibilidad de página
-    setupPageVisibilityHandling();
+            // Pre-cargar todos los módulos
+            await this.preloadModules();
 
-    console.log('Admin SPA initialized successfully');
+            // Registrar módulos en AdminCore
+            this.registerModules();
+
+            // Configurar manejo de errores global
+            this.setupGlobalErrorHandling();
+
+            // Configurar eventos de visibilidad de página
+            this.setupPageVisibilityHandling();
+
+            this.isInitialized = true;
+            console.log('Admin SPA initialized successfully');
+
+        } catch (error) {
+            console.error('Error initializing Admin SPA:', error);
+            this.showError('Error al inicializar el dashboard');
+        }
+    }
+
+    async preloadModules() {
+        console.log('Pre-loading modules...');
+
+        // Lista de módulos a pre-cargar
+        const modulesToPreload = [
+            { name: 'dashboard', class: 'DashboardModule', required: true },
+            { name: 'users', class: 'UsuariosModule', required: true },
+            { name: 'products', class: 'ProductosModule', required: true },
+            { name: 'orders', class: 'PedidosModule', required: true },
+            { name: 'commissions', class: 'AdminCommissions', required: false },
+            { name: 'referrals', class: 'AdminReferrals', required: false },
+            { name: 'config', class: 'AdminConfig', required: false },
+            { name: 'backups', class: 'AdminBackups', required: false },
+            { name: 'logs', class: 'AdminLogs', required: false },
+            { name: 'profile', class: 'AdminProfile', required: false }
+        ];
+
+        for (const moduleInfo of modulesToPreload) {
+            try {
+                // Verificar si la clase del módulo existe
+                if (window[moduleInfo.class]) {
+                    const moduleInstance = new window[moduleInfo.class](this.adminCore);
+                    this.modules[moduleInfo.name] = moduleInstance;
+                    this.preloadedModules.add(moduleInfo.name);
+                    console.log(`✓ Module pre-loaded: ${moduleInfo.name}`);
+                } else if (moduleInfo.required) {
+                    console.warn(`⚠ Required module class not found: ${moduleInfo.class}`);
+                } else {
+                    console.log(`ⓘ Optional module not available: ${moduleInfo.class}`);
+                }
+            } catch (error) {
+                if (moduleInfo.required) {
+                    console.error(`✗ Error pre-loading required module ${moduleInfo.name}:`, error);
+                    throw error;
+                } else {
+                    console.warn(`⚠ Error pre-loading optional module ${moduleInfo.name}:`, error);
+                }
+            }
+        }
+
+        console.log(`Pre-loaded ${this.preloadedModules.size} modules:`, Array.from(this.preloadedModules));
+    }
+
+    registerModules() {
+        // Registrar módulos en AdminCore
+        Object.entries(this.modules).forEach(([name, moduleInstance]) => {
+            this.adminCore.registerModule(name, moduleInstance);
+        });
+
+        console.log('All modules registered in AdminCore');
+    }
+
+    setupGlobalErrorHandling() {
+        // Manejo de errores JavaScript no capturados
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            this.showError('Error inesperado en la aplicación');
+        });
+
+        // Manejo de promesas rechazadas no capturadas
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            this.showError('Error en operación asíncrona');
+        });
+    }
+
+    setupPageVisibilityHandling() {
+        // Pausar operaciones cuando la página no está visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Página oculta - pausar auto-refresh y operaciones pesadas
+                Object.values(this.modules).forEach(module => {
+                    if (typeof module.stopAutoRefresh === 'function') {
+                        module.stopAutoRefresh();
+                    }
+                });
+            } else {
+                // Página visible - reanudar operaciones
+                Object.values(this.modules).forEach(module => {
+                    if (typeof module.startAutoRefresh === 'function') {
+                        module.startAutoRefresh();
+                    }
+                });
+            }
+        });
+    }
+
+    // API pública
+    loadModule(moduleName) {
+        if (!this.isInitialized) {
+            console.warn('SPA not yet initialized, deferring module load');
+            return;
+        }
+
+        if (this.adminCore) {
+            this.adminCore.loadModule(moduleName);
+        } else {
+            console.error('AdminCore not initialized');
+        }
+    }
+
+    refreshModule(moduleName) {
+        const module = this.modules[moduleName];
+        if (module && typeof module.loadData === 'function') {
+            return module.loadData();
+        }
+    }
+
+    showError(message) {
+        if (this.adminCore) {
+            this.adminCore.showError(message);
+        } else {
+            console.error(message);
+            alert(message);
+        }
+    }
+
+    showSuccess(message) {
+        if (this.adminCore) {
+            this.adminCore.showSuccess(message);
+        } else {
+            console.log(message);
+            alert(message);
+        }
+    }
+
+    // Métodos de utilidad
+    formatCurrency(amount) {
+        return this.adminCore ? this.adminCore.formatCurrency(amount) : `$${amount}`;
+    }
+
+    formatDate(date) {
+        return this.adminCore ? this.adminCore.formatDate(date) : date;
+    }
+
+    getCurrentModule() {
+        return this.adminCore ? this.adminCore.currentModule : null;
+    }
+
+    isModuleLoaded(moduleName) {
+        return this.preloadedModules.has(moduleName);
+    }
+
+    // Cleanup
+    destroy() {
+        // Limpiar módulos
+        Object.values(this.modules).forEach(module => {
+            if (typeof module.destroy === 'function') {
+                module.destroy();
+            }
+        });
+
+        this.modules = {};
+        this.preloadedModules.clear();
+        this.isInitialized = false;
+
+        console.log('Admin SPA destroyed');
+    }
+}
+
+// Inicializar SPA cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    window.adminSPA = new AdminSPA();
+
+    // Exportar funciones globales para compatibilidad
+    window.loadModule = function(moduleName) {
+        if (window.adminSPA) {
+            return window.adminSPA.loadModule(moduleName);
+        }
+    };
+
+    window.refreshDashboard = function() {
+        if (window.adminSPA) {
+            return window.adminSPA.refreshModule('dashboard');
+        }
+    };
+
+    window.formatCurrency = function(amount) {
+        return window.adminSPA ? window.adminSPA.formatCurrency(amount) : `$${amount}`;
+    };
+
+    window.formatDate = function(date) {
+        return window.adminSPA ? window.adminSPA.formatDate(date) : date;
+    };
+
+    window.showSuccess = function(message) {
+        if (window.adminSPA) {
+            window.adminSPA.showSuccess(message);
+        } else {
+            alert(message);
+        }
+    };
+
+    window.showError = function(message) {
+        if (window.adminSPA) {
+            window.adminSPA.showError(message);
+        } else {
+            alert(message);
+        }
+    };
+
+    window.getCurrentModule = function() {
+        return window.adminSPA ? window.adminSPA.getCurrentModule() : null;
+    };
 });
 
-function registerModules() {
-    // Registrar módulos cuando estén disponibles
-    setTimeout(() => {
-        // Módulo de dashboard (incluido en admin-spa.js original)
-        if (typeof AdminDashboard !== 'undefined') {
-            adminCore.registerModule('dashboard', new AdminDashboard(adminCore));
-        }
-
-        // Módulo de comisiones
-        if (typeof AdminCommissions !== 'undefined') {
-            adminCore.registerModule('commissions', new AdminCommissions(adminCore));
-        }
-
-        // Módulo de red de referidos
-        if (typeof AdminReferrals !== 'undefined') {
-            adminCore.registerModule('referrals', new AdminReferrals(adminCore));
-        }
-
-        // Módulo de configuración
-        if (typeof AdminConfig !== 'undefined') {
-            adminCore.registerModule('config', new AdminConfig(adminCore));
-        }
-
-        // Módulo de respaldos
-        if (typeof AdminBackups !== 'undefined') {
-            adminCore.registerModule('backups', new AdminBackups(adminCore));
-        }
-
-        // Módulo de logs
-        if (typeof AdminLogs !== 'undefined') {
-            adminCore.registerModule('logs', new AdminLogs(adminCore));
-        }
-
-        // Módulo de perfil
-        if (typeof AdminProfile !== 'undefined') {
-            adminCore.registerModule('profile', new AdminProfile(adminCore));
-        }
-
-        console.log('Modules registered:', Object.keys(adminCore.modules));
-    }, 100);
-}
-
-function setupGlobalErrorHandling() {
-    // Manejo de errores JavaScript no capturados
-    window.addEventListener('error', function(event) {
-        console.error('Global error:', event.error);
-
-        if (adminCore) {
-            adminCore.showError('Error inesperado en la aplicación');
-        }
-    });
-
-    // Manejo de promesas rechazadas no capturadas
-    window.addEventListener('unhandledrejection', function(event) {
-        console.error('Unhandled promise rejection:', event.reason);
-
-        if (adminCore) {
-            adminCore.showError('Error en operación asíncrona');
-        }
-    });
-}
-
-function setupPageVisibilityHandling() {
-    // Pausar operaciones cuando la página no está visible
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            // Página oculta - pausar auto-refresh y operaciones pesadas
-            if (adminCore?.modules?.logs?.autoRefresh) {
-                adminCore.modules.logs.stopAutoRefresh();
-            }
-        } else {
-            // Página visible - reanudar operaciones
-            if (adminCore?.modules?.logs?.autoRefresh) {
-                adminCore.modules.logs.startAutoRefresh();
-            }
-        }
-    });
-}
-
-// Funciones globales para compatibilidad con HTML existente
-function loadModule(moduleName) {
-    if (adminCore) {
-        adminCore.loadModule(moduleName);
-    } else {
-        console.error('AdminCore not initialized');
+// Limpiar al salir de la página
+window.addEventListener('beforeunload', function() {
+    if (window.adminSPA) {
+        window.adminSPA.destroy();
     }
-}
-
-function refreshDashboard() {
-    if (adminCore?.modules?.dashboard) {
-        adminCore.modules.dashboard.loadData();
-    }
-}
-
-// Funciones de utilidad globales
-function formatCurrency(amount) {
-    return adminCore ? adminCore.formatCurrency(amount) : `$${amount}`;
-}
-
-function formatDate(date) {
-    return adminCore ? adminCore.formatDate(date) : date;
-}
-
-function showSuccess(message) {
-    if (adminCore) {
-        adminCore.showSuccess(message);
-    } else {
-        alert(message);
-    }
-}
-
-function showError(message) {
-    if (adminCore) {
-        adminCore.showError(message);
-    } else {
-        alert(message);
-    }
-}
+});
 
 // Exportar para uso global
-window.loadModule = loadModule;
-window.refreshDashboard = refreshDashboard;
-window.formatCurrency = formatCurrency;
-window.formatDate = formatDate;
-window.showSuccess = showSuccess;
-window.showError = showError;
+window.AdminSPA = AdminSPA;

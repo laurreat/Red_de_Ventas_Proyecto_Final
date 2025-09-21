@@ -8,16 +8,20 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h4 class="mb-0" style="color: var(--primary-color);">{{ $user->name }} {{ $user->apellidos }}</h4>
-                    <p class="text-muted mb-0">Modifica la información del usuario</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Volver a la lista
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1 fw-bold text-white">{{ $user->name }} {{ $user->apellidos }}</h4>
+                            <p class="text-white-50 mb-0">Modifica la información del usuario</p>
+                        </div>
+                        <div>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Volver a la lista
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

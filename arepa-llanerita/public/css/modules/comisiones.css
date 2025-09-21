@@ -1,0 +1,642 @@
+/**
+ * Comisiones Module CSS
+ * Estilos específicos para el módulo de gestión de comisiones
+ */
+
+/* Comisiones Overview */
+.comisiones-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comision-stat-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--secondary-color);
+    padding: 2rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.comision-stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.comision-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.comision-stat-card:hover::before {
+    transform: scale(1.2);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Color variants */
+.comision-stat-card.pendientes {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800);
+    color: var(--text-dark);
+}
+
+.comision-stat-card.pagadas {
+    background: linear-gradient(135deg, var(--success-color), #157347);
+}
+
+.comision-stat-card.mes {
+    background: linear-gradient(135deg, var(--info-color), #0aa2c0);
+    color: var(--text-dark);
+}
+
+.comision-stat-card.total {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Comisiones Table */
+.comisiones-table-container {
+    background: var(--secondary-color);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.comisiones-table-header {
+    background: var(--hover-bg);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comisiones-table-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.btn-export-comisiones {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-export-comisiones:hover {
+    background: #157347;
+    transform: translateY(-1px);
+}
+
+.comisiones-table {
+    width: 100%;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.comisiones-table th {
+    background: var(--hover-bg);
+    font-weight: 600;
+    color: var(--text-dark);
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+    text-align: left;
+}
+
+.comisiones-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.comisiones-table tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Vendedor Info */
+.vendedor-comision-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.vendedor-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.vendedor-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.vendedor-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.vendedor-email {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Comision Amount */
+.comision-amount {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--success-color);
+}
+
+.comision-amount.large {
+    font-size: 1.125rem;
+}
+
+/* Comision Type */
+.comision-type {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.type-venta {
+    background: rgba(114, 47, 55, 0.1);
+    color: var(--primary-color);
+}
+
+.type-referido {
+    background: rgba(13, 202, 240, 0.1);
+    color: var(--info-color);
+}
+
+.type-liderazgo {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+}
+
+.type-bono {
+    background: rgba(25, 135, 84, 0.1);
+    color: var(--success-color);
+}
+
+/* Comision Status */
+.comision-status {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pendiente {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+}
+
+.status-pagada {
+    background: rgba(25, 135, 84, 0.1);
+    color: var(--success-color);
+}
+
+.status-procesando {
+    background: rgba(13, 202, 240, 0.1);
+    color: var(--info-color);
+}
+
+.status-cancelada {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+}
+
+/* Comision Date */
+.comision-fecha {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Comision Actions */
+.comision-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.comision-action-btn {
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid transparent;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-pagar-comision {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.btn-pagar-comision:hover {
+    background-color: var(--success-color);
+    color: var(--secondary-color);
+}
+
+.btn-view-comision {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-view-comision:hover {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+.btn-cancel-comision {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.btn-cancel-comision:hover {
+    background-color: var(--danger-color);
+    color: var(--secondary-color);
+}
+
+/* Comision Filters */
+.comisiones-filters {
+    background: var(--secondary-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.comisiones-filter-row {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group.actions {
+    flex: 0 0 auto;
+}
+
+.filter-label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    transition: border-color 0.2s ease;
+    font-size: 0.875rem;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
+}
+
+.filter-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Comision Details Modal */
+.comision-modal {
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.comision-modal-header {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: 0.75rem 0.75rem 0 0;
+    padding: 1.5rem;
+}
+
+.comision-modal-body {
+    padding: 2rem;
+}
+
+.comision-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comision-detail-item {
+    background: var(--hover-bg);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.detail-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.detail-value.amount {
+    color: var(--success-color);
+    font-size: 1.5rem;
+}
+
+/* Payment Form */
+.payment-form {
+    background: var(--hover-bg);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-top: 2rem;
+}
+
+.payment-form-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.payment-form-group {
+    margin-bottom: 1rem;
+}
+
+.payment-form-label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.payment-form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.payment-form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
+}
+
+.payment-form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-payment-confirm {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-payment-confirm:hover {
+    background: #157347;
+}
+
+.btn-payment-cancel {
+    background: var(--text-muted);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-payment-cancel:hover {
+    background: #495057;
+}
+
+/* Commission History */
+.commission-history {
+    margin-top: 2rem;
+}
+
+.history-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-left: 4px solid var(--primary-color);
+    background: var(--hover-bg);
+    border-radius: 0 0.375rem 0.375rem 0;
+    margin-bottom: 0.75rem;
+}
+
+.history-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.history-content {
+    flex-grow: 1;
+}
+
+.history-action {
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.history-details {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.history-time {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comisiones-overview {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .comision-stat-card {
+        padding: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .comisiones-filter-row {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        min-width: auto;
+    }
+
+    .comisiones-table {
+        font-size: 0.75rem;
+    }
+
+    .comision-actions {
+        flex-direction: column;
+    }
+
+    .comision-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .comision-modal-body {
+        padding: 1rem;
+    }
+
+    .payment-form-actions {
+        flex-direction: column;
+    }
+
+    .vendedor-comision-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .comisiones-filters {
+        padding: 1rem;
+    }
+
+    .comisiones-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .comisiones-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .comisiones-table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .history-icon {
+        margin-right: 0;
+    }
+}

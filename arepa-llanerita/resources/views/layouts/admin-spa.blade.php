@@ -21,6 +21,20 @@
     <!-- Admin SPA Styles -->
     <link rel="stylesheet" href="{{ asset('css/admin-spa.css') }}">
 
+    <!-- Module Specific Styles -->
+    <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/usuarios.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/productos.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/pedidos.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/reportes.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/comisiones.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/referidos.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/configuracion.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/respaldos.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/logs.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/perfil.css') }}">
+
+    <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
@@ -508,20 +522,6 @@
                     Logs del Sistema
                 </a>
             </div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Respaldos')">
-                    <i class="bi bi-cloud-download"></i>
-                    Respaldos
-                </a>
-            </div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Logs del Sistema')">
-                    <i class="bi bi-file-text"></i>
-                    Logs del Sistema
-                </a>
-            </div>
         </div>
     </nav>
 
@@ -609,6 +609,27 @@
     </main>
 
     @livewireScripts
+
+    <!-- Chart.js for charts and graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Admin Core Module (Must be loaded first) -->
+    <script src="{{ asset('js/modules/admin-core.js') }}"></script>
+
+    <!-- Module Specific JavaScript -->
+    <script src="{{ asset('js/modules/dashboard.js') }}"></script>
+    <script src="{{ asset('js/modules/usuarios.js') }}"></script>
+    <script src="{{ asset('js/modules/productos.js') }}"></script>
+    <script src="{{ asset('js/modules/pedidos.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-commissions.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-referrals.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-config.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-backups.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-logs.js') }}"></script>
+    <script src="{{ asset('js/modules/admin-profile.js') }}"></script>
+
+    <!-- Admin SPA Main Application (Must be loaded last) -->
+    <script src="{{ asset('js/admin-spa-main.js') }}"></script>
 
     <script>
         // JavaScript básico para la funcionalidad del sidebar

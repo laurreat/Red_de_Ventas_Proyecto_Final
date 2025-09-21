@@ -8,17 +8,20 @@
     <!-- Header con información del día -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Panel de control general del sistema</p>
-                    <small class="text-muted">Última actualización: {{ now()->format('d/m/Y H:i') }}</small>
-                </div>
-                <div>
-                    <span class="badge" style="background-color: var(--primary-color); font-size: 0.875rem; position: relative; z-index: 1;">
-                        <i class="bi bi-calendar-check me-1"></i>
-                        {{ now()->format('d/m/Y') }}
-                    </span>
-                </div>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Panel de control general del sistema</h2>
+                        </div>
+                        <div>
+                            <span class="badge" style="background-color: var(--primary-color); font-size: 0.875rem; position: relative; z-index: 1;">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                {{ now()->format('d/m/Y') }}
+                            </span>
+                        </div>
+                    </div>    
+                </div>    
             </div>
         </div>
     </div>

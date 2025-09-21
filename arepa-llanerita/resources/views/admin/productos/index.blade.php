@@ -8,15 +8,20 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Administra el catálogo completo de productos</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>
-                        Nuevo Producto
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="text-white mb-1">Administra el catálogo completo de productos</h4>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Nuevo Producto
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

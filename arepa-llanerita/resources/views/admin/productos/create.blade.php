@@ -8,15 +8,20 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Agregar nuevo producto al catálogo</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Volver a Productos
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="text-white mb-1">Agregar nuevo producto al catálogo</h5>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-light" >
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Volver a Productos
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

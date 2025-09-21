@@ -8,15 +8,20 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Completa el formulario para crear un nuevo usuario</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Volver a la lista
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Completa el formulario para crear un nuevo usuario</h2>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Volver a la lista
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,33 +44,33 @@
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Nombres <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                       id="name" name="name" value="{{ old('name') }}" required>
+                                    id="name" name="name" value="{{ old('name') }}" required>
                                 @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('apellidos') is-invalid @enderror"
-                                       id="apellidos" name="apellidos" value="{{ old('apellidos') }}" required>
+                                    id="apellidos" name="apellidos" value="{{ old('apellidos') }}" required>
                                 @error('apellidos')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="cedula" class="form-label">Cédula <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('cedula') is-invalid @enderror"
-                                       id="cedula" name="cedula" value="{{ old('cedula') }}" required>
+                                    id="cedula" name="cedula" value="{{ old('cedula') }}" required>
                                 @error('cedula')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('fecha_nacimiento') is-invalid @enderror"
-                                       id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
+                                    id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
                                 @error('fecha_nacimiento')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -85,41 +90,41 @@
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                       id="email" name="email" value="{{ old('email') }}" required>
+                                    id="email" name="email" value="{{ old('email') }}" required>
                                 @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('telefono') is-invalid @enderror"
-                                       id="telefono" name="telefono" value="{{ old('telefono') }}" required>
+                                    id="telefono" name="telefono" value="{{ old('telefono') }}" required>
                                 @error('telefono')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('ciudad') is-invalid @enderror"
-                                       id="ciudad" name="ciudad" value="{{ old('ciudad') }}" required>
+                                    id="ciudad" name="ciudad" value="{{ old('ciudad') }}" required>
                                 @error('ciudad')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="departamento" class="form-label">Departamento <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('departamento') is-invalid @enderror"
-                                       id="departamento" name="departamento" value="{{ old('departamento') }}" required>
+                                    id="departamento" name="departamento" value="{{ old('departamento') }}" required>
                                 @error('departamento')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-12">
                                 <label for="direccion" class="form-label">Dirección</label>
                                 <textarea class="form-control @error('direccion') is-invalid @enderror"
-                                          id="direccion" name="direccion" rows="3">{{ old('direccion') }}</textarea>
+                                    id="direccion" name="direccion" rows="3">{{ old('direccion') }}</textarea>
                                 @error('direccion')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -139,16 +144,16 @@
                             <div class="col-md-6">
                                 <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                       id="password" name="password" required>
+                                    id="password" name="password" required>
                                 @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <div class="form-text">Mínimo 8 caracteres</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="password_confirmation" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
                                 <input type="password" class="form-control"
-                                       id="password_confirmation" name="password_confirmation" required>
+                                    id="password_confirmation" name="password_confirmation" required>
                             </div>
                         </div>
                     </div>
@@ -168,7 +173,7 @@
                         <div class="mb-3">
                             <label for="rol" class="form-label">Rol <span class="text-danger">*</span></label>
                             <select class="form-select @error('rol') is-invalid @enderror"
-                                    id="rol" name="rol" required>
+                                id="rol" name="rol" required>
                                 <option value="">Seleccionar rol</option>
                                 <option value="administrador" {{ old('rol') == 'administrador' ? 'selected' : '' }}>Administrador</option>
                                 <option value="lider" {{ old('rol') == 'lider' ? 'selected' : '' }}>Líder</option>
@@ -176,26 +181,26 @@
                                 <option value="cliente" {{ old('rol') == 'cliente' ? 'selected' : '' }}>Cliente</option>
                             </select>
                             @error('rol')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
                             <label for="referido_por" class="form-label">Referido por</label>
                             <select class="form-select @error('referido_por') is-invalid @enderror"
-                                    id="referido_por" name="referido_por">
+                                id="referido_por" name="referido_por">
                                 <option value="">Sin referidor</option>
                                 @php
-                                    $posibles_referidores = \App\Models\User::whereIn('rol', ['administrador', 'lider', 'vendedor'])->get();
+                                $posibles_referidores = \App\Models\User::whereIn('rol', ['administrador', 'lider', 'vendedor'])->get();
                                 @endphp
                                 @foreach($posibles_referidores as $referidor)
-                                    <option value="{{ $referidor->id }}" {{ old('referido_por') == $referidor->id ? 'selected' : '' }}>
-                                        {{ $referidor->name }} {{ $referidor->apellidos }} ({{ ucfirst($referidor->rol) }})
-                                    </option>
+                                <option value="{{ $referidor->id }}" {{ old('referido_por') == $referidor->id ? 'selected' : '' }}>
+                                    {{ $referidor->name }} {{ $referidor->apellidos }} ({{ ucfirst($referidor->rol) }})
+                                </option>
                                 @endforeach
                             </select>
                             @error('referido_por')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -204,10 +209,10 @@
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control @error('meta_mensual') is-invalid @enderror"
-                                       id="meta_mensual" name="meta_mensual" value="{{ old('meta_mensual') }}"
-                                       step="0.01" min="0">
+                                    id="meta_mensual" name="meta_mensual" value="{{ old('meta_mensual') }}"
+                                    step="0.01" min="0">
                                 @error('meta_mensual')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-text">Solo para vendedores y líderes</div>
@@ -215,7 +220,7 @@
 
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="activo" name="activo" value="1"
-                                   {{ old('activo', true) ? 'checked' : '' }}>
+                                {{ old('activo', true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activo">
                                 Usuario activo
                             </label>

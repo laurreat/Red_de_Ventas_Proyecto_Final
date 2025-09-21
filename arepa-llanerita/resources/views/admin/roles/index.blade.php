@@ -6,23 +6,26 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Gestión de Roles y Permisos</h3>
-                    <div>
-                        <a href="{{ route('admin.roles.permissions') }}" class="btn btn-info btn-sm" title="Ver todos los permisos disponibles en el sistema">
-                            <i class="fas fa-key"></i> Ver Permisos
-                        </a>
-                        <form method="POST" action="{{ route('admin.roles.initialize') }}" style="display: inline;"
-                              onsubmit="return confirm('¿Estás seguro de inicializar los roles del sistema? Esto recreará los roles predeterminados.')">
-                            @csrf
-                            <button type="submit" class="btn btn-warning btn-sm" title="Recrear roles del sistema (administrador, líder, vendedor, cliente)">
-                                <i class="fas fa-sync"></i> Inicializar Roles
-                            </button>
-                        </form>
-                        <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Nuevo Rol
-                        </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title">Gestión de Roles y Permisos</h3>
+                        <div>
+                                <a href="{{ route('admin.roles.permissions') }}" class="btn btn-info btn-sm" title="Ver todos los permisos disponibles en el sistema">
+                                    <i class="fas fa-key"></i> Ver Permisos
+                                </a>
+                                <form method="POST" action="{{ route('admin.roles.initialize') }}" style="display: inline;"
+                                    onsubmit="return confirm('¿Estás seguro de inicializar los roles del sistema? Esto recreará los roles predeterminados.')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-warning btn-sm" title="Recrear roles del sistema (administrador, líder, vendedor, cliente)">
+                                        <i class="fas fa-sync"></i> Inicializar Roles
+                                    </button>
+                                </form>
+                                <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> Nuevo Rol
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
