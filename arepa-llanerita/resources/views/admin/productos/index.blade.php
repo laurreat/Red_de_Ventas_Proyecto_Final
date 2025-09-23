@@ -12,7 +12,7 @@
                 <div class="card-body text-white p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4 class="text-white mb-1">Administra el catálogo completo de productos</h4>
+                            <h4 class="text-white mb-1">Administra el catalogo completo de productos</h4>
                         </div>
 
                         <div>
@@ -96,7 +96,7 @@
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-funnel me-2"></i>
-                        Filtros de Búsqueda
+                        Filtros de Busqueda
                     </h5>
                 </div>
                 <div class="card-body p-4">
@@ -105,13 +105,13 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Buscar producto</label>
                                 <input type="text" class="form-control" name="buscar"
-                                       placeholder="Nombre o descripción..."
+                                       placeholder="Nombre o descripcion..."
                                        value="{{ request('buscar') }}">
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Categoría</label>
+                                <label class="form-label">Categoria</label>
                                 <select class="form-select" name="categoria">
-                                    <option value="">Todas las categorías</option>
+                                    <option value="">Todas las categorias</option>
                                     @foreach($categorias as $categoria)
                                         <option value="{{ $categoria->id }}"
                                                 {{ request('categoria') == $categoria->id ? 'selected' : '' }}>
@@ -163,7 +163,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Producto</th>
-                                        <th>Categoría</th>
+                                        <th>Categoria</th>
                                         <th>Precio</th>
                                         <th>Stock</th>
                                         <th>Estado</th>
@@ -284,17 +284,5 @@
     </div>
 </div>
 
-<script>
-function toggleStatus(productoId) {
-    if (confirm('¿Estás seguro de que quieres cambiar el estado de este producto?')) {
-        document.getElementById('toggle-form-' + productoId).submit();
-    }
-}
-
-function confirmDelete(productoId) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer.')) {
-        document.getElementById('delete-form-' + productoId).submit();
-    }
-}
-</script>
+{{-- Los scripts JavaScript se cargan desde admin-functions.js --}}
 @endsection
