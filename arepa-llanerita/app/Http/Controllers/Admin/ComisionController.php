@@ -216,7 +216,85 @@ class ComisionController extends Controller
 
     public function exportar(Request $request)
     {
-        // TODO: Implementar exportación a Excel/PDF
-        return response()->json(['message' => 'Funcionalidad de exportación en desarrollo']);
+        $fechaInicio = $request->get('fecha_inicio', now()->startOfMonth()->format('Y-m-d'));
+        $fechaFin = $request->get('fecha_fin', now()->format('Y-m-d'));
+        $formato = $request->get('formato', 'excel');
+
+        // Obtener datos de comisiones
+        $pedidosQuery = Pedido::whereDate('created_at', '>=', $fechaInicio)
+            ->whereDate('created_at', '<=', $fechaFin)
+            ->whereNotNull('vendedor_id');
+
+        $pedidos = $pedidosQuery->get();
+
+        // Agrupar y calcular comisiones por vendedor
+        $comisionesPorVendedor = $pedidos->groupBy('vendedor_id')->map(function ($pedidosVendedor) {
+            $vendedorId = $pedidosVendedor->first()->vendedor_id;
+            $vendedor = User::find($vendedorId);
+
+            if (!$vendedor) {
+                return null;
+            }
+
+            $totalPedidos = $pedidosVendedor->count();
+            $pedidosEntregados = $pedidosVendedor->where('estado', 'entregado');
+            $totalVentas = $pedidosEntregados->sum('total_final');
+            $comisionGanada = $totalVentas * 0.1;
+
+            return [
+                'Vendedor' => $vendedor->name,
+                'Email' => $vendedor->email,
+                'Teléfono' => $vendedor->telefono ?? 'N/A',
+                'Total Pedidos' => $totalPedidos,
+                'Pedidos Entregados' => $pedidosEntregados->count(),
+                'Total Ventas' => $totalVentas,
+                'Comisión Ganada' => $comisionGanada,
+                'Porcentaje Comisión' => '10%'
+            ];
+        })->filter()->values();
+
+        if ($formato === 'csv') {
+            return $this->exportarCSV($comisionesPorVendedor, $fechaInicio, $fechaFin);
+        } else {
+            return $this->exportarExcel($comisionesPorVendedor, $fechaInicio, $fechaFin);
+        }
+    }
+
+    private function exportarCSV($datos, $fechaInicio, $fechaFin)
+    {
+        $filename = "comisiones_{$fechaInicio}_a_{$fechaFin}.csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($datos) {
+            $file = fopen('php://output', 'w');
+
+            // Escribir BOM para UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Headers
+            if ($datos->isNotEmpty()) {
+                fputcsv($file, array_keys($datos->first()), ';');
+
+                // Datos
+                foreach ($datos as $row) {
+                    fputcsv($file, array_values($row), ';');
+                }
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function exportarExcel($datos, $fechaInicio, $fechaFin)
+    {
+        // Implementación básica usando Maatwebsite\Excel si está disponible
+        // Por ahora devolvemos CSV como fallback
+        return $this->exportarCSV($datos, $fechaInicio, $fechaFin);
     }
 }

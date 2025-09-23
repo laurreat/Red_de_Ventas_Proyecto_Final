@@ -54,14 +54,13 @@
                     </div>
                 @endif
 
-                @if (session('debug_reset_url'))
+                @if (app()->environment('local') && session('debug_reset_url'))
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Modo Desarrollo:</strong> El correo no se pudo enviar, pero puedes usar este enlace directamente:
                         <hr>
                         <div class="small">
-                            <strong>Token:</strong> {{ session('debug_token') }}<br>
-                            <strong>Enlace:</strong> <a href="{{ session('debug_reset_url') }}" target="_blank">{{ session('debug_reset_url') }}</a>
+                            <strong>Enlace:</strong> <a href="{{ session('debug_reset_url') }}" target="_blank">Restablecer Contraseña</a>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>

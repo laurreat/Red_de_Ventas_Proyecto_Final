@@ -520,8 +520,7 @@
     </div>
 
     <!-- Visualización Jerárquica (muestra solo algunos niveles por performance) -->
-    {{-- Mostrar siempre para debug --}}
-    @if(true)
+    @if($referidos->isNotEmpty())
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -907,7 +906,7 @@
         function processNode(nodeData, level = 0, parentId = null) {
             const nodeId = nodeData.id;
 
-            // Debug: Log de cada nodo procesado
+            // Procesar cada nodo
             console.log(`Procesando nodo nivel ${level}:`, {
                 id: nodeId,
                 name: nodeData.name,
@@ -1123,7 +1122,7 @@
                     Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
             })
             .style('fill', function(d) {
-                // Debug: verificar datos del nodo para color
+                // Verificar datos del nodo para color
                 console.log('Coloreando nodo:', {
                     d_data: d.data,
                     d_data_tipo: d.data ? d.data.tipo : 'N/A'
@@ -1145,7 +1144,7 @@
             .style('font-size', '12px')
             .style('font-weight', '500')
             .text(function(d) {
-                // Debug: verificar qué datos están disponibles
+                // Verificar datos disponibles
                 console.log('Renderizando texto para nodo:', {
                     d_data_name: d.data ? d.data.name : 'N/A',
                     d_name: d.name,

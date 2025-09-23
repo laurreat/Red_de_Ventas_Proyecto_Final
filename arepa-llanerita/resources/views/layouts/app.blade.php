@@ -8,6 +8,7 @@
     <meta name="description" content="Sistema de ventas y gestión para Arepa la Llanerita - La mejor arepa de los llanos">
     
     <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/favicon.ico') }}">
     
     <!-- Fonts -->
@@ -46,7 +47,7 @@
             <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
                 <div class="container">
                     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-                        <i class="bi bi-shop me-2 fs-4"></i>
+                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" style="height: 40px;" class="me-2">
                         <span class="fw-bold">{{ config('app.name', 'Arepa la Llanerita') }}</span>
                     </a>
                     

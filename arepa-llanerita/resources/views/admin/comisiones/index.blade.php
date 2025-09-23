@@ -320,17 +320,99 @@ function calcularComisiones() {
     const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
 
     if (!fechaInicio || !fechaFin) {
-        alert('Por favor selecciona un período válido');
+        showToast('Por favor selecciona un período válido', 'error');
         return;
     }
 
-    // TODO: Implementar cálculo de comisiones
-    alert('Calculando comisiones para el período seleccionado...');
+    // Mostrar loading
+    const btnCalcular = document.querySelector('button[onclick="calcularComisiones()"]');
+    const originalText = btnCalcular.innerHTML;
+    btnCalcular.disabled = true;
+    btnCalcular.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculando...';
+
+    // Realizar petición AJAX
+    fetch('{{ route("admin.comisiones.calcular") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Comisiones calculadas: $${data.total_comisiones.toLocaleString()}`, 'success');
+
+            // Recargar la página para mostrar los nuevos datos
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast('Error al calcular comisiones', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error al calcular comisiones', 'error');
+    })
+    .finally(() => {
+        btnCalcular.disabled = false;
+        btnCalcular.innerHTML = originalText;
+    });
 }
 
 function exportarComisiones() {
-    // TODO: Implementar exportación
-    alert('Funcionalidad de exportación en desarrollo');
+    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
+    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
+
+    if (!fechaInicio || !fechaFin) {
+        showToast('Por favor selecciona un período válido', 'error');
+        return;
+    }
+
+    // Crear formulario para descargar
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("admin.comisiones.exportar") }}';
+    form.target = '_blank';
+
+    // Token CSRF
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    form.appendChild(csrfInput);
+
+    // Fecha inicio
+    const fechaInicioInput = document.createElement('input');
+    fechaInicioInput.type = 'hidden';
+    fechaInicioInput.name = 'fecha_inicio';
+    fechaInicioInput.value = fechaInicio;
+    form.appendChild(fechaInicioInput);
+
+    // Fecha fin
+    const fechaFinInput = document.createElement('input');
+    fechaFinInput.type = 'hidden';
+    fechaFinInput.name = 'fecha_fin';
+    fechaFinInput.value = fechaFin;
+    form.appendChild(fechaFinInput);
+
+    // Formato
+    const formatoInput = document.createElement('input');
+    formatoInput.type = 'hidden';
+    formatoInput.name = 'formato';
+    formatoInput.value = 'csv';
+    form.appendChild(formatoInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    showToast('Descargando reporte de comisiones...', 'success');
 }
 </script>
 @endsection
