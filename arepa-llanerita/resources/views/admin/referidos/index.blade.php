@@ -745,12 +745,8 @@
     };
 
     // Datos para visualización (desde el controlador)
-    const redData = {
-        !!json_encode($redJerarquica ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!
-    };
-    const usuarioSeleccionado = {
-        !!json_encode($usuarioSeleccionado ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!
-    };
+    const redData = {!! json_encode($redJerarquica ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+    const usuarioSeleccionado = {!! json_encode($usuarioSeleccionado ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
     console.log('Red Data loaded:', redData);
     console.log('Red Data count:', redData ? redData.length : 0);
@@ -769,6 +765,39 @@
             selectedEmail.textContent = usuarioSeleccionado.email;
             selectedInfo.style.display = 'block';
         }
+    }
+
+    // Funciones para manejo de búsqueda - definidas antes de DOMContentLoaded
+    function clearSearch() {
+        // Mostrar indicador de carga
+        showLoadingIndicator('Cargando red completa');
+
+        // Construir URL sin parámetros de búsqueda
+        const url = new URL(window.location.href);
+        url.searchParams.delete('cedula');
+        url.searchParams.delete('search');
+
+        // Redireccionar sin parámetros
+        window.location.href = url.toString();
+    }
+
+    function showRandomUser() {
+        // Mostrar indicador de carga
+        showLoadingIndicator('Seleccionando usuario aleatorio');
+
+        // Lista de cédulas de ejemplo para demostración
+        const cedulasEjemplo = ['12345678', '87654321', '11111111', '22222222', '33333333'];
+        const cedulaAleatoria = cedulasEjemplo[Math.floor(Math.random() * cedulasEjemplo.length)];
+
+        document.getElementById('cedula_search').value = cedulaAleatoria;
+
+        // Buscar el usuario aleatorio
+        setTimeout(() => {
+            const form = document.getElementById('searchUserForm');
+            if (form) {
+                form.dispatchEvent(new Event('submit'));
+            }
+        }, 500);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1532,38 +1561,6 @@
             });
         }
     });
-
-    function clearSearch() {
-        // Mostrar indicador de carga
-        showLoadingIndicator('Cargando red completa');
-
-        // Construir URL sin parámetros de búsqueda
-        const url = new URL(window.location.href);
-        url.searchParams.delete('cedula');
-        url.searchParams.delete('search');
-
-        // Redireccionar sin parámetros
-        window.location.href = url.toString();
-    }
-
-    function showRandomUser() {
-        // Mostrar indicador de carga
-        showLoadingIndicator('Seleccionando usuario aleatorio');
-
-        // Lista de cédulas de ejemplo para demostración
-        const cedulasEjemplo = ['12345678', '87654321', '11111111', '22222222', '33333333'];
-        const cedulaAleatoria = cedulasEjemplo[Math.floor(Math.random() * cedulasEjemplo.length)];
-
-        document.getElementById('cedula_search').value = cedulaAleatoria;
-
-        // Buscar el usuario aleatorio
-        setTimeout(() => {
-            const form = document.getElementById('searchUserForm');
-            if (form) {
-                form.dispatchEvent(new Event('submit'));
-            }
-        }, 500);
-    }
 
     function showLoadingIndicator(customMessage = null) {
         const indicator = document.getElementById('loading-indicator');
