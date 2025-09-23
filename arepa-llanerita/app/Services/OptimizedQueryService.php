@@ -7,7 +7,8 @@ use App\Models\Pedido;
 use App\Models\Comision;
 use App\Models\Referido;
 use Illuminate\Support\Facades\Cache;
-use MongoDB\Laravel\Collection;
+use MongoDB\Laravel\Eloquent\Collection;
+use MongoDB\BSON\ObjectId;
 
 class OptimizedQueryService
 {
@@ -243,17 +244,17 @@ class OptimizedQueryService
                     ],
                     [
                         '$project' => [
-                            'referidor' => {
+                            'referidor' => [
                                 '_id' => '$referidor._id',
                                 'name' => '$referidor.name',
                                 'email' => '$referidor.email'
-                            },
-                            'referido' => {
+                            ],
+                            'referido' => [
                                 '_id' => '$referido._id',
                                 'name' => '$referido.name',
                                 'email' => '$referido.email',
                                 'rol' => '$referido.rol'
-                            },
+                            ],
                             'fecha_referencia' => '$created_at',
                             'ventas_referido' => 1,
                             'comision_generada' => ['$multiply' => ['$ventas_referido', 0.05]]

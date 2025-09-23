@@ -166,7 +166,7 @@ class ReferidoController extends Controller
             'cedula',
             'nivel',
             'tipo'
-        ));
+        ))->with('referidos', $usuarios);
     }
 
     public function show($id)
