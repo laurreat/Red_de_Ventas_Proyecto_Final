@@ -4,14 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\CatalogoPublicoController;
 
-// Página principal - siempre mostrar login
-Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return redirect()->route('login');
-});
+// Página principal - mostrar catálogo público
+Route::get('/', [CatalogoPublicoController::class, 'index']);
+
+// Ruta para ver detalles de producto público
+Route::get('/catalogo/{producto}', [CatalogoPublicoController::class, 'show']);
 
 // Ruta específica para logout y redirección al login
 Route::get('/inicio', function () {
