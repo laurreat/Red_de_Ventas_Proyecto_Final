@@ -231,13 +231,13 @@
                                                 <button type="button"
                                                         class="btn btn-sm {{ $producto->activo ? 'btn-outline-warning' : 'btn-outline-success' }}"
                                                         title="{{ $producto->activo ? 'Desactivar' : 'Activar' }}"
-                                                        onclick="toggleStatus({{ $producto->id }})">
+                                                        onclick="toggleStatus('{{ $producto->id }}')">
                                                     <i class="bi bi-{{ $producto->activo ? 'pause' : 'play' }}"></i>
                                                 </button>
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-danger"
                                                         title="Eliminar"
-                                                        onclick="confirmDelete({{ $producto->id }})">
+                                                        onclick="confirmDelete('{{ $producto->id }}')">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>

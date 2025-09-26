@@ -147,14 +147,14 @@
 
                         <button type="button"
                                 class="btn {{ $producto->activo ? 'btn-warning' : 'btn-success' }}"
-                                onclick="toggleStatus({{ $producto->id }})">
+                                onclick="toggleStatus('{{ $producto->id }}')">
                             <i class="bi bi-{{ $producto->activo ? 'pause' : 'play' }} me-2"></i>
                             {{ $producto->activo ? 'Desactivar' : 'Activar' }} Producto
                         </button>
 
                         <button type="button"
                                 class="btn btn-danger"
-                                onclick="confirmDelete({{ $producto->id }})">
+                                onclick="confirmDelete('{{ $producto->id }}')">
                             <i class="bi bi-trash me-2"></i>
                             Eliminar Producto
                         </button>
