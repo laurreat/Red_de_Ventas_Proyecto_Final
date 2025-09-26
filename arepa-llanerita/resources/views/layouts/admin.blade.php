@@ -265,6 +265,28 @@
             align-items: center;
             justify-content: center;
             color: var(--secondary-color);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
         }
 
         .profile-info {
@@ -693,7 +715,15 @@
                 <div class="dropdown">
                     <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="profile-avatar">
-                            <i class="bi bi-person"></i>
+                            @if(Auth::user()->avatar)
+                                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
+                                     alt="Avatar" class="rounded-circle" width="40" height="40"
+                                     style="object-fit: cover;">
+                            @else
+                                <div class="avatar-placeholder">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </div>
+                            @endif
                         </div>
                         <div class="profile-info">
                             <div class="profile-name">{{ Auth::user()->name }}</div>

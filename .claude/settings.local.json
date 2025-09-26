@@ -41,7 +41,8 @@
       "Bash(done)",
       "Bash(python:*)",
       "Bash(for icon in dashboard admin products orders)",
-      "Bash(do cp \"public/images/icons/icon-96x96.png\" \"public/images/icons/$icon-96x96.png\")"
+      "Bash(do cp \"public/images/icons/icon-96x96.png\" \"public/images/icons/$icon-96x96.png\")",
+      "Bash(mklink:*)"
     ],
     "deny": [],
     "ask": []

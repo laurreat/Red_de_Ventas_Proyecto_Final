@@ -66,21 +66,23 @@
                         <div class="row">
                             <!-- Avatar -->
                             <div class="col-md-4 text-center mb-4">
-                                <div class="position-relative d-inline-block">
+                                <div class="position-relative d-inline-block" id="avatar-container">
                                     @if($user->avatar)
                                         <img src="{{ asset('storage/avatars/' . $user->avatar) }}"
-                                             class="rounded-circle" width="150" height="150"
-                                             style="object-fit: cover;" alt="Avatar">
+                                             class="rounded-circle border border-3 border-light shadow"
+                                             width="150" height="150"
+                                             style="object-fit: cover;" alt="Avatar" id="user-avatar">
                                     @else
-                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                             style="width: 150px; height: 150px; font-size: 3rem;">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center border border-3 border-light shadow"
+                                             style="width: 150px; height: 150px; font-size: 3rem;" id="user-avatar-placeholder">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                     @endif
                                     @if($user->avatar)
-                                        <button type="button" class="btn btn-sm btn-danger position-absolute"
-                                                style="top: 0; right: 0;" id="eliminar-avatar-btn">
-                                            <i class="bi bi-x"></i>
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute rounded-circle"
+                                                style="top: 5px; right: 5px; width: 32px; height: 32px; padding: 0;"
+                                                id="eliminar-avatar-btn" title="Eliminar foto">
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     @endif
                                 </div>
@@ -699,6 +701,159 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función global para cerrar modal (disponible desde cualquier lugar)
     window.cerrarModal = cerrarModal;
+
+    // Funcionalidad para eliminar avatar
+    const eliminarAvatarBtn = document.getElementById('eliminar-avatar-btn');
+    if (eliminarAvatarBtn) {
+        eliminarAvatarBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            if (confirm('¿Estás seguro de que quieres eliminar tu foto de perfil?')) {
+                eliminarAvatar();
+            }
+        });
+    }
+
+    function eliminarAvatar() {
+        const btn = document.getElementById('eliminar-avatar-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        }
+
+        fetch('{{ route("admin.perfil.delete-avatar") }}', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar la interfaz
+                const avatarContainer = document.getElementById('avatar-container');
+                const userName = '{{ strtoupper(substr($user->name, 0, 1)) }}';
+
+                avatarContainer.innerHTML = `
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center border border-3 border-light shadow"
+                         style="width: 150px; height: 150px; font-size: 3rem;" id="user-avatar-placeholder">
+                        ${userName}
+                    </div>
+                `;
+
+                // Mostrar mensaje de éxito
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alertDiv.innerHTML = `
+                    <i class="bi bi-check-circle me-2"></i>
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+
+                const container = document.querySelector('.container-fluid .row').querySelector('.col-12');
+                container.appendChild(alertDiv);
+
+                // Auto-remover el mensaje después de 5 segundos
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+
+            } else {
+                // Mostrar error
+                alert('Error: ' + (data.message || 'Error al eliminar la foto'));
+
+                // Restaurar botón
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-trash3"></i>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión al eliminar la foto');
+
+            // Restaurar botón
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash3"></i>';
+            }
+        });
+    }
+
+    // Preview de imagen al seleccionar archivo
+    const avatarInput = document.querySelector('input[name="avatar"]');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validar tamaño
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('El archivo es muy grande. Máximo 2MB permitido.');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Validar tipo
+                if (!file.type.match('image.*')) {
+                    alert('Por favor selecciona un archivo de imagen válido.');
+                    e.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarContainer = document.getElementById('avatar-container');
+                    const currentAvatar = document.getElementById('user-avatar') || document.getElementById('user-avatar-placeholder');
+
+                    if (currentAvatar) {
+                        // Si era un placeholder DIV, crear nueva imagen
+                        if (currentAvatar.tagName === 'DIV') {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'rounded-circle border border-3 border-light shadow';
+                            img.style.width = '150px';
+                            img.style.height = '150px';
+                            img.style.objectFit = 'cover';
+                            img.alt = 'Avatar Preview';
+                            img.id = 'user-avatar';
+
+                            currentAvatar.replaceWith(img);
+
+                            // Remover botón de eliminar si existe
+                            const deleteBtn = document.getElementById('eliminar-avatar-btn');
+                            if (deleteBtn) {
+                                deleteBtn.remove();
+                            }
+                        } else {
+                            // Si ya era imagen, solo cambiar src
+                            currentAvatar.src = e.target.result;
+                            currentAvatar.alt = 'Avatar Preview';
+                        }
+
+                        // Mostrar mensaje de preview
+                        const previewMsg = document.createElement('small');
+                        previewMsg.className = 'text-info d-block mt-2';
+                        previewMsg.id = 'preview-message';
+                        previewMsg.innerHTML = '<i class="bi bi-info-circle me-1"></i>Vista previa - Guarda los cambios para confirmar';
+
+                        // Remover mensaje anterior si existe
+                        const existingMsg = document.getElementById('preview-message');
+                        if (existingMsg) {
+                            existingMsg.remove();
+                        }
+
+                        avatarContainer.parentNode.appendChild(previewMsg);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
 });
 </script>
 @endpush

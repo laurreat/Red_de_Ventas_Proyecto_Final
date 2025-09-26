@@ -40,7 +40,14 @@ class User extends Authenticatable
         'zonas_asignadas',
         'referidos_data',
         'historial_ventas',
-        'configuracion_personal'
+        'configuracion_personal',
+        'avatar',
+        'bio',
+        'notif_email_pedidos',
+        'notif_email_usuarios',
+        'notif_email_sistema',
+        'notif_sms_urgente',
+        'notif_push_browser'
     ];
 
     protected $hidden = [

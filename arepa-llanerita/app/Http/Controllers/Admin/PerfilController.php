@@ -92,13 +92,23 @@ class PerfilController extends Controller
             // Manejar subida de avatar
             if ($request->hasFile('avatar')) {
                 // Eliminar avatar anterior si existe
-                if ($user->avatar && Storage::exists('public/avatars/' . $user->avatar)) {
-                    Storage::delete('public/avatars/' . $user->avatar);
+                if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
+                    Storage::disk('public')->delete('avatars/' . $user->avatar);
                 }
 
                 // Subir nuevo avatar
                 $avatarName = time() . '_' . $user->_id . '.' . $request->avatar->extension();
-                $request->avatar->storeAs('public/avatars', $avatarName);
+                $path = $request->avatar->storeAs('avatars', $avatarName, 'public');
+
+                // Debug: verificar que se guardó correctamente
+                \Log::info('Avatar guardado', [
+                    'user_id' => $user->_id,
+                    'filename' => $avatarName,
+                    'path' => $path,
+                    'exists' => Storage::disk('public')->exists('avatars/' . $avatarName),
+                    'url' => asset('storage/avatars/' . $avatarName)
+                ]);
+
                 $user->avatar = $avatarName;
             }
 
@@ -208,8 +218,8 @@ class PerfilController extends Controller
         $user = auth()->user();
 
         try {
-            if ($user->avatar && Storage::exists('public/avatars/' . $user->avatar)) {
-                Storage::delete('public/avatars/' . $user->avatar);
+            if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
+                Storage::disk('public')->delete('avatars/' . $user->avatar);
             }
 
             $user->update(['avatar' => null]);
