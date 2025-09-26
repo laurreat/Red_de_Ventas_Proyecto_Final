@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use App\Models\User;
 use App\Models\Pedido;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PerfilController extends Controller
 {
@@ -23,24 +24,41 @@ class PerfilController extends Controller
 
         // Estadísticas del usuario
         $stats = [
-            'pedidos_gestionados' => Pedido::where('gestionado_por', $user->_id)->count(),
-            'usuarios_creados' => User::where('creado_por', $user->_id)->count(),
+            'pedidos_como_cliente' => Pedido::where('user_id', $user->_id)->count(),
+            'pedidos_como_vendedor' => Pedido::where('vendedor_id', $user->_id)->count(),
+            'total_referidos' => $user->total_referidos ?? 0,
             'fecha_registro' => $user->created_at,
             'ultimo_acceso' => $user->last_login_at ?? $user->updated_at,
-            'rol_actual' => $user->rol,
+            'rol_actual' => $user->rol ?? 'cliente',
             'estado_cuenta' => $user->activo ? 'Activa' : 'Inactiva'
         ];
 
-        // Actividad reciente
+        // Actividad reciente - pedidos como cliente
+        $pedidosRecientesCliente = Pedido::where('user_id', $user->_id)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        // Actividad reciente - pedidos como vendedor
+        $pedidosRecientesVendedor = Pedido::where('vendedor_id', $user->_id)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        // Usuarios referidos (si puede tener referidos)
+        $usuariosReferidos = collect();
+        if (in_array($user->rol, ['administrador', 'lider', 'vendedor'])) {
+            $usuariosReferidos = User::where('referido_por', $user->_id)
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+        }
+
         $actividadReciente = [
-            'pedidos_recientes' => Pedido::where('gestionado_por', $user->_id)
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get(),
-            'usuarios_recientes' => User::where('creado_por', $user->_id)
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get()
+            'pedidos_recientes' => $pedidosRecientesCliente->concat($pedidosRecientesVendedor)
+                                                          ->sortByDesc('created_at')
+                                                          ->take(5),
+            'usuarios_recientes' => $usuariosReferidos
         ];
 
         // Configuración de notificaciones del usuario
@@ -214,85 +232,135 @@ class PerfilController extends Controller
         $user = auth()->user();
 
         try {
-            // Recopilar todos los datos del usuario
-            $userData = [
-                'informacion_personal' => [
-                    'nombre' => $user->name,
-                    'apellidos' => $user->apellidos,
-                    'email' => $user->email,
-                    'telefono' => $user->telefono,
-                    'direccion' => $user->direccion,
-                    'fecha_nacimiento' => $user->fecha_nacimiento,
+            // Recopilar datos completos del usuario
+            $pedidosCliente = Pedido::where('user_id', $user->_id)->get();
+            $pedidosVendedor = Pedido::where('vendedor_id', $user->_id)->get();
+            $referidos = User::where('referido_por', $user->_id)->get();
+
+            $data = [
+                'user' => $user,
+                'stats' => [
+                    'pedidos_como_cliente' => $pedidosCliente->count(),
+                    'pedidos_como_vendedor' => $pedidosVendedor->count(),
+                    'total_referidos' => $referidos->count(),
+                    'total_gastado' => $pedidosCliente->sum('total_final'),
+                    'total_vendido' => $pedidosVendedor->sum('total_final'),
+                    'comisiones_ganadas' => $user->comisiones_ganadas ?? 0,
+                    'comisiones_disponibles' => $user->comisiones_disponibles ?? 0,
                     'fecha_registro' => $user->created_at,
-                    'rol' => $user->rol,
-                    'estado' => $user->activo ? 'Activo' : 'Inactivo'
+                    'ultimo_acceso' => $user->last_login_at ?? $user->updated_at,
                 ],
-                'actividad' => [
-                    'ultimo_acceso' => $user->last_login_at,
-                    'pedidos_gestionados' => Pedido::where('gestionado_por', $user->_id)->count(),
-                    'usuarios_creados' => User::where('creado_por', $user->_id)->count()
-                ],
-                'configuracion' => [
-                    'notificaciones' => [
-                        'email_pedidos' => $user->notif_email_pedidos ?? true,
-                        'email_usuarios' => $user->notif_email_usuarios ?? true,
-                        'email_sistema' => $user->notif_email_sistema ?? true,
-                        'sms_urgente' => $user->notif_sms_urgente ?? false,
-                        'push_browser' => $user->notif_push_browser ?? true
-                    ],
-                    'privacidad' => [
-                        'perfil_publico' => $user->perfil_publico ?? false,
-                        'mostrar_email' => $user->mostrar_email ?? false,
-                        'mostrar_telefono' => $user->mostrar_telefono ?? false,
-                        'mostrar_ultima_conexion' => $user->mostrar_ultima_conexion ?? false
-                    ]
-                ],
-                'metadatos' => [
-                    'fecha_exportacion' => now()->toISOString(),
-                    'version' => '1.0'
-                ]
+                'pedidos_recientes' => $pedidosCliente->concat($pedidosVendedor)
+                                                     ->sortByDesc('created_at')
+                                                     ->take(10),
+                'referidos_recientes' => $referidos->sortByDesc('created_at')->take(10),
+                'fecha_generacion' => now(),
             ];
 
-            $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            $filename = 'mis_datos_' . $user->_id . '_' . now()->format('Y-m-d') . '.json';
+            $pdf = PDF::loadView('admin.perfil.pdf', $data);
+            $pdf->setPaper('A4', 'portrait');
 
-            return response($json)
-                ->header('Content-Type', 'application/json')
-                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            $filename = 'perfil_' . ($user->name ?? 'usuario') . '_' . now()->format('Y-m-d') . '.pdf';
+
+            return $pdf->download($filename);
 
         } catch (\Exception $e) {
+            \Log::error('Error al generar PDF del perfil: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Error al generar exportación: ' . $e->getMessage());
+                ->with('error', 'Error al generar el PDF: ' . $e->getMessage());
         }
     }
 
     public function activity()
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        // Actividad detallada de los últimos 30 días
-        $actividad = [
-            'pedidos' => Pedido::where('gestionado_por', $user->_id)
+            // Obtener pedidos donde el usuario sea cliente o vendedor
+            $pedidosComoCliente = Pedido::where('user_id', $user->_id)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->orderBy('created_at', 'desc')
-                ->take(50)
-                ->get(),
-            'usuarios_creados' => User::where('creado_por', $user->_id)
+                ->take(25)
+                ->get()
+                ->map(function($pedido) {
+                    return [
+                        'id' => (string)$pedido->_id,
+                        'numero_pedido' => $pedido->numero_pedido ?? 'N/A',
+                        'estado' => $pedido->estado ?? 'pendiente',
+                        'total_final' => $pedido->total_final ?? 0,
+                        'created_at' => $pedido->created_at ? $pedido->created_at->toISOString() : null,
+                        'tipo' => 'cliente'
+                    ];
+                });
+
+            $pedidosComoVendedor = Pedido::where('vendedor_id', $user->_id)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->orderBy('created_at', 'desc')
-                ->take(50)
-                ->get(),
-            'resumen' => [
-                'accesos_ultimo_mes' => $this->contarAccesosUltimoMes($user),
-                'promedio_accesos_diarios' => $this->promedioAccesosDiarios($user),
-                'tiempo_sesion_promedio' => $this->tiempoSesionPromedio($user)
-            ]
-        ];
+                ->take(25)
+                ->get()
+                ->map(function($pedido) {
+                    return [
+                        'id' => (string)$pedido->_id,
+                        'numero_pedido' => $pedido->numero_pedido ?? 'N/A',
+                        'estado' => $pedido->estado ?? 'pendiente',
+                        'total_final' => $pedido->total_final ?? 0,
+                        'created_at' => $pedido->created_at ? $pedido->created_at->toISOString() : null,
+                        'tipo' => 'vendedor'
+                    ];
+                });
 
-        return response()->json([
-            'success' => true,
-            'data' => $actividad
-        ]);
+            // Obtener referidos si es admin, líder o vendedor
+            $referidos = collect();
+            if (in_array($user->rol, ['administrador', 'lider', 'vendedor'])) {
+                $referidos = User::where('referido_por', $user->_id)
+                    ->where('created_at', '>=', now()->subDays(30))
+                    ->orderBy('created_at', 'desc')
+                    ->take(25)
+                    ->get()
+                    ->map(function($referido) {
+                        return [
+                            'id' => (string)$referido->_id,
+                            'name' => $referido->name ?? '',
+                            'apellidos' => $referido->apellidos ?? '',
+                            'email' => $referido->email ?? '',
+                            'rol' => $referido->rol ?? '',
+                            'activo' => $referido->activo ?? false,
+                            'created_at' => $referido->created_at ? $referido->created_at->toISOString() : null
+                        ];
+                    });
+            }
+
+            // Combinar todos los pedidos y ordenarlos
+            $todosPedidos = $pedidosComoCliente->concat($pedidosComoVendedor)
+                ->sortByDesc('created_at')
+                ->values();
+
+            $actividad = [
+                'pedidos' => $todosPedidos->take(30),
+                'usuarios_referidos' => $referidos,
+                'resumen' => [
+                    'pedidos_como_cliente' => $pedidosComoCliente->count(),
+                    'pedidos_como_vendedor' => $pedidosComoVendedor->count(),
+                    'total_referidos' => $referidos->count(),
+                    'accesos_ultimo_mes' => $this->contarAccesosUltimoMes($user),
+                    'promedio_accesos_diarios' => $this->promedioAccesosDiarios($user),
+                    'tiempo_sesion_promedio' => $this->tiempoSesionPromedio($user),
+                    'ultimo_acceso' => $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Nunca'
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $actividad
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener actividad del perfil: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar actividad: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Métodos privados auxiliares

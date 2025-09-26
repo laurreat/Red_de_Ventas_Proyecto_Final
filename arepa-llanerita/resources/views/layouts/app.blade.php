@@ -6,6 +6,28 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Arepa la Llanerita') }} @yield('title')</title>
     <meta name="description" content="Sistema de ventas y gestión para Arepa la Llanerita - La mejor arepa de los llanos">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#722f37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arepa Llanerita">
+    <meta name="msapplication-TileColor" content="#722f37">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/icons/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/images/icons/icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/icons/icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/images/icons/icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/images/icons/icon-57x57.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}">
@@ -216,21 +238,160 @@
         function showComingSoon(feature) {
             alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
-        
+
         // Livewire loading states
         document.addEventListener('livewire:navigating', showLoading);
         document.addEventListener('livewire:navigated', hideLoading);
-        
+
         // Global error handling
         window.addEventListener('unhandledrejection', function(event) {
             console.error('Error no manejado:', event.reason);
             showErrorToast('Ha ocurrido un error inesperado');
         });
-        
-        // Coming soon modal
-        function showComingSoon(feature) {
-            alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('[PWA] Service Worker registrado exitosamente:', registration.scope);
+
+                        // Verificar si hay una actualización esperando
+                        if (registration.waiting) {
+                            showUpdateAvailable(registration);
+                        }
+
+                        // Escuchar por nuevas actualizaciones
+                        registration.addEventListener('updatefound', function() {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', function() {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showUpdateAvailable(registration);
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(error) {
+                        console.log('[PWA] Error al registrar Service Worker:', error);
+                    });
+            });
         }
+
+        // PWA Install prompt
+        let deferredPrompt;
+        let installButton = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('[PWA] Prompt de instalación disponible');
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('[PWA] App instalada exitosamente');
+            hideInstallBanner();
+            showSuccessToast('¡App instalada exitosamente!');
+        });
+
+        function showInstallBanner() {
+            // Crear banner de instalación si no existe
+            if (!document.getElementById('install-banner')) {
+                const banner = document.createElement('div');
+                banner.id = 'install-banner';
+                banner.className = 'alert alert-info alert-dismissible position-fixed bottom-0 start-0 m-3';
+                banner.style.zIndex = '9999';
+                banner.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-download me-2"></i>
+                        <div class="flex-grow-1">
+                            <strong>¿Instalar la app?</strong><br>
+                            <small>Instala Arepa la Llanerita para un acceso más rápido</small>
+                        </div>
+                        <div class="ms-3">
+                            <button type="button" class="btn btn-sm btn-primary me-2" onclick="installPWA()">
+                                <i class="bi bi-download me-1"></i>Instalar
+                            </button>
+                            <button type="button" class="btn-close" onclick="hideInstallBanner()"></button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(banner);
+            }
+        }
+
+        function hideInstallBanner() {
+            const banner = document.getElementById('install-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('[PWA] Usuario aceptó instalar');
+                    } else {
+                        console.log('[PWA] Usuario rechazó instalar');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                });
+            }
+        }
+
+        function showUpdateAvailable(registration) {
+            // Mostrar notificación de actualización disponible
+            const updateBanner = document.createElement('div');
+            updateBanner.id = 'update-banner';
+            updateBanner.className = 'alert alert-warning alert-dismissible position-fixed top-0 start-50 translate-middle-x mt-3';
+            updateBanner.style.zIndex = '9999';
+            updateBanner.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    <div class="flex-grow-1">
+                        <strong>¡Actualización disponible!</strong><br>
+                        <small>Hay una nueva versión de la aplicación</small>
+                    </div>
+                    <div class="ms-3">
+                        <button type="button" class="btn btn-sm btn-warning me-2" onclick="updatePWA()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                        </button>
+                        <button type="button" class="btn-close" onclick="hideUpdateBanner()"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(updateBanner);
+
+            window.updateRegistration = registration;
+        }
+
+        function hideUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+
+        function updatePWA() {
+            if (window.updateRegistration && window.updateRegistration.waiting) {
+                window.updateRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+            }
+        }
+
+        // Detectar estado online/offline
+        window.addEventListener('online', function() {
+            showSuccessToast('¡Conexión restaurada!');
+            console.log('[PWA] Volvió la conexión');
+        });
+
+        window.addEventListener('offline', function() {
+            showErrorToast('Sin conexión - Modo offline activado');
+            console.log('[PWA] Perdió la conexión');
+        });
     </script>
     
     @stack('scripts')

@@ -99,17 +99,24 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|string|exists:users,_id',
-            'vendedor_id' => 'nullable|string|exists:users,_id',
-            'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|string',
-            'productos.*.cantidad' => 'required|integer|min:1',
-            'descuento' => 'nullable|numeric|min:0',
-            'notas' => 'nullable|string|max:500',
-            'direccion_entrega' => 'required|string',
-            'telefono_entrega' => 'required|string'
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|string|exists:users,_id',
+                'vendedor_id' => 'nullable|string|exists:users,_id',
+                'productos' => 'required|array|min:1|max:50',
+                'productos.*.id' => 'required|string|exists:productos,_id',
+                'productos.*.cantidad' => 'required|integer|min:1|max:1000',
+                'descuento' => 'nullable|numeric|min:0|max:999999',
+                'notas' => 'nullable|string|max:500',
+                'direccion_entrega' => 'required|string|max:500',
+                'telefono_entrega' => 'required|string|regex:/^[\+]?[0-9\s\-\(\)]+$/'
+            ], [
+                'productos.max' => 'No puedes agregar más de 50 productos por pedido.',
+                'productos.*.cantidad.max' => 'La cantidad máxima por producto es 1000.',
+                'telefono_entrega.regex' => 'El teléfono de entrega no tiene un formato válido.',
+            ]);
+
+            \DB::beginTransaction();
 
         $cliente = User::find($request->user_id);
         $vendedor = $request->vendedor_id ? User::find($request->vendedor_id) : null;
@@ -149,10 +156,20 @@ class PedidoController extends Controller
         foreach ($request->productos as $productoData) {
             $producto = Producto::find($productoData['id']);
             if (!$producto) {
-                continue;
+                throw new \Exception("Producto con ID {$productoData['id']} no encontrado");
+            }
+
+            if (!$producto->activo) {
+                throw new \Exception("El producto '{$producto->nombre}' no está disponible");
             }
 
             $cantidad = $productoData['cantidad'];
+
+            // Verificar stock disponible
+            if ($producto->stock < $cantidad) {
+                throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Stock disponible: {$producto->stock}");
+            }
+
             $precioUnitario = $producto->precio;
             $subtotal = $cantidad * $precioUnitario;
 
@@ -162,7 +179,8 @@ class PedidoController extends Controller
                     '_id' => $producto->_id,
                     'nombre' => $producto->nombre,
                     'precio' => $producto->precio,
-                    'imagen' => $producto->imagen
+                    'imagen' => $producto->imagen,
+                    'categoria' => $producto->categoria ? $producto->categoria->nombre : null
                 ],
                 'cantidad' => $cantidad,
                 'precio_unitario' => $precioUnitario,
@@ -180,10 +198,25 @@ class PedidoController extends Controller
         $pedido->total = $total;
         $pedido->total_final = $total - $pedido->descuento;
 
-        $pedido->save();
+            $pedido->save();
 
-        return redirect()->route('admin.pedidos.index')
-            ->with('success', 'Pedido creado exitosamente.');
+            \DB::commit();
+
+            return redirect()->route('admin.pedidos.index')
+                ->with('success', 'Pedido creado exitosamente.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \DB::rollBack();
+            return redirect()->back()
+                           ->withErrors($e->validator)
+                           ->withInput();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al crear pedido: ' . $e->getMessage());
+            return redirect()->back()
+                           ->with('error', 'Error al crear el pedido: ' . $e->getMessage())
+                           ->withInput();
+        }
     }
 
     private function generarNumeroPedido(): string

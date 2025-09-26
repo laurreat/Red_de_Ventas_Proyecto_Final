@@ -10,17 +10,15 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
                 <div class="card-body text-white p-4">
-                    <div class="d-flex justify-content-between align-items-center"></div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h2 class="mb-1 fw-bold text-white">Administra todos los usuarios del sistema</h2>
-                            </div>
-                            <div>
-                                <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                                    <i class="bi bi-person-plus me-1"></i>
-                                    Nuevo Usuario
-                                </a>
-                            </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Administra todos los usuarios del sistema</h2>
+                        </div>
+                        <div>
+                            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-1"></i>
+                                Nuevo Usuario
+                            </a>
                         </div>
                     </div>
                 </div>

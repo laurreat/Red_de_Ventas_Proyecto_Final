@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sin conexión - Arepa la Llanerita</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+            padding: 2rem;
+        }
+
+        .offline-icon {
+            font-size: 5rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .btn-retry {
+            background-color: #fff;
+            color: #722f37;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-retry:hover {
+            background-color: #f8f9fa;
+            color: #722f37;
+            transform: translateY(-2px);
+        }
+
+        .network-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon pulse">
+            <i class="bi bi-wifi-off"></i>
+        </div>
+
+        <h1 class="display-4 mb-3">Sin Conexión</h1>
+        <p class="lead mb-4">
+            Parece que no tienes conexión a internet.
+            Verifica tu conexión y vuelve a intentar.
+        </p>
+
+        <button class="btn btn-retry btn-lg mb-4" onclick="retryConnection()">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Reintentar
+        </button>
+
+        <div class="network-info">
+            <h6><i class="bi bi-info-circle me-2"></i>Información de Conexión</h6>
+            <p class="mb-2">
+                <strong>Estado:</strong>
+                <span id="connection-status" class="badge bg-danger">Offline</span>
+            </p>
+            <p class="mb-2">
+                <strong>Tipo:</strong>
+                <span id="connection-type">Desconocido</span>
+            </p>
+            <p class="mb-0">
+                <small class="text-muted">
+                    Algunas funciones pueden estar disponibles offline
+                </small>
+            </p>
+        </div>
+
+        <div class="mt-4">
+            <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Tus datos están seguros y se sincronizarán cuando vuelvas a estar online
+            </small>
+        </div>
+    </div>
+
+    <script>
+        function retryConnection() {
+            const btn = document.querySelector('.btn-retry');
+            const originalContent = btn.innerHTML;
+
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+            btn.disabled = true;
+
+            // Intentar recargar después de 2 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+
+        function updateConnectionInfo() {
+            const statusElement = document.getElementById('connection-status');
+            const typeElement = document.getElementById('connection-type');
+
+            if (navigator.onLine) {
+                statusElement.textContent = 'Online';
+                statusElement.className = 'badge bg-success';
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                statusElement.textContent = 'Offline';
+                statusElement.className = 'badge bg-danger';
+            }
+
+            // Obtener información de conexión si está disponible
+            if ('connection' in navigator) {
+                const conn = navigator.connection;
+                typeElement.textContent = conn.effectiveType || 'Desconocido';
+            }
+        }
+
+        // Actualizar información al cargar
+        updateConnectionInfo();
+
+        // Escuchar cambios de conexión
+        window.addEventListener('online', updateConnectionInfo);
+        window.addEventListener('offline', updateConnectionInfo);
+
+        // Verificar conexión cada 5 segundos
+        setInterval(updateConnectionInfo, 5000);
+    </script>
+</body>
+</html>

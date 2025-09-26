@@ -63,29 +63,77 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|string',
-            'stock' => 'required|integer|min:0',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255|min:2',
+                'descripcion' => 'nullable|string|max:1000',
+                'precio' => 'required|numeric|min:0.01|max:999999.99',
+                'categoria_id' => 'required|string|exists:categorias,_id',
+                'stock' => 'required|integer|min:0|max:999999',
+                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120|dimensions:min_width=200,min_height=200,max_width=2000,max_height=2000'
+            ], [
+                'nombre.min' => 'El nombre debe tener al menos 2 caracteres.',
+                'precio.min' => 'El precio debe ser mayor a 0.',
+                'precio.max' => 'El precio no puede ser mayor a $999,999.99.',
+                'categoria_id.exists' => 'La categoría seleccionada no existe.',
+                'stock.max' => 'El stock no puede ser mayor a 999,999 unidades.',
+                'imagen.max' => 'La imagen no puede pesar más de 5MB.',
+                'imagen.dimensions' => 'La imagen debe tener entre 200x200px y 2000x2000px.',
+            ]);
 
-        $data = $request->all();
-        $data['activo'] = $request->has('activo');
+            \DB::beginTransaction();
 
-        // Manejar imagen
-        if ($request->hasFile('imagen')) {
-            $imagen = $request->file('imagen');
-            $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-            $data['imagen'] = $imagen->storeAs('productos', $nombreImagen, 'public');
+            $data = [
+                'nombre' => trim($validated['nombre']),
+                'descripcion' => $validated['descripcion'] ? trim($validated['descripcion']) : null,
+                'precio' => round($validated['precio'], 2),
+                'categoria_id' => $validated['categoria_id'],
+                'stock' => $validated['stock'],
+                'activo' => $request->boolean('activo', true),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            // Manejar imagen con validaciones adicionales
+            if ($request->hasFile('imagen')) {
+                $imagen = $request->file('imagen');
+
+                // Verificar que el archivo sea válido
+                if ($imagen->isValid()) {
+                    // Generar nombre único y seguro
+                    $extension = $imagen->getClientOriginalExtension();
+                    $nombreSeguro = preg_replace('/[^a-zA-Z0-9]/', '_', pathinfo($imagen->getClientOriginalName(), PATHINFO_FILENAME));
+                    $nombreImagen = time() . '_' . $nombreSeguro . '.' . $extension;
+
+                    // Almacenar imagen
+                    $rutaImagen = $imagen->storeAs('productos', $nombreImagen, 'public');
+
+                    if ($rutaImagen) {
+                        $data['imagen'] = $rutaImagen;
+                    } else {
+                        throw new \Exception('Error al almacenar la imagen.');
+                    }
+                }
+            }
+
+            $producto = Producto::create($data);
+
+            \DB::commit();
+
+            return redirect()->route('admin.productos.index')
+                ->with('success', 'Producto creado exitosamente.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                           ->withErrors($e->validator)
+                           ->withInput();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al crear producto: ' . $e->getMessage());
+            return redirect()->back()
+                           ->with('error', 'Error al crear el producto: ' . $e->getMessage())
+                           ->withInput();
         }
-
-        Producto::create($data);
-
-        return redirect()->route('admin.productos.index')
-            ->with('success', 'Producto creado exitosamente.');
     }
 
     public function show(Producto $producto)

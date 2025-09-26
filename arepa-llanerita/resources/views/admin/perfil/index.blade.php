@@ -2,6 +2,10 @@
 
 @section('title', 'Mi Perfil')
 
+@push('styles')
+    <link href="{{ asset('css/admin/perfil.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
@@ -13,11 +17,11 @@
                     <p class="text-muted mb-0">Gestiona tu información personal y configuración</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-info me-2" onclick="descargarDatos()">
+                    <button class="btn btn-perfil btn-perfil-outline me-2" id="descargar-datos-btn">
                         <i class="bi bi-download me-1"></i>
                         Descargar Datos
                     </button>
-                    <button class="btn btn-primary" onclick="verActividad()">
+                    <button class="btn btn-perfil btn-perfil-primary" id="ver-actividad-btn">
                         <i class="bi bi-activity me-1"></i>
                         Ver Actividad
                     </button>
@@ -46,7 +50,7 @@
     <div class="row">
         <!-- Información Personal -->
         <div class="col-xl-8">
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card perfil-card mb-4">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-person me-2"></i>
@@ -75,7 +79,7 @@
                                     @endif
                                     @if($user->avatar)
                                         <button type="button" class="btn btn-sm btn-danger position-absolute"
-                                                style="top: 0; right: 0;" onclick="eliminarAvatar()">
+                                                style="top: 0; right: 0;" id="eliminar-avatar-btn">
                                             <i class="bi bi-x"></i>
                                         </button>
                                     @endif
@@ -210,7 +214,7 @@
         <!-- Panel Lateral -->
         <div class="col-xl-4">
             <!-- Estadísticas del Usuario -->
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card perfil-card mb-4">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-graph-up me-2"></i>
@@ -220,15 +224,21 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6 text-center mb-3">
-                            <div class="border rounded p-3">
-                                <h4 style="color: black;">{{ $stats['pedidos_gestionados'] }}</h4>
-                                <small class="text-muted">Pedidos Gestionados</small>
+                            <div class="stats-card">
+                                <div class="stats-number">{{ $stats['pedidos_como_cliente'] }}</div>
+                                <div class="stats-label">Pedidos como Cliente</div>
                             </div>
                         </div>
                         <div class="col-6 text-center mb-3">
-                            <div class="border rounded p-3">
-                                <h4 style="color: black;">{{ $stats['usuarios_creados'] }}</h4>
-                                <small class="text-muted">Usuarios Creados</small>
+                            <div class="stats-card">
+                                <div class="stats-number">{{ $stats['pedidos_como_vendedor'] }}</div>
+                                <div class="stats-label">Pedidos como Vendedor</div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center mb-3">
+                            <div class="stats-card">
+                                <div class="stats-number">{{ $stats['total_referidos'] }}</div>
+                                <div class="stats-label">Total Referidos</div>
                             </div>
                         </div>
                         <div class="col-12">
@@ -261,7 +271,7 @@
             </div>
 
             <!-- Configuración de Notificaciones -->
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card perfil-card mb-4">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-bell me-2"></i>
@@ -322,7 +332,7 @@
             </div>
 
             <!-- Actividad Reciente -->
-            <div class="card border-0 shadow-sm">
+            <div class="card perfil-card">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-clock-history me-2"></i>
@@ -331,14 +341,19 @@
                 </div>
                 <div class="card-body">
                     @if($actividadReciente['pedidos_recientes']->count() > 0)
-                        <h6 style="color: black;">Últimos Pedidos Gestionados</h6>
+                        <h6 style="color: black;">Últimos Pedidos</h6>
                         @foreach($actividadReciente['pedidos_recientes'] as $pedido)
-                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div class="activity-item d-flex justify-content-between align-items-center">
                             <div>
-                                <small style="color: black;">Pedido #{{ $pedido->_id }}</small><br>
-                                <span class="badge bg-{{ $pedido->estado == 'entregado' ? 'success' : 'warning' }}">
-                                    {{ ucfirst($pedido->estado) }}
+                                <small style="color: black;">
+                                    {{ $pedido->numero_pedido ?? 'Pedido #' . substr((string)$pedido->_id, -6) }}
+                                </small><br>
+                                <span class="badge activity-badge bg-{{ $pedido->estado == 'entregado' ? 'success' : ($pedido->estado == 'cancelado' ? 'danger' : 'warning') }}">
+                                    {{ ucfirst($pedido->estado ?? 'pendiente') }}
                                 </span>
+                                @if($pedido->total_final)
+                                    <small class="text-muted ms-2">${{ number_format($pedido->total_final, 0) }}</small>
+                                @endif
                             </div>
                             <small class="text-muted">{{ $pedido->created_at->diffForHumans() }}</small>
                         </div>
@@ -346,12 +361,23 @@
                     @endif
 
                     @if($actividadReciente['usuarios_recientes']->count() > 0)
-                        <h6 style="color: black;" class="mt-3">Usuarios Creados Recientemente</h6>
+                        <h6 style="color: black;" class="mt-3">Mis Referidos Recientes</h6>
                         @foreach($actividadReciente['usuarios_recientes'] as $usuario)
-                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div class="activity-item d-flex justify-content-between align-items-center">
                             <div>
-                                <small style="color: black;">{{ $usuario->name }}</small><br>
-                                <span class="badge bg-info">{{ ucfirst($usuario->rol) }}</span>
+                                <small style="color: black;">{{ $usuario->name }} {{ $usuario->apellidos }}</small><br>
+                                @php
+                                    $roleColor = [
+                                        'administrador' => 'success',
+                                        'lider' => 'info',
+                                        'vendedor' => 'warning',
+                                        'cliente' => 'secondary'
+                                    ][$usuario->rol] ?? 'secondary';
+                                @endphp
+                                <span class="badge activity-badge bg-{{ $roleColor }}">{{ ucfirst($usuario->rol ?? 'cliente') }}</span>
+                                <span class="badge activity-badge bg-{{ $usuario->activo ? 'success' : 'danger' }} ms-1">
+                                    {{ $usuario->activo ? 'Activo' : 'Inactivo' }}
+                                </span>
                             </div>
                             <small class="text-muted">{{ $usuario->created_at->diffForHumans() }}</small>
                         </div>
@@ -368,19 +394,36 @@
 </div>
 
 <!-- Modal de Actividad -->
-<div class="modal fade" id="activityModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="activityModal" tabindex="-1" aria-labelledby="activityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Mi Actividad Detallada</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-bottom-0" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%); color: white;">
+                <div>
+                    <h5 class="modal-title text-white" id="activityModalLabel">
+                        <i class="bi bi-activity me-2"></i>Mi Actividad Detallada
+                    </h5>
+                    <p class="mb-0 small text-white-50">Últimos 30 días de actividad en el sistema</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body" id="activityContent">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <h6 class="text-muted">Cargando actividad...</h6>
+                    <p class="small text-muted">Obteniendo tus datos más recientes</p>
                 </div>
+            </div>
+            <div class="modal-footer border-top-0" style="background-color: #f8f9fa;">
+                <small class="text-muted me-auto">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Los datos se actualizan en tiempo real
+                </small>
+                <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cerrar
+                </button>
             </div>
         </div>
     </div>
@@ -388,101 +431,274 @@
 
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-function eliminarAvatar() {
-    if(confirm('¿Estás seguro de eliminar tu avatar?')) {
-        fetch('{{ route("admin.perfil.delete-avatar") }}', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                alert('Avatar eliminado exitosamente');
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Perfil JS cargado');
+
+    // Función para descargar datos
+    function descargarDatos() {
+        const btn = document.getElementById('descargar-datos-btn');
+        if (!btn) return;
+
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generando...';
+        btn.disabled = true;
+
+        // Crear link de descarga
+        const a = document.createElement('a');
+        a.href = '{{ route("admin.perfil.download-data") }}';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Feedback visual
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-check me-1"></i>¡Descargado!';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 2000);
+        }, 1000);
     }
-}
 
-function descargarDatos() {
-    window.location.href = '{{ route("admin.perfil.download-data") }}';
-}
+    // Función para ver actividad
+    function verActividad() {
+        console.log('📊 Abriendo modal de actividad');
 
-function verActividad() {
-    fetch('{{ route("admin.perfil.activity") }}')
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                let html = '<div class="row">';
+        const modalElement = document.getElementById('activityModal');
+        if (!modalElement) {
+            console.error('❌ Modal no encontrado');
+            return;
+        }
 
-                // Resumen
-                html += '<div class="col-12 mb-4">';
-                html += '<h6>Resumen de Actividad</h6>';
-                html += '<div class="row">';
-                html += `<div class="col-md-4 text-center">
-                            <div class="border rounded p-2">
-                                <h5>${data.data.resumen.accesos_ultimo_mes}</h5>
-                                <small>Accesos último mes</small>
-                            </div>
-                         </div>`;
-                html += `<div class="col-md-4 text-center">
-                            <div class="border rounded p-2">
-                                <h5>${data.data.resumen.promedio_accesos_diarios}</h5>
-                                <small>Promedio diario</small>
-                            </div>
-                         </div>`;
-                html += `<div class="col-md-4 text-center">
-                            <div class="border rounded p-2">
-                                <h5>${data.data.resumen.tiempo_sesion_promedio}</h5>
-                                <small>Tiempo promedio</small>
-                            </div>
-                         </div>`;
-                html += '</div></div>';
+        // Limpiar modal instance previo
+        const existingModal = bootstrap.Modal.getInstance(modalElement);
+        if (existingModal) {
+            existingModal.dispose();
+        }
 
-                // Actividad reciente
-                if(data.data.pedidos.length > 0) {
-                    html += '<div class="col-md-6"><h6>Pedidos Recientes</h6>';
-                    data.data.pedidos.slice(0, 10).forEach(pedido => {
-                        html += `<div class="d-flex justify-content-between border-bottom pb-1 mb-1">
-                                    <small>Pedido #${pedido._id}</small>
-                                    <small class="text-muted">${new Date(pedido.created_at).toLocaleDateString()}</small>
-                                 </div>`;
-                    });
-                    html += '</div>';
-                }
-
-                if(data.data.usuarios_creados.length > 0) {
-                    html += '<div class="col-md-6"><h6>Usuarios Creados</h6>';
-                    data.data.usuarios_creados.slice(0, 10).forEach(usuario => {
-                        html += `<div class="d-flex justify-content-between border-bottom pb-1 mb-1">
-                                    <small>${usuario.name}</small>
-                                    <small class="text-muted">${new Date(usuario.created_at).toLocaleDateString()}</small>
-                                 </div>`;
-                    });
-                    html += '</div>';
-                }
-
-                html += '</div>';
-                document.getElementById('activityContent').innerHTML = html;
-            } else {
-                document.getElementById('activityContent').innerHTML = '<div class="alert alert-danger">Error al cargar actividad</div>';
-            }
-        })
-        .catch(error => {
-            document.getElementById('activityContent').innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+        // Crear nueva instancia del modal
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: false, // Deshabilitamos el backdrop de Bootstrap para usar el nuestro
+            keyboard: true,
+            focus: true
         });
 
-    new bootstrap.Modal(document.getElementById('activityModal')).show();
-}
+        // Cargar contenido inicial
+        document.getElementById('activityContent').innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3"></div>
+                <h6>Cargando actividad...</h6>
+                <p class="small text-muted">Por favor espera...</p>
+            </div>
+        `;
+
+        // Aplicar glassmorphism y z-index
+        modalElement.style.zIndex = '1055';
+        modalElement.classList.add('fade');
+
+        // Mostrar modal con animación
+        modal.show();
+
+        // Asegurar que el modal esté en primer plano con efecto glassmorphism
+        modalElement.addEventListener('shown.bs.modal', function() {
+            document.body.classList.add('modal-open');
+            modalElement.style.background = 'rgba(0, 0, 0, 0.4)';
+        }, { once: true });
+
+        // Fetch data después de mostrar el modal
+        setTimeout(() => {
+            fetch('{{ route("admin.perfil.activity") }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        mostrarActividad(data.data);
+                    } else {
+                        mostrarError(data.message || 'Error al cargar actividad');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarError('Error de conexión: ' + error.message);
+                });
+        }, 100);
+
+        // Event listener para cerrar el modal
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            document.getElementById('activityContent').innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <h6 class="text-muted">Cargando actividad...</h6>
+                </div>
+            `;
+            // Limpiar efectos glassmorphism
+            modalElement.style.background = '';
+            document.body.classList.remove('modal-open');
+            // Remover backdrop si existe
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            // Restaurar overflow del body
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }, { once: true });
+    }
+
+    // Función para mostrar actividad
+    function mostrarActividad(data) {
+        let html = '<div class="row">';
+
+        // Resumen
+        html += '<div class="col-12 mb-4">';
+        html += '<h6><i class="bi bi-graph-up me-2"></i>Resumen de Actividad</h6>';
+        html += '<div class="row">';
+        html += `<div class="col-md-3 text-center mb-2">
+                    <div class="border rounded p-3">
+                        <h4 class="text-primary">${data.resumen?.pedidos_como_cliente || 0}</h4>
+                        <small class="text-muted">Como Cliente</small>
+                    </div>
+                 </div>`;
+        html += `<div class="col-md-3 text-center mb-2">
+                    <div class="border rounded p-3">
+                        <h4 class="text-primary">${data.resumen?.pedidos_como_vendedor || 0}</h4>
+                        <small class="text-muted">Como Vendedor</small>
+                    </div>
+                 </div>`;
+        html += `<div class="col-md-3 text-center mb-2">
+                    <div class="border rounded p-3">
+                        <h4 class="text-primary">${data.resumen?.total_referidos || 0}</h4>
+                        <small class="text-muted">Referidos</small>
+                    </div>
+                 </div>`;
+        html += `<div class="col-md-3 text-center mb-2">
+                    <div class="border rounded p-3">
+                        <h4 class="text-primary">${data.resumen?.accesos_ultimo_mes || 0}</h4>
+                        <small class="text-muted">Accesos/Mes</small>
+                    </div>
+                 </div>`;
+        html += '</div></div>';
+
+        // Pedidos recientes
+        if (data.pedidos && data.pedidos.length > 0) {
+            html += '<div class="col-md-6">';
+            html += '<h6><i class="bi bi-cart me-2"></i>Pedidos Recientes</h6>';
+            data.pedidos.slice(0, 5).forEach(pedido => {
+                const fecha = new Date(pedido.created_at).toLocaleDateString('es-CO');
+                const badgeClass = pedido.estado === 'entregado' ? 'success' :
+                                 pedido.estado === 'cancelado' ? 'danger' : 'warning';
+                html += `<div class="d-flex justify-content-between border-bottom py-2">
+                            <div>
+                                <small><strong>${pedido.numero_pedido}</strong></small><br>
+                                <span class="badge bg-${badgeClass}">${pedido.estado}</span>
+                                <small class="text-muted ms-2">${pedido.tipo}</small>
+                            </div>
+                            <small class="text-muted">${fecha}</small>
+                         </div>`;
+            });
+            html += '</div>';
+        }
+
+        // Referidos
+        if (data.usuarios_referidos && data.usuarios_referidos.length > 0) {
+            html += '<div class="col-md-6">';
+            html += '<h6><i class="bi bi-people me-2"></i>Referidos Recientes</h6>';
+            data.usuarios_referidos.slice(0, 5).forEach(usuario => {
+                const fecha = new Date(usuario.created_at).toLocaleDateString('es-CO');
+                html += `<div class="d-flex justify-content-between border-bottom py-2">
+                            <div>
+                                <small><strong>${usuario.name} ${usuario.apellidos}</strong></small><br>
+                                <span class="badge bg-info">${usuario.rol}</span>
+                            </div>
+                            <small class="text-muted">${fecha}</small>
+                         </div>`;
+            });
+            html += '</div>';
+        } else {
+            html += '<div class="col-md-6">';
+            html += '<h6><i class="bi bi-people me-2"></i>Referidos</h6>';
+            html += '<p class="text-muted text-center">No tienes referidos recientes</p>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        document.getElementById('activityContent').innerHTML = html;
+    }
+
+    // Función para mostrar errores
+    function mostrarError(mensaje) {
+        document.getElementById('activityContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="alert alert-danger d-inline-block">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Error:</strong> ${mensaje}
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary me-2" onclick="verActividad()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">
+                        <i class="bi bi-x-circle me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Función para cerrar modal
+    function cerrarModal() {
+        const modalElement = document.getElementById('activityModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide();
+        }
+        // Forzar limpieza
+        setTimeout(() => {
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }, 150);
+    }
+
+    // Event listeners
+    const descargarBtn = document.getElementById('descargar-datos-btn');
+    const actividadBtn = document.getElementById('ver-actividad-btn');
+
+    if (descargarBtn) {
+        descargarBtn.addEventListener('click', descargarDatos);
+        console.log('✅ Botón descargar conectado');
+    }
+
+    if (actividadBtn) {
+        actividadBtn.addEventListener('click', verActividad);
+        console.log('✅ Botón actividad conectado');
+    }
+
+    console.log('✅ Todos los event listeners configurados');
+
+    // Asegurar que el modal se pueda cerrar siempre
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('activityModal');
+            if (modal && modal.classList.contains('show')) {
+                cerrarModal();
+            }
+        }
+    });
+
+    // Función global para cerrar modal (disponible desde cualquier lugar)
+    window.cerrarModal = cerrarModal;
+});
 </script>
-@endsection
+@endpush

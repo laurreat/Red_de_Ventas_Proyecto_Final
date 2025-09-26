@@ -1,0 +1,371 @@
+/* Estilos para el perfil del admin */
+
+/* Avatar */
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-title {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.avatar-delete-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Cards del perfil */
+.perfil-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.perfil-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.perfil-header {
+    background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+}
+
+/* Estadísticas */
+.stats-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    background: #e9ecef;
+    border-color: #722f37;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #722f37;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Actividad reciente */
+.activity-item {
+    padding: 0.75rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+    border-left-color: #722f37;
+}
+
+.activity-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Modal personalizado con Glassmorphism */
+#activityModal.modal {
+    z-index: 1055 !important;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#activityModal .modal-backdrop {
+    display: none !important;
+}
+
+.modal.show {
+    display: block !important;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+#activityModal .modal-content {
+    border: none;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+        0 25px 45px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#activityModal .modal-header {
+    background: linear-gradient(135deg, rgba(114, 47, 55, 0.9) 0%, rgba(139, 60, 68, 0.9) 100%);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border: none;
+}
+
+#activityModal .modal-title {
+    font-weight: 600;
+}
+
+#activityModal .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#activityModal .modal-body {
+    padding: 2rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#activityModal .modal-footer {
+    background: rgba(248, 249, 250, 0.8);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0 0 20px 20px;
+}
+
+/* Spinner personalizado */
+.spinner-perfil {
+    width: 3rem;
+    height: 3rem;
+    border: 0.3em solid rgba(114, 47, 55, 0.2);
+    border-top-color: #722f37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Botones de acción */
+.btn-perfil {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+    text-transform: none;
+}
+
+.btn-perfil:hover {
+    transform: translateY(-1px);
+}
+
+.btn-perfil-primary {
+    background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);
+    border: none;
+    color: white;
+}
+
+.btn-perfil-primary:hover {
+    background: linear-gradient(135deg, #8b3c44 0%, #722f37 100%);
+    color: white;
+}
+
+.btn-perfil-outline {
+    border: 2px solid #722f37;
+    color: #722f37;
+    background: transparent;
+}
+
+.btn-perfil-outline:hover {
+    background: #722f37;
+    color: white;
+}
+
+/* Configuración de notificaciones */
+.notification-item {
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: rgba(114, 47, 55, 0.05);
+}
+
+.form-check-input:checked {
+    background-color: #722f37;
+    border-color: #722f37;
+}
+
+/* Loading states */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #activityModal .modal-body {
+        padding: 1rem;
+    }
+
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+
+    .btn-perfil {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Alertas personalizadas */
+.alert-perfil {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+}
+
+.alert-perfil-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border-left: 4px solid #198754;
+}
+
+.alert-perfil-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border-left: 4px solid #dc3545;
+}
+
+.alert-perfil-info {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border-left: 4px solid #0dcaf0;
+}
+
+/* Glassmorphism para elementos del modal */
+#activityModal .border {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px;
+}
+
+#activityModal .alert {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+}
+
+#activityModal .spinner-border {
+    border-color: rgba(114, 47, 55, 0.3);
+    border-top-color: rgba(114, 47, 55, 0.8);
+}
+
+#activityModal .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+#activityModal .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+#activityModal .btn-outline-primary {
+    border-color: rgba(114, 47, 55, 0.5);
+    color: #722f37;
+}
+
+#activityModal .btn-outline-primary:hover {
+    background: rgba(114, 47, 55, 0.8);
+    border-color: rgba(114, 47, 55, 0.8);
+    color: white;
+}
+
+/* Modal Animation */
+#activityModal.modal.fade .modal-dialog {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#activityModal.modal.show .modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Transiciones suaves */
+* {
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover,
+.btn:hover,
+.form-control:focus {
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.15) !important;
+}
