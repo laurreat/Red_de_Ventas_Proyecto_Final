@@ -9,6 +9,7 @@
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#722f37">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Arepa Llanerita">
@@ -28,10 +29,12 @@
     <link rel="apple-touch-icon" sizes="72x72" href="/images/icons/icon-72x72.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/images/icons/icon-60x60.png">
     <link rel="apple-touch-icon" sizes="57x57" href="/images/icons/icon-57x57.png">
+    <link rel="apple-touch-icon" href="/images/icons/icon-180x180.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/icon-16x16.png">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -578,3 +578,68 @@
         font-size: 1rem;
     }
 }
+/* Estilos para botón de mostrar/ocultar contraseña */
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 15;
+    background: none;
+    border: none;
+    color: #6c757d;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-top: -3px;
+}
+
+.password-toggle:hover {
+    color: var(--arepa-primary);
+    background: rgba(114, 47, 55, 0.1);
+    border: none;
+}
+
+.password-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(114, 47, 55, 0.2);
+    background: rgba(114, 47, 55, 0.1);
+    border: none;
+    color: var(--arepa-primary);
+}
+
+.password-toggle i {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+/* Contenedor con posición relativa */
+.form-floating.position-relative {
+    position: relative !important;
+    display: block !important;
+}
+
+/* Ajustar padding del input cuando hay botón toggle */
+.form-floating.position-relative > .form-control {
+    padding-right: 4rem !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Ajustar label cuando hay icono */
+.form-floating.position-relative > label {
+    padding-right: 4rem !important;
+    z-index: 2;
+}
+
+/* Asegurar que el label no se superponga con el icono cuando está activo */
+.form-floating.position-relative > .form-control:focus ~ label,
+.form-floating.position-relative > .form-control:not(:placeholder-shown) ~ label {
+    padding-right: 4rem !important;
+}

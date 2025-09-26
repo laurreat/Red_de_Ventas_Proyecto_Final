@@ -15,7 +15,7 @@
                 <div class="brand-content">
                     <!-- Logo -->
                     <div class="brand-logo">
-                        <i class="bi bi-shop" style="font-size: 4rem; color: white;"></i>
+                        <i class="bi bi-shop fs-1" style="color: white;"></i>
                     </div>
                     
                     <!-- Título -->
@@ -29,23 +29,23 @@
                     <!-- Lista de beneficios -->
                     <ul class="brand-features">
                         <li>
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-people-fill"></i>
                             Sistema de referidos con comisiones
                         </li>
                         <li>
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-basket-fill"></i>
                             Productos frescos y auténticos
                         </li>
                         <li>
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-truck"></i>
                             Entrega a domicilio
                         </li>
                         <li>
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-headset"></i>
                             Soporte personalizado
                         </li>
                         <li>
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-star-fill"></i>
                             Precios especiales para miembros
                         </li>
                     </ul>
@@ -249,14 +249,17 @@
                         <div class="row">
                             <!-- Contraseña -->
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="password" 
-                                           class="form-control @error('password') is-invalid @enderror" 
-                                           id="password" 
-                                           name="password" 
+                                <div class="form-floating position-relative">
+                                    <input type="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           id="password"
+                                           name="password"
                                            placeholder="Contraseña"
                                            required>
                                     <label for="password">Contraseña *</label>
+                                    <button type="button" class="btn password-toggle" onclick="togglePassword('password')">
+                                        <i class="bi bi-eye" id="password-icon"></i>
+                                    </button>
                                     @error('password')
                                         <div class="invalid-feedback">
                                             {{ $message }}
@@ -267,14 +270,17 @@
                             
                             <!-- Confirmar contraseña -->
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="password" 
-                                           class="form-control" 
-                                           id="password_confirmation" 
-                                           name="password_confirmation" 
+                                <div class="form-floating position-relative">
+                                    <input type="password"
+                                           class="form-control"
+                                           id="password_confirmation"
+                                           name="password_confirmation"
                                            placeholder="Confirmar Contraseña"
                                            required>
                                     <label for="password_confirmation">Confirmar Contraseña *</label>
+                                    <button type="button" class="btn password-toggle" onclick="togglePassword('password_confirmation')">
+                                        <i class="bi bi-eye" id="password_confirmation-icon"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -384,7 +390,12 @@
             
             if (!isValid) {
                 e.preventDefault();
-                showToast('Por favor corrige los errores en el formulario', 'error');
+                // Usar función de toast disponible o alerta simple
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast('Por favor corrige los errores en el formulario');
+                } else {
+                    alert('Por favor corrige los errores en el formulario');
+                }
             }
         });
     });
@@ -484,5 +495,21 @@
         }
         e.target.value = value;
     });
+
+    // Función para mostrar/ocultar contraseña
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(inputId + '-icon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
 </script>
 @endpush

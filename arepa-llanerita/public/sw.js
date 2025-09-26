@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arepa-llanerita-v1.0.0';
+const CACHE_NAME = 'arepa-llanerita-v1.0.1';
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -7,6 +7,10 @@ const urlsToCache = [
   '/css/app.css',
   '/js/app.js',
   '/css/app-theme.css',
+  '/images/favicon.svg',
+  '/images/icons/icon-192x192.png',
+  '/images/icons/icon-512x512.png',
+  '/images/icons/icon-144x144.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css'
 ];

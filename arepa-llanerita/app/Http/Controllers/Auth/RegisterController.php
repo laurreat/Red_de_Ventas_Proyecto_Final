@@ -8,7 +8,6 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -64,6 +63,7 @@ class RegisterController extends Controller
             'departamento' => ['required', 'string', 'max:100'],
             'fecha_nacimiento' => ['required', 'date', 'before:today'],
             'codigo_referido_usado' => ['nullable', 'string'],
+            'terms' => ['required', 'accepted'],
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'apellidos.required' => 'Los apellidos son obligatorios.',
@@ -78,6 +78,8 @@ class RegisterController extends Controller
             'departamento.required' => 'El departamento es obligatorio.',
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
             'fecha_nacimiento.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
+            'terms.required' => 'Debes aceptar los términos y condiciones.',
+            'terms.accepted' => 'Debes aceptar los términos y condiciones.',
         ]);
 
         // Validación personalizada para cédula única en MongoDB
@@ -111,11 +113,7 @@ class RegisterController extends Controller
         $this->validator($request->all())->validate();
 
         try {
-            DB::beginTransaction();
-
             $user = $this->create($request->all());
-
-            DB::commit();
 
             $this->guard()->login($user);
 
@@ -124,7 +122,14 @@ class RegisterController extends Controller
                             ->with('success', '¡Registro exitoso! Bienvenido al sistema.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
+
+            Log::error('Error en registro de usuario', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'data' => $request->except('password', 'password_confirmation'),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             // Verificar si es un error de duplicado específico de MongoDB
             if (str_contains($e->getMessage(), 'duplicate') || str_contains($e->getMessage(), 'E11000')) {
@@ -141,14 +146,20 @@ class RegisterController extends Controller
                 }
             }
 
-            Log::error('Error en registro de usuario', [
-                'error' => $e->getMessage(),
-                'data' => $request->except('password', 'password_confirmation'),
-                'trace' => $e->getTraceAsString()
-            ]);
+            // Si es un error de validación, re-lanzarlo
+            if ($e instanceof ValidationException) {
+                throw $e;
+            }
+
+            // Para errores de conexión específicos
+            if (str_contains($e->getMessage(), 'connection') || str_contains($e->getMessage(), 'MongoDB')) {
+                throw ValidationException::withMessages([
+                    'email' => ['Error de conexión con la base de datos. Por favor, intente nuevamente.'],
+                ]);
+            }
 
             throw ValidationException::withMessages([
-                'email' => ['Error al registrar el usuario. Por favor, intente nuevamente.'],
+                'email' => ['Error al registrar el usuario: ' . $e->getMessage()],
             ]);
         }
     }

@@ -35,7 +35,13 @@
       "Bash(git commit:*)",
       "Bash(findstr:*)",
       "Bash(curl:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(for size in 57 60 72 76 96 114 120 128 144 152 180 192 384 512)",
+      "Bash(do cp \"public/images/icons/icon-144x144.svg\" \"public/images/icons/icon-$sizex$size.svg\")",
+      "Bash(done)",
+      "Bash(python:*)",
+      "Bash(for icon in dashboard admin products orders)",
+      "Bash(do cp \"public/images/icons/icon-96x96.png\" \"public/images/icons/$icon-96x96.png\")"
     ],
     "deny": [],
     "ask": []

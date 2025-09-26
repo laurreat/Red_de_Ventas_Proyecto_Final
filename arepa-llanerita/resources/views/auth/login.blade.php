@@ -84,7 +84,7 @@
 
                     <!-- Campo Contraseña -->
                     <div class="form-group">
-                        <div class="form-floating">
+                        <div class="form-floating position-relative">
                             <input id="password" type="password"
                                    class="form-control @error('password') is-invalid @enderror"
                                    name="password" required autocomplete="current-password"
@@ -92,6 +92,9 @@
                             <label for="password">
                                 <i class="bi bi-lock me-2"></i>Contraseña
                             </label>
+                            <button type="button" class="btn password-toggle" onclick="togglePassword('password')">
+                                <i class="bi bi-eye" id="password-icon"></i>
+                            </button>
                             @error('password')
                                 <div class="invalid-feedback">
                                     <strong>{{ $message }}</strong>
@@ -178,6 +181,22 @@
                 brandContent.style.transform = 'translateX(0)';
             }, 100);
         }
+
+        // Función para mostrar/ocultar contraseña
+        window.togglePassword = function(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + '-icon');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        };
     });
 </script>
 @endpush
