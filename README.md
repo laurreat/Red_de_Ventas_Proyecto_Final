@@ -1138,7 +1138,7 @@ Agregar cualquier contexto adicional, capturas de pantalla, etc.
 
 ### Atribución
 
-Desarrollado por **Luis Alberto Urrea Trujillo - Aprendiz SENA** para la gestión eficiente de redes de ventas de productos alimenticios tradicionales venezolanos.
+Desarrollado por **Luis Alberto Urrea Trujillo y Juan Sebastián Lozada Ceballos - Aprendices SENA** para la gestión eficiente de redes de ventas de productos alimenticios tradicionales venezolanos.
 
 ---
 
