@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use App\Traits\HandlesDecimal128;
 
 class Pedido extends Model
 {
+    use HandlesDecimal128;
+
     protected $connection = 'mongodb';
     protected $collection = 'pedidos';
 
@@ -62,10 +65,33 @@ class Pedido extends Model
         return $this->hasMany(Comision::class, 'pedido_id');
     }
 
-    // Métodos para manejar detalles embebidos
-    public function getDetallesAttribute()
+    public function detalles()
     {
-        return $this->attributes['detalles'] ?? [];
+        return $this->hasMany(DetallePedido::class, 'pedido_id');
+    }
+
+    // Métodos para manejar detalles embebidos
+    public function getDetallesEmbebidosAttribute()
+    {
+        return $this->getAttributeFromArray('detalles') ?? [];
+    }
+
+    // Override para manejar tanto embebidos como relación
+    public function getDetallesAttribute($value)
+    {
+        // Priorizar datos embebidos si existen
+        $embebidos = $this->getAttributeFromArray('detalles');
+        if (!empty($embebidos)) {
+            return $embebidos;
+        }
+
+        // Si no hay embebidos y value es una relación, devolverla
+        if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
+            return $value;
+        }
+
+        // Si no hay nada, devolver array vacío
+        return [];
     }
 
     public function setDetallesAttribute($detalles)
@@ -100,7 +126,7 @@ class Pedido extends Model
     {
         $total = 0;
         foreach ($this->detalles as $detalle) {
-            $total += $detalle['subtotal'];
+            $total += $detalle['subtotal'] ?? 0;
         }
 
         $this->total = $total;

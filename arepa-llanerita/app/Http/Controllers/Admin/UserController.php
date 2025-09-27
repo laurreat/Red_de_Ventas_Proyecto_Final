@@ -138,8 +138,6 @@ class UserController extends Controller
                 }
             }
 
-            \DB::beginTransaction();
-
             $usuario = User::create([
                 'name' => $validated['name'],
                 'apellidos' => $validated['apellidos'],
@@ -173,8 +171,6 @@ class UserController extends Controller
             // Limpiar cache de estadísticas
             cache()->forget('user_stats');
 
-            \DB::commit();
-
             return redirect()->route('admin.users.index')
                             ->with('success', 'Usuario creado exitosamente.');
 
@@ -183,7 +179,6 @@ class UserController extends Controller
                            ->withErrors($e->validator)
                            ->withInput();
         } catch (\Exception $e) {
-            \DB::rollBack();
             \Log::error('Error al crear usuario: ' . $e->getMessage());
             return redirect()->back()
                            ->with('error', 'Error al crear el usuario: ' . $e->getMessage())

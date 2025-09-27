@@ -3,6 +3,10 @@
 @section('title', '- Pedidos')
 @section('page-title', 'Gestión de Pedidos')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
@@ -22,24 +26,12 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    {{-- Mensajes flash manejados por AdminAlerts en admin-functions.js --}}
 
     <!-- Estadísticas de Pedidos -->
     <div class="row mb-4">
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
@@ -52,7 +44,7 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.1);">
@@ -65,7 +57,7 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
@@ -78,7 +70,7 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
@@ -91,7 +83,7 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(220, 53, 69, 0.1);">
@@ -104,13 +96,13 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm stats-card">
                 <div class="card-body text-center p-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-currency-dollar fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">${{ number_format($stats['ingresos_mes'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">${{ format_currency($stats['ingresos_mes']) }}</h3>
                     <p class="text-muted mb-0 small">Ingresos del Mes</p>
                 </div>
             </div>
@@ -120,7 +112,7 @@
     <!-- Filtros -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm filters-card">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-funnel me-2"></i>
@@ -219,7 +211,7 @@
                                         <td>
                                             <div>
                                                 <div class="fw-medium">{{ $pedido->numero_pedido }}</div>
-                                                <small class="text-muted">{{ $pedido->detalles->count() }} producto(s)</small>
+                                                <small class="text-muted">{{ count($pedido->detalles_embebidos) }} producto(s)</small>
                                             </div>
                                         </td>
                                         <td>
@@ -240,9 +232,9 @@
                                         </td>
                                         <td>
                                             <div>
-                                                <strong>${{ number_format($pedido->total_final, 0) }}</strong>
+                                                <strong>${{ format_currency($pedido->total_final) }}</strong>
                                                 @if($pedido->descuento > 0)
-                                                    <small class="text-success d-block">-${{ number_format($pedido->descuento, 0) }}</small>
+                                                    <small class="text-success d-block">-${{ format_currency($pedido->descuento) }}</small>
                                                 @endif
                                             </div>
                                         </td>
@@ -279,41 +271,27 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-info"
-                                                        title="Ver Detalles"
-                                                        onclick="pedidosManager.showDetails({{ $pedido->id }})">
+                                                <a href="{{ route('admin.pedidos.show', $pedido) }}"
+                                                   class="btn btn-sm btn-outline-info" title="Ver Detalles">
                                                     <i class="bi bi-eye"></i>
-                                                </button>
+                                                </a>
                                                 @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
                                                     <a href="{{ route('admin.pedidos.edit', $pedido) }}"
                                                        class="btn btn-sm btn-outline-primary" title="Editar">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
                                                 @endif
-                                                <div class="btn-group" role="group">
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                                            data-bs-toggle="dropdown" title="Estado">
-                                                        <i class="bi bi-arrow-repeat"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        @foreach($estados as $valor => $nombre)
-                                                            @if($valor != $pedido->estado)
-                                                                <li>
-                                                                    <a class="dropdown-item" href="#"
-                                                                       onclick="event.preventDefault(); pedidosManager.updateStatus({{ $pedido->id }}, '{{ $valor }}', '{{ $pedido->numero_pedido }}', '{{ $pedido->cliente->name }}', '{{ $pedido->estado }}', '{{ $nombre }}')">
-                                                                        {{ $nombre }}
-                                                                    </a>
-                                                                </li>
-                                                            @endif
-                                                        @endforeach
-                                                    </ul>
-                                                </div>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-secondary"
+                                                        title="Cambiar Estado"
+                                                        onclick="event.preventDefault(); showStatusSelector({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode(ucfirst($pedido->estado)) }}, {{ json_encode($estados) }})">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
                                                 @if($pedido->estado != 'entregado')
                                                     <button type="button"
                                                             class="btn btn-sm btn-outline-danger"
                                                             title="Eliminar"
-                                                            onclick="event.preventDefault(); pedidosManager.confirmDelete({{ $pedido->id }}, '{{ $pedido->numero_pedido }}', '{{ $pedido->cliente->name }}', '${{ number_format($pedido->total_final, 0) }}', '{{ ucfirst($pedido->estado) }}')">
+                                                            onclick="event.preventDefault(); confirmDeletePedido({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode('$' . format_currency($pedido->total_final)) }}, {{ json_encode(ucfirst($pedido->estado)) }})">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 @endif
@@ -362,8 +340,8 @@
     </div>
 </div>
 
-<!-- Incluir modales de pedidos -->
-@include('admin.partials.modals-pedidos')
+<!-- Incluir modales profesionales de pedidos -->
+@include('admin.partials.modals-pedidos-professional')
 
 <script>
 // Variables globales para las rutas
@@ -373,50 +351,56 @@ window.pedidosRoutes = {
     destroy: '{{ route("admin.pedidos.destroy", ":id") }}'
 };
 
-// Inicializar el manager de pedidos cuando el DOM esté listo
+// Inicializar modales profesionales para pedidos
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Pedidos Index JS cargado...');
+    console.log('🚀 Pedidos Index con modales profesionales cargado...');
 
-    // Inicializar el manager si existe
-    if (typeof PedidosManager !== 'undefined') {
-        window.pedidosManager = new PedidosManager();
-        console.log('✅ PedidosManager inicializado correctamente');
-    } else {
-        console.error('❌ PedidosManager no encontrado');
-    }
+    // Test completo de modales y elementos
+    setTimeout(function() {
+        console.log('🔍 Test completo de modales:');
+        console.log('- Bootstrap disponible:', typeof bootstrap !== 'undefined');
+        console.log('- Bootstrap.Modal disponible:', typeof bootstrap?.Modal !== 'undefined');
+        console.log('- confirmDeletePedido disponible:', typeof confirmDeletePedido !== 'undefined');
+        console.log('- showStatusSelector disponible:', typeof showStatusSelector !== 'undefined');
+
+        // Verificar elementos HTML de modales
+        const deleteModal = document.getElementById('deletePedidoConfirmModal');
+        const statusModal = document.getElementById('statusPedidoConfirmModal');
+        const saveModal = document.getElementById('savePedidoConfirmModal');
+        const statusSelectorModal = document.getElementById('statusSelectorPedidoModal');
+
+        console.log('- HTML deleteModal encontrado:', deleteModal !== null);
+        console.log('- HTML statusModal encontrado:', statusModal !== null);
+        console.log('- HTML saveModal encontrado:', saveModal !== null);
+        console.log('- HTML statusSelectorModal encontrado:', statusSelectorModal !== null);
+
+        if (typeof confirmDeletePedido !== 'undefined' && typeof showStatusSelector !== 'undefined') {
+            console.log('✅ Funciones de modales disponibles');
+        } else {
+            console.error('❌ Funciones de modales no encontradas');
+        }
+    }, 500);
 });
-
-// Funciones de fallback (por si el manager no carga)
-setTimeout(function() {
-    if (typeof window.pedidosManager === 'undefined') {
-        console.log('⚠️ Cargando funciones de fallback para pedidos...');
-
-        window.updateStatus = function(pedidoId, estado) {
-            if (confirm('¿Estás seguro de que quieres cambiar el estado de este pedido?')) {
-                document.getElementById('estado-' + pedidoId).value = estado;
-                document.getElementById('status-form-' + pedidoId).submit();
-            }
-        };
-
-        window.confirmDelete = function(pedidoId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
-                document.getElementById('delete-form-' + pedidoId).submit();
-            }
-        };
-
-        // Crear manager básico
-        window.pedidosManager = {
-            updateStatus: function(id, estado, numero, cliente, estadoActual, estadoNuevo) {
-                window.updateStatus(id, estado);
-            },
-            confirmDelete: function(id, numero, cliente, total, estado) {
-                window.confirmDelete(id);
-            },
-            showDetails: function(id) {
-                window.location.href = window.pedidosRoutes.details.replace(':id', id);
-            }
-        };
-    }
-}, 1000);
 </script>
+
+{{-- Cargar scripts específicos para pedidos --}}
+<script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
+
+{{-- Mostrar mensajes flash usando AdminAlerts --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        if (window.adminAlerts) {
+            window.adminAlerts.showSuccess('¡Éxito!', '{{ session('success') }}');
+        }
+    @endif
+
+    @if(session('error'))
+        if (window.adminAlerts) {
+            window.adminAlerts.showError('Error', '{{ session('error') }}');
+        }
+    @endif
+});
+</script>
+
 @endsection

@@ -6,10 +6,11 @@ use MongoDB\Laravel\Eloquent\Model;
 use MongoDB\Laravel\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HandlesDecimal128;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HandlesDecimal128;
 
     protected $connection = 'mongodb';
     protected $collection = 'users';

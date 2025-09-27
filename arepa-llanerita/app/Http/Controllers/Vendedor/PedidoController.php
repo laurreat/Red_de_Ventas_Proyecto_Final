@@ -80,7 +80,6 @@ class PedidoController extends Controller
 
         $vendedor = Auth::user();
 
-        DB::beginTransaction();
         try {
             // Generar número de pedido único
             $numeroPedido = 'PED-' . str_pad(Pedido::count() + 1, 6, '0', STR_PAD_LEFT);
@@ -132,13 +131,10 @@ class PedidoController extends Controller
                 */
             }
 
-            DB::commit();
-
             return redirect()->route('vendedor.pedidos.show', $pedido->id)
                            ->with('success', 'Pedido creado exitosamente.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()
                            ->with('error', 'Error al crear el pedido: ' . $e->getMessage())
                            ->withInput();
@@ -176,7 +172,6 @@ class PedidoController extends Controller
                        ->where('estado', 'pendiente')
                        ->firstOrFail();
 
-        DB::beginTransaction();
         try {
             // Calcular nuevos totales
             $subtotal = 0;
@@ -224,13 +219,10 @@ class PedidoController extends Controller
                 */
             }
 
-            DB::commit();
-
             return redirect()->route('vendedor.pedidos.show', $pedido->id)
                            ->with('success', 'Pedido actualizado exitosamente.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()
                            ->with('error', 'Error al actualizar el pedido: ' . $e->getMessage())
                            ->withInput();
@@ -265,19 +257,15 @@ class PedidoController extends Controller
                        ->where('estado', 'pendiente') // Solo pendientes se pueden eliminar
                        ->firstOrFail();
 
-        DB::beginTransaction();
         try {
             // MongoDB: usar arrays embebidos
             // $pedido->productos()->detach();
             $pedido->delete();
 
-            DB::commit();
-
             return redirect()->route('vendedor.pedidos.index')
                            ->with('success', 'Pedido eliminado exitosamente.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()
                            ->with('error', 'Error al eliminar el pedido: ' . $e->getMessage());
         }

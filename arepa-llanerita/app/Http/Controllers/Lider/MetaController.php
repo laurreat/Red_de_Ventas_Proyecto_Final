@@ -192,7 +192,6 @@ class MetaController extends Controller
 
         $metaTotal = $request->meta_equipo;
 
-        DB::beginTransaction();
         try {
             switch ($request->distribucion) {
                 case 'equitativa':
@@ -237,11 +236,9 @@ class MetaController extends Controller
                     break;
             }
 
-            DB::commit();
             return redirect()->back()->with('success', 'Metas del equipo asignadas correctamente.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()->with('error', 'Error al asignar las metas: ' . $e->getMessage());
         }
     }

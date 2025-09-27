@@ -219,7 +219,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <strong>${{ number_format($pedido->total_final, 0) }}</strong>
+                                            <strong>${{ format_currency($pedido->total_final) }}</strong>
                                         </td>
                                         <td>
                                             @php

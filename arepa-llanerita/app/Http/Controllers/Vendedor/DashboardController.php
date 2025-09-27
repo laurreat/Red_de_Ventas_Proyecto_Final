@@ -29,12 +29,14 @@ class DashboardController extends Controller
                                    ->limit(5)
                                    ->get()
                                    ->map(function ($pedido) {
+                                       $clienteData = $pedido->cliente_data ?? [];
+
                                        return (object)[
                                            'id' => $pedido->_id,
                                            'numero_pedido' => $pedido->numero_pedido,
                                            'cliente' => (object)[
-                                               'name' => $pedido->cliente_data['name'] ?? 'Cliente',
-                                               'email' => $pedido->cliente_data['email'] ?? ''
+                                               'name' => is_array($clienteData) ? ($clienteData['name'] ?? 'Cliente') : 'Cliente',
+                                               'email' => is_array($clienteData) ? ($clienteData['email'] ?? '') : ''
                                            ],
                                            'total_final' => $pedido->total_final,
                                            'estado' => $pedido->estado,
@@ -59,10 +61,10 @@ class DashboardController extends Controller
     private function calcularEstadisticas($vendedor, $inicioMes, $finMes)
     {
         // Ventas del mes
-        $ventasMes = Pedido::where('vendedor_id', $vendedor->_id)
+        $ventasMes = to_float(Pedido::where('vendedor_id', $vendedor->_id)
                           ->whereBetween('created_at', [$inicioMes, $finMes])
                           ->where('estado', '!=', 'cancelado')
-                          ->sum('total_final');
+                          ->sum('total_final'));
 
         // Pedidos del mes
         $pedidosMes = Pedido::where('vendedor_id', $vendedor->_id)
@@ -70,14 +72,14 @@ class DashboardController extends Controller
                            ->count();
 
         // Comisiones ganadas este mes
-        $comisionesGanadas = Comision::where('user_id', $vendedor->_id)
+        $comisionesGanadas = to_float(Comision::where('user_id', $vendedor->_id)
                                    ->whereBetween('created_at', [$inicioMes, $finMes])
-                                   ->sum('monto');
+                                   ->sum('monto'));
 
         // Comisiones disponibles para retiro
-        $comisionesDisponibles = Comision::where('user_id', $vendedor->_id)
+        $comisionesDisponibles = to_float(Comision::where('user_id', $vendedor->_id)
                                         ->where('estado', 'pendiente')
-                                        ->sum('monto');
+                                        ->sum('monto'));
 
         // Referidos totales
         $totalReferidos = User::where('referido_por', $vendedor->_id)->count();
@@ -115,11 +117,11 @@ class DashboardController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $mes = Carbon::now()->subMonths($i);
 
-            $ventas = Pedido::where('vendedor_id', $vendedor->_id)
+            $ventas = to_float(Pedido::where('vendedor_id', $vendedor->_id)
                            ->whereYear('created_at', $mes->year)
                            ->whereMonth('created_at', $mes->month)
                            ->where('estado', '!=', 'cancelado')
-                           ->sum('total_final');
+                           ->sum('total_final'));
 
             $cantidad = Pedido::where('vendedor_id', $vendedor->_id)
                              ->whereYear('created_at', $mes->year)
@@ -150,10 +152,10 @@ class DashboardController extends Controller
             ];
         }
 
-        $ventasActuales = Pedido::where('vendedor_id', $vendedor->_id)
+        $ventasActuales = to_float(Pedido::where('vendedor_id', $vendedor->_id)
                                ->whereBetween('created_at', [$inicioMes, $finMes])
                                ->where('estado', '!=', 'cancelado')
-                               ->sum('total_final');
+                               ->sum('total_final'));
 
         $porcentajeCumplimiento = ($ventasActuales / $metaMensual) * 100;
 

@@ -1,11 +1,11 @@
-const CACHE_NAME = 'arepa-llanerita-v1.0.1';
+const CACHE_NAME = 'arepa-llanerita-v1.0.2';
 const urlsToCache = [
   '/',
   '/dashboard',
   '/admin',
   '/manifest.json',
-  '/css/app.css',
-  '/js/app.js',
+  '/build/assets/app-HM29PgAA.js',
+  '/build/assets/app-CvM0rU53.css',
   '/css/app-theme.css',
   '/images/favicon.svg',
   '/images/icons/icon-192x192.png',

@@ -844,7 +844,7 @@
     <script src="{{ asset('js/admin/admin-functions.js') }}"></script>
 
     {{-- Incluir funciones JavaScript para pedidos --}}
-    <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script>
+    {{-- <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script> --}}
 
     @stack('scripts')
 </body>

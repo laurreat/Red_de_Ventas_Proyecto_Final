@@ -94,18 +94,18 @@ class DashboardController extends Controller
         $inicioMes = Carbon::now()->startOfMonth();
         $equipoIds = collect($equipo)->pluck('_id')->toArray();
 
-        return Pedido::whereIn('vendedor_id', $equipoIds)
+        return to_float(Pedido::whereIn('vendedor_id', $equipoIds)
             ->where('created_at', '>=', $inicioMes)
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
     }
 
     private function calcularComisionesMes($user)
     {
-        return $user->comisiones()
+        return to_float($user->comisiones()
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
-            ->sum('monto');
+            ->sum('monto'));
     }
 
     private function calcularProgresoMeta($user)
@@ -134,7 +134,7 @@ class DashboardController extends Controller
             $ventas[$fecha->format('Y-m-d')] = [
                 'fecha' => $fecha->format('Y-m-d'),
                 'cantidad' => $pedidosDia->count(),
-                'total' => $pedidosDia->sum('total_final')
+                'total' => to_float($pedidosDia->sum('total_final'))
             ];
         }
 
@@ -146,10 +146,10 @@ class DashboardController extends Controller
         $inicioMes = Carbon::now()->startOfMonth();
 
         return $equipoDirecto->map(function ($miembro) use ($inicioMes) {
-            $ventasMes = Pedido::where('vendedor_id', $miembro->_id)
+            $ventasMes = to_float(Pedido::where('vendedor_id', $miembro->_id)
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $pedidosMes = Pedido::where('vendedor_id', $miembro->_id)
                 ->where('created_at', '>=', $inicioMes)
@@ -227,20 +227,22 @@ class DashboardController extends Controller
 
         foreach ($pedidosMes as $pedido) {
             foreach ($pedido->detalles as $detalle) {
-                $productoId = $detalle['producto_id'];
-                $cantidad = $detalle['cantidad'];
+                $productoId = $detalle['producto_id'] ?? null;
+                $cantidad = $detalle['cantidad'] ?? 0;
+
+                if (!$productoId) continue;
 
                 if (!isset($productosVendidos[$productoId])) {
                     $productosVendidos[$productoId] = [
-                        'nombre' => $detalle['producto_data']['nombre'],
-                        'precio' => $detalle['producto_data']['precio'],
+                        'nombre' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
+                        'precio' => $detalle['producto_data']['precio'] ?? 0,
                         'cantidad_vendida' => 0,
                         'total_ventas' => 0
                     ];
                 }
 
                 $productosVendidos[$productoId]['cantidad_vendida'] += $cantidad;
-                $productosVendidos[$productoId]['total_ventas'] += $detalle['subtotal'];
+                $productosVendidos[$productoId]['total_ventas'] += $detalle['subtotal'] ?? 0;
             }
         }
 

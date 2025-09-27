@@ -89,7 +89,6 @@ class ComisionController extends Controller
                            ->with('error', 'No tienes suficientes comisiones disponibles para este retiro.');
         }
 
-        DB::beginTransaction();
         try {
             // Crear solicitud de retiro
             $solicitud = SolicitudRetiro::create([
@@ -128,13 +127,11 @@ class ComisionController extends Controller
             // MongoDB: usar arrays embebidos
             // $solicitud->comisiones()->sync($comisionesAfectadas);
 
-            DB::commit();
 
             return redirect()->back()
                            ->with('success', 'Solicitud de retiro enviada exitosamente. Será procesada en las próximas 24-48 horas.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()
                            ->with('error', 'Error al procesar la solicitud: ' . $e->getMessage());
         }

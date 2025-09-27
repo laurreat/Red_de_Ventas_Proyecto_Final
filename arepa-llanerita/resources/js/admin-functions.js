@@ -60,16 +60,7 @@ window.updatePedidoStatus = function(pedidoId) {
     }
 };
 
-window.confirmDeletePedido = function(pedidoId) {
-    if (confirm('Esta seguro de que quiere eliminar este pedido? Esta accion no se puede deshacer.')) {
-        const form = document.getElementById('delete-form-' + pedidoId);
-        if (form) {
-            form.submit();
-        } else {
-            alert('Error: No se encontro el formulario. Recargue la pagina.');
-        }
-    }
-};
+// confirmDeletePedido function removed - now handled by pedidos-modals.js
 
 // Inicializar cuando el DOM este listo
 document.addEventListener('DOMContentLoaded', function() {

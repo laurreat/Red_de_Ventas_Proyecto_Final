@@ -63,9 +63,9 @@ class PedidoController extends Controller
             'pedidos_pendientes' => Pedido::where('estado', 'pendiente')->count(),
             'pedidos_entregados' => Pedido::where('estado', 'entregado')->count(),
             'pedidos_cancelados' => Pedido::where('estado', 'cancelado')->count(),
-            'ingresos_mes' => Pedido::whereMonth('created_at', now()->month)
+            'ingresos_mes' => to_float(Pedido::whereMonth('created_at', now()->month)
                                    ->whereYear('created_at', now()->year)
-                                   ->sum('total_final'),
+                                   ->sum('total_final')),
         ];
 
         // Para filtros
@@ -120,7 +120,15 @@ class PedidoController extends Controller
         }
 
         // Si no es AJAX, devolver la vista normal
-        return view('admin.pedidos.show', compact('pedido'));
+        // Pre-cargar productos para los detalles embebidos
+        $productosDetalles = [];
+        if (!empty($pedido->detalles_embebidos)) {
+            $productosIds = array_column($pedido->detalles_embebidos, 'producto_id');
+            $productos = \App\Models\Producto::whereIn('_id', $productosIds)->with('categoria')->get();
+            $productosDetalles = $productos->keyBy('_id');
+        }
+
+        return view('admin.pedidos.show', compact('pedido', 'productosDetalles'));
     }
 
     public function create()
@@ -148,8 +156,6 @@ class PedidoController extends Controller
                 'productos.max' => 'No puedes agregar más de 50 productos por pedido.',
                 'productos.*.cantidad.max' => 'La cantidad máxima por producto es 1000.'
             ]);
-
-            \DB::beginTransaction();
 
         $cliente = User::find($request->cliente_id);
         $vendedor = $request->vendedor_id ? User::find($request->vendedor_id) : null;
@@ -233,18 +239,14 @@ class PedidoController extends Controller
 
             $pedido->save();
 
-            \DB::commit();
-
             return redirect()->route('admin.pedidos.index')
                 ->with('success', 'Pedido creado exitosamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \DB::rollBack();
             return redirect()->back()
                            ->withErrors($e->validator)
                            ->withInput();
         } catch (\Exception $e) {
-            \DB::rollBack();
             \Log::error('Error al crear pedido: ' . $e->getMessage());
             return redirect()->back()
                            ->with('error', 'Error al crear el pedido: ' . $e->getMessage())

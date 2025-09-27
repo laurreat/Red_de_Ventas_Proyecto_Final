@@ -111,13 +111,47 @@ class PedidosManager {
         this.showModal('deletePedidoModal');
     }
 
+    // Alias para compatibilidad
+    confirmDelete(pedidoId, numeroPedido, cliente, total, estado) {
+        console.log('🗑️ Confirmando eliminación de pedido (alias):', pedidoId);
+
+        // Si se proporciona información detallada, usarla
+        if (numeroPedido && cliente) {
+            const pedidoInfo = {
+                id: pedidoId,
+                numero_pedido: numeroPedido,
+                cliente: { name: cliente },
+                total_final: total,
+                estado: estado
+            };
+
+            this.updateDeleteModalInfo(pedidoInfo);
+            this.currentPedidoId = pedidoId;
+            this.showModal('deletePedidoModal');
+        } else {
+            // Usar el método estándar
+            this.confirmPedidoDelete(pedidoId);
+        }
+    }
+
     // Función para cambiar estado del pedido
-    updatePedidoStatus(pedidoId, newStatus) {
+    updatePedidoStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo) {
         console.log('🔄 Cambiando estado del pedido:', pedidoId, 'a:', newStatus);
 
-        // Obtener información del pedido
-        const pedidoRow = document.querySelector(`[data-pedido-id="${pedidoId}"]`);
-        let pedidoInfo = this.extractPedidoInfoFromRow(pedidoRow);
+        // Si se proporciona información detallada, usarla
+        let pedidoInfo;
+        if (numeroPedido && cliente) {
+            pedidoInfo = {
+                numero: numeroPedido,
+                cliente: cliente,
+                estado: estadoActual || '',
+                estadoBadgeClass: 'badge bg-secondary' // clase por defecto
+            };
+        } else {
+            // Obtener información del pedido desde la fila de la tabla
+            const pedidoRow = document.querySelector(`[data-pedido-id="${pedidoId}"]`);
+            pedidoInfo = this.extractPedidoInfoFromRow(pedidoRow);
+        }
 
         // Configurar modal según el nuevo estado
         this.configureStatusModal(pedidoInfo, newStatus);
@@ -128,6 +162,11 @@ class PedidosManager {
 
         // Mostrar modal
         this.showModal('updateStatusPedidoModal');
+    }
+
+    // Alias para compatibilidad
+    toggleStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo) {
+        this.updatePedidoStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo);
     }
 
     // Función para confirmar guardado de pedido
@@ -182,12 +221,14 @@ class PedidosManager {
             estado: document.getElementById('deletePedidoEstado')
         };
 
-        if (elementos.numero) elementos.numero.textContent = pedidoInfo.numero;
-        if (elementos.cliente) elementos.cliente.textContent = pedidoInfo.cliente;
-        if (elementos.total) elementos.total.textContent = pedidoInfo.total;
+        if (elementos.numero) elementos.numero.textContent = pedidoInfo.numero_pedido || pedidoInfo.numero || '';
+        if (elementos.cliente) elementos.cliente.textContent = pedidoInfo.cliente?.name || pedidoInfo.cliente || '';
+        if (elementos.total) elementos.total.textContent = '$' + (pedidoInfo.total_final || pedidoInfo.total || '0');
         if (elementos.estado) {
-            elementos.estado.textContent = pedidoInfo.estado;
-            elementos.estado.className = pedidoInfo.estadoBadgeClass;
+            elementos.estado.textContent = pedidoInfo.estado || '';
+            // Aplicar clase de badge según el estado
+            const estadoClass = this.getEstadoBadgeClass(pedidoInfo.estado);
+            elementos.estado.className = estadoClass;
         }
     }
 
@@ -251,40 +292,52 @@ class PedidosManager {
                 badgeClass: 'badge bg-warning'
             },
             'confirmado': {
-                gradient: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)',
+                gradient: 'linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%)',
                 headerIcon: 'bi bi-check-circle me-2 fs-4',
-                bgColor: 'rgba(13, 110, 253, 0.1)',
-                icon: 'bi bi-check-circle text-primary fs-1',
+                bgColor: 'rgba(13, 202, 240, 0.1)',
+                icon: 'bi bi-check-circle text-info fs-1',
                 title: '¿Confirmar pedido?',
                 message: 'El pedido será confirmado y listo para preparar.',
-                btnClass: 'btn btn-primary',
+                btnClass: 'btn btn-info',
                 btnIcon: 'bi bi-check-circle me-1',
                 btnText: 'Confirmar Pedido',
+                badgeClass: 'badge bg-info'
+            },
+            'en_preparacion': {
+                gradient: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)',
+                headerIcon: 'bi bi-tools me-2 fs-4',
+                bgColor: 'rgba(13, 110, 253, 0.1)',
+                icon: 'bi bi-tools text-primary fs-1',
+                title: '¿Marcar como en preparación?',
+                message: 'El pedido está siendo preparado para entrega.',
+                btnClass: 'btn btn-primary',
+                btnIcon: 'bi bi-tools me-1',
+                btnText: 'Marcar En Preparación',
                 badgeClass: 'badge bg-primary'
             },
-            'preparando': {
-                gradient: 'linear-gradient(135deg, #fd7e14 0%, #dc6502 100%)',
-                headerIcon: 'bi bi-tools me-2 fs-4',
-                bgColor: 'rgba(253, 126, 20, 0.1)',
-                icon: 'bi bi-tools text-orange fs-1',
-                title: '¿Marcar como preparando?',
-                message: 'El pedido está siendo preparado para entrega.',
-                btnClass: 'btn btn-warning',
-                btnIcon: 'bi bi-tools me-1',
-                btnText: 'Marcar Preparando',
-                badgeClass: 'badge bg-warning'
+            'listo': {
+                gradient: 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)',
+                headerIcon: 'bi bi-check2-square me-2 fs-4',
+                bgColor: 'rgba(108, 117, 125, 0.1)',
+                icon: 'bi bi-check2-square text-secondary fs-1',
+                title: '¿Marcar como listo?',
+                message: 'El pedido está listo para ser enviado.',
+                btnClass: 'btn btn-secondary',
+                btnIcon: 'bi bi-check2-square me-1',
+                btnText: 'Marcar Listo',
+                badgeClass: 'badge bg-secondary'
             },
-            'enviado': {
-                gradient: 'linear-gradient(135deg, #6f42c1 0%, #59359a 100%)',
+            'en_camino': {
+                gradient: 'linear-gradient(135deg, #722f37 0%, #5c252b 100%)',
                 headerIcon: 'bi bi-truck me-2 fs-4',
-                bgColor: 'rgba(111, 66, 193, 0.1)',
-                icon: 'bi bi-truck text-purple fs-1',
-                title: '¿Marcar como enviado?',
+                bgColor: 'rgba(114, 47, 55, 0.1)',
+                icon: 'bi bi-truck fs-1',
+                title: '¿Marcar como en camino?',
                 message: 'El pedido ha sido enviado y está en camino.',
-                btnClass: 'btn btn-purple',
+                btnClass: 'btn',
                 btnIcon: 'bi bi-truck me-1',
-                btnText: 'Marcar Enviado',
-                badgeClass: 'badge bg-purple'
+                btnText: 'Marcar En Camino',
+                badgeClass: 'badge'
             },
             'entregado': {
                 gradient: 'linear-gradient(135deg, #198754 0%, #146c43 100%)',
@@ -319,12 +372,26 @@ class PedidosManager {
         const names = {
             'pendiente': 'Pendiente',
             'confirmado': 'Confirmado',
-            'preparando': 'Preparando',
-            'enviado': 'Enviado',
+            'en_preparacion': 'En Preparación',
+            'listo': 'Listo',
+            'en_camino': 'En Camino',
             'entregado': 'Entregado',
             'cancelado': 'Cancelado'
         };
         return names[status] || status;
+    }
+
+    getEstadoBadgeClass(estado) {
+        const classes = {
+            'pendiente': 'badge bg-warning',
+            'confirmado': 'badge bg-info',
+            'en_preparacion': 'badge bg-primary',
+            'listo': 'badge bg-secondary',
+            'en_camino': 'badge',
+            'entregado': 'badge bg-success',
+            'cancelado': 'badge bg-danger'
+        };
+        return classes[estado] || 'badge bg-secondary';
     }
 
     loadPedidoDetails(pedidoId) {
@@ -552,12 +619,16 @@ class PedidosManager {
 const pedidosManager = new PedidosManager();
 
 // Funciones globales para mantener compatibilidad
-function confirmDelete(pedidoId) {
-    pedidosManager.confirmPedidoDelete(pedidoId);
+function confirmDelete(pedidoId, numeroPedido, cliente, total, estado) {
+    pedidosManager.confirmDelete(pedidoId, numeroPedido, cliente, total, estado);
 }
 
-function updateStatus(pedidoId, newStatus) {
-    pedidosManager.updatePedidoStatus(pedidoId, newStatus);
+function updateStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo) {
+    pedidosManager.updatePedidoStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo);
+}
+
+function toggleStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo) {
+    pedidosManager.toggleStatus(pedidoId, newStatus, numeroPedido, cliente, estadoActual, nombreNuevo);
 }
 
 function confirmSave(formId, title, message) {
@@ -571,6 +642,7 @@ function showPedidoDetails(pedidoId) {
 // Exponer funciones al scope global
 window.confirmDelete = confirmDelete;
 window.updateStatus = updateStatus;
+window.toggleStatus = toggleStatus;
 window.confirmSave = confirmSave;
 window.showPedidoDetails = showPedidoDetails;
 window.pedidosManager = pedidosManager;

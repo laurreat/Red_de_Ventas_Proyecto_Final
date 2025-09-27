@@ -3,6 +3,10 @@
 @section('title', '- Ver Pedido')
 @section('page-title', 'Detalles del Pedido')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
@@ -100,7 +104,7 @@
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                         <i class="bi bi-box-seam me-2"></i>
-                        Productos ({{ $pedido->detalles->count() }})
+                        Productos ({{ count($pedido->detalles_embebidos) }})
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -116,14 +120,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($pedido->detalles as $detalle)
+                                @foreach($pedido->detalles_embebidos as $detalle)
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
-                                                @if($detalle->producto->imagen)
-                                                    <img src="{{ asset('storage/' . $detalle->producto->imagen) }}"
-                                                         alt="{{ $detalle->producto->nombre }}"
+                                                @php
+                                                    $producto = isset($detalle['producto_id']) ? $productosDetalles->get($detalle['producto_id']) : null;
+                                                @endphp
+                                                @if($producto && $producto->imagen)
+                                                    <img src="{{ asset('storage/' . $producto->imagen) }}"
+                                                         alt="{{ $detalle['producto_nombre'] ?? 'Producto' }}"
                                                          class="rounded"
                                                          style="width: 40px; height: 40px; object-fit: cover;">
                                                 @else
@@ -134,21 +141,25 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <div class="fw-medium">{{ $detalle->producto->nombre }}</div>
+                                                <div class="fw-medium">{{ $detalle['producto_nombre'] ?? 'Producto no disponible' }}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ $detalle->producto->categoria->nombre }}</span>
+                                        @if($producto && $producto->categoria)
+                                            <span class="badge bg-info">{{ $producto->categoria->nombre }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">Sin categoría</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <strong>${{ number_format($detalle->precio_unitario, 0) }}</strong>
+                                        <strong>${{ format_currency($detalle['precio_unitario'] ?? 0) }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary">{{ $detalle->cantidad }}</span>
+                                        <span class="badge bg-primary">{{ $detalle['cantidad'] ?? 0 }}</span>
                                     </td>
                                     <td>
-                                        <strong>${{ number_format($detalle->total, 0) }}</strong>
+                                        <strong>${{ format_currency($detalle['total'] ?? 0) }}</strong>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -229,24 +240,24 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal:</span>
-                        <span>${{ number_format($pedido->subtotal, 0) }}</span>
+                        <span>${{ format_currency($pedido->subtotal) }}</span>
                     </div>
                     @if($pedido->descuento > 0)
                         <div class="d-flex justify-content-between mb-2 text-success">
                             <span>Descuento:</span>
-                            <span>-${{ number_format($pedido->descuento, 0) }}</span>
+                            <span>-${{ format_currency($pedido->descuento) }}</span>
                         </div>
                     @endif
                     <hr>
                     <div class="d-flex justify-content-between mb-3">
                         <strong>Total Final:</strong>
-                        <strong style="color: var(--primary-color); font-size: 1.1em;">${{ number_format($pedido->total_final, 0) }}</strong>
+                        <strong style="color: var(--primary-color); font-size: 1.1em;">${{ format_currency($pedido->total_final) }}</strong>
                     </div>
 
                     <div class="border-top pt-3">
                         <small class="text-muted">
-                            <strong>Productos:</strong> {{ $pedido->detalles->count() }}<br>
-                            <strong>Cantidad total:</strong> {{ $pedido->detalles->sum('cantidad') }}
+                            <strong>Productos:</strong> {{ count($pedido->detalles_embebidos) }}<br>
+                            <strong>Cantidad total:</strong> {{ array_sum(array_column($pedido->detalles_embebidos, 'cantidad')) }}
                         </small>
                     </div>
                 </div>
@@ -281,7 +292,7 @@
                                 @if($valor != $pedido->estado)
                                     <li>
                                         <a class="dropdown-item" href="#"
-                                           onclick="updateStatus('{{ $valor }}')">
+                                           onclick="event.preventDefault(); confirmStatusChangePedido({{ json_encode($pedido->id) }}, {{ json_encode($valor) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode(ucfirst($pedido->estado)) }})">
                                             {{ $nombre }}
                                         </a>
                                     </li>
@@ -292,7 +303,8 @@
 
                     @if($pedido->estado != 'entregado')
                         <div class="d-grid">
-                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="event.preventDefault(); confirmDeletePedido({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode('$' . format_currency($pedido->total_final)) }}, {{ json_encode(ucfirst($pedido->estado)) }})">
                                 <i class="bi bi-trash me-1"></i>
                                 Eliminar Pedido
                             </button>
@@ -300,13 +312,13 @@
                     @endif
 
                     <!-- Formularios ocultos -->
-                    <form id="status-form" action="{{ route('admin.pedidos.update-status', $pedido) }}" method="POST" class="d-none">
+                    <form id="status-form-{{ $pedido->id }}" action="{{ route('admin.pedidos.update-status', $pedido) }}" method="POST" class="d-none">
                         @csrf
                         @method('PATCH')
-                        <input type="hidden" name="estado" id="estado-input">
+                        <input type="hidden" name="estado" id="estado-{{ $pedido->id }}">
                     </form>
 
-                    <form id="delete-form" action="{{ route('admin.pedidos.destroy', $pedido) }}" method="POST" class="d-none">
+                    <form id="delete-form-{{ $pedido->id }}" action="{{ route('admin.pedidos.destroy', $pedido) }}" method="POST" class="d-none">
                         @csrf
                         @method('DELETE')
                     </form>
@@ -316,18 +328,36 @@
     </div>
 </div>
 
-<script>
-function updateStatus(estado) {
-    if (confirm('¿Estás seguro de que quieres cambiar el estado de este pedido?')) {
-        document.getElementById('estado-input').value = estado;
-        document.getElementById('status-form').submit();
-    }
-}
+<!-- Incluir modales profesionales de pedidos -->
+@include('admin.partials.modals-pedidos-professional')
 
-function confirmDelete() {
-    if (confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
-        document.getElementById('delete-form').submit();
-    }
-}
+{{-- Cargar scripts específicos para pedidos --}}
+<script src="{{ asset('js/admin/pedidos-modals.js') }}"></script>
+
+<script>
+// Inicializar modales profesionales para pedidos en vista show
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Pedidos Show con modales profesionales cargado...');
+
+    // Test completo de modales en vista show
+    setTimeout(function() {
+        console.log('🔍 Test modales en vista show:');
+        console.log('- Bootstrap disponible:', typeof bootstrap !== 'undefined');
+        console.log('- confirmDeletePedido disponible:', typeof confirmDeletePedido !== 'undefined');
+        console.log('- confirmStatusChangePedido disponible:', typeof confirmStatusChangePedido !== 'undefined');
+
+        // Verificar elementos HTML
+        const deleteModal = document.getElementById('deletePedidoConfirmModal');
+        const statusModal = document.getElementById('statusPedidoConfirmModal');
+        console.log('- HTML deleteModal encontrado:', deleteModal !== null);
+        console.log('- HTML statusModal encontrado:', statusModal !== null);
+
+        if (typeof confirmDeletePedido !== 'undefined' && typeof confirmStatusChangePedido !== 'undefined') {
+            console.log('✅ Funciones de modales disponibles en vista show');
+        } else {
+            console.error('❌ Funciones de modales no encontradas en vista show');
+        }
+    }, 500);
+});
 </script>
 @endsection

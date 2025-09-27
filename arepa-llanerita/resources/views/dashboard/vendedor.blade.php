@@ -221,10 +221,10 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <strong>${{ number_format($pedido->total_final, 0) }}</strong>
+                                            <strong>${{ format_currency($pedido->total_final) }}</strong>
                                         </td>
                                         <td>
-                                            <span class="text-success fw-bold">${{ number_format($pedido->comision_vendedor ?? 0, 0) }}</span>
+                                            <span class="text-success fw-bold">${{ format_currency($pedido->comision_vendedor ?? 0) }}</span>
                                         </td>
                                         <td>
                                             @php

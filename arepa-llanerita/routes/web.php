@@ -284,3 +284,4 @@ Route::get('/test/validation', function () {
     ]);
     return redirect('/admin/productos')->withErrors($validator);
 });
+Route::get('/test-modals-pedidos', function () { return view('admin.pedidos.test-modals'); });

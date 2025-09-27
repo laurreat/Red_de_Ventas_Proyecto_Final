@@ -46,9 +46,13 @@ class ReporteController extends Controller
         // Estadísticas generales
         $stats = [
             'total_ventas' => $pedidos->count(),
-            'total_ingresos' => $pedidos->sum('total_final'),
+            'total_ingresos' => to_float($pedidos->sum('total_final')),
             'ticket_promedio' => $pedidos->count() > 0 ? $pedidos->avg('total_final') : 0,
-            'productos_vendidos' => $pedidos->flatMap->detalles->sum('cantidad'),
+            'productos_vendidos' => $pedidos->sum(function ($pedido) {
+                return collect($pedido->detalles)->sum(function($detalle) {
+                    return $detalle['cantidad'] ?? 0;
+                });
+            }),
         ];
 
         // Ventas por día
@@ -57,7 +61,7 @@ class ReporteController extends Controller
         })->map(function ($pedidosDia) {
             return [
                 'cantidad' => $pedidosDia->count(),
-                'total' => $pedidosDia->sum('total_final')
+                'total' => to_float($pedidosDia->sum('total_final'))
             ];
         });
 
@@ -70,23 +74,34 @@ class ReporteController extends Controller
                     'vendedor' => $vendedor->name,
                     'email' => $vendedor->email,
                     'cantidad_pedidos' => $pedidosVendedor->count(),
-                    'total_ventas' => $pedidosVendedor->sum('total_final'),
-                    'comision_estimada' => $pedidosVendedor->sum('total_final') * 0.1, // 10% comisión estimada
+                    'total_ventas' => to_float($pedidosVendedor->sum('total_final')),
+                    'comision_estimada' => to_float($pedidosVendedor->sum('total_final')) * 0.1, // 10% comisión estimada
                 ];
             });
 
         // Productos más vendidos
-        $productosMasVendidos = $pedidos->flatMap->detalles
-            ->groupBy('producto_id')
-            ->map(function ($detallesProducto) {
-                $producto = $detallesProducto->first()->producto;
-                return [
-                    'producto' => $producto->nombre,
-                    'categoria' => $producto->categoria->nombre,
-                    'cantidad_vendida' => $detallesProducto->sum('cantidad'),
-                    'total_ingresos' => $detallesProducto->sum('total'),
-                ];
-            })
+        $productosData = [];
+
+        foreach ($pedidos as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'] ?? null;
+                if (!$productoId) continue;
+
+                if (!isset($productosData[$productoId])) {
+                    $productosData[$productoId] = [
+                        'producto' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
+                        'categoria' => $detalle['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría',
+                        'cantidad_vendida' => 0,
+                        'total_ingresos' => 0,
+                    ];
+                }
+
+                $productosData[$productoId]['cantidad_vendida'] += $detalle['cantidad'] ?? 0;
+                $productosData[$productoId]['total_ingresos'] += $detalle['subtotal'] ?? 0;
+            }
+        }
+
+        $productosMasVendidos = collect($productosData)
             ->sortByDesc('cantidad_vendida')
             ->take(10);
 
@@ -98,7 +113,7 @@ class ReporteController extends Controller
                     'cliente' => $cliente->name,
                     'email' => $cliente->email,
                     'cantidad_pedidos' => $pedidosCliente->count(),
-                    'total_gastado' => $pedidosCliente->sum('total_final'),
+                    'total_gastado' => to_float($pedidosCliente->sum('total_final')),
                 ];
             })
             ->sortByDesc('total_gastado')
@@ -108,7 +123,7 @@ class ReporteController extends Controller
         $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {
             return [
                 'cantidad' => $pedidosEstado->count(),
-                'total' => $pedidosEstado->sum('total_final')
+                'total' => to_float($pedidosEstado->sum('total_final'))
             ];
         });
 

@@ -40,7 +40,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.pedidos.update', $pedido) }}" method="POST">
+    <form id="pedido-form" action="{{ route('admin.pedidos.update', $pedido) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -145,7 +145,7 @@
                     <div class="card-header bg-white border-bottom">
                         <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
                             <i class="bi bi-box-seam me-2"></i>
-                            Productos del Pedido ({{ $pedido->detalles->count() }})
+                            Productos del Pedido ({{ count($pedido->detalles_embebidos) }})
                         </h5>
                     </div>
                     <div class="card-body p-0">
@@ -190,13 +190,13 @@
                                             <span class="badge bg-info">{{ $detalle->producto->categoria->nombre }}</span>
                                         </td>
                                         <td>
-                                            <strong>${{ number_format($detalle->precio_unitario, 0) }}</strong>
+                                            <strong>${{ format_currency($detalle->precio_unitario) }}</strong>
                                         </td>
                                         <td>
                                             <span class="badge bg-primary">{{ $detalle->cantidad }}</span>
                                         </td>
                                         <td>
-                                            <strong>${{ number_format($detalle->total, 0) }}</strong>
+                                            <strong>${{ format_currency($detalle->total) }}</strong>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -220,26 +220,26 @@
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Productos:</span>
-                            <span>{{ $pedido->detalles->count() }}</span>
+                            <span>{{ count($pedido->detalles_embebidos) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Cantidad total:</span>
-                            <span>{{ $pedido->detalles->sum('cantidad') }}</span>
+                            <span>{{ array_sum(array_column($pedido->detalles_embebidos, 'cantidad')) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span>${{ number_format($pedido->subtotal, 0) }}</span>
+                            <span>${{ format_currency($pedido->subtotal) }}</span>
                         </div>
                         @if($pedido->descuento > 0)
                             <div class="d-flex justify-content-between mb-2 text-success">
                                 <span>Descuento:</span>
-                                <span>-${{ number_format($pedido->descuento, 0) }}</span>
+                                <span>-${{ format_currency($pedido->descuento) }}</span>
                             </div>
                         @endif
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong>Total Final:</strong>
-                            <strong style="color: var(--primary-color); font-size: 1.1em;">${{ number_format($pedido->total_final, 0) }}</strong>
+                            <strong style="color: var(--primary-color); font-size: 1.1em;">${{ format_currency($pedido->total_final) }}</strong>
                         </div>
 
                         <div class="alert alert-info">
@@ -326,7 +326,8 @@
                 <div class="card border-0 shadow-sm mt-4">
                     <div class="card-body p-4">
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="button" class="btn btn-primary"
+                                    onclick="event.preventDefault(); confirmSavePedido('pedido-form', 'Los cambios del pedido se guardarán y actualizarán en el sistema.')">
                                 <i class="bi bi-check-circle me-1"></i>
                                 Actualizar Pedido
                             </button>
@@ -345,6 +346,12 @@
         </div>
     </form>
 </div>
+
+<!-- Incluir modales profesionales de pedidos -->
+@include('admin.partials.modals-pedidos-professional')
+
+{{-- Cargar scripts específicos para pedidos --}}
+<script src="{{ asset('js/admin/pedidos-modals.js') }}"></script>
 
 <style>
 .timeline {

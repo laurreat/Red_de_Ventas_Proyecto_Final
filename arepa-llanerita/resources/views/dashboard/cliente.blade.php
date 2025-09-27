@@ -412,7 +412,7 @@
                                         <div class="d-flex justify-content-between align-items-end">
                                             <div>
                                                 <small class="text-muted">Total pagado</small>
-                                                <div class="fw-bold text-success fs-5">${{ number_format($pedido->total_final, 0) }}</div>
+                                                <div class="fw-bold text-success fs-5">${{ format_currency($pedido->total_final) }}</div>
                                             </div>
                                             <button class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Detalles del Pedido')">
                                                 Ver detalles
