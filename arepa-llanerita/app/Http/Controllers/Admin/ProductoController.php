@@ -68,27 +68,53 @@ class ProductoController extends Controller
                 'nombre' => 'required|string|max:255|min:2',
                 'descripcion' => 'nullable|string|max:1000',
                 'precio' => 'required|numeric|min:0.01|max:999999.99',
-                'categoria_id' => 'required|string|exists:categorias,_id',
+                'categoria_id' => 'required|string',
                 'stock' => 'required|integer|min:0|max:999999',
                 'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120|dimensions:min_width=200,min_height=200,max_width=2000,max_height=2000'
             ], [
+                'nombre.required' => 'El nombre del producto es obligatorio.',
                 'nombre.min' => 'El nombre debe tener al menos 2 caracteres.',
+                'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+                'descripcion.max' => 'La descripción no puede tener más de 1000 caracteres.',
+                'precio.required' => 'El precio es obligatorio.',
+                'precio.numeric' => 'El precio debe ser un número válido.',
                 'precio.min' => 'El precio debe ser mayor a 0.',
                 'precio.max' => 'El precio no puede ser mayor a $999,999.99.',
-                'categoria_id.exists' => 'La categoría seleccionada no existe.',
+                'categoria_id.required' => 'Debe seleccionar una categoría.',
+                'stock.required' => 'El stock es obligatorio.',
+                'stock.integer' => 'El stock debe ser un número entero.',
+                'stock.min' => 'El stock no puede ser negativo.',
                 'stock.max' => 'El stock no puede ser mayor a 999,999 unidades.',
+                'imagen.image' => 'El archivo debe ser una imagen válida.',
+                'imagen.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
                 'imagen.max' => 'La imagen no puede pesar más de 5MB.',
                 'imagen.dimensions' => 'La imagen debe tener entre 200x200px y 2000x2000px.',
             ]);
 
-            \DB::beginTransaction();
+            // Validar que la categoría existe
+            $categoria = Categoria::find($validated['categoria_id']);
+            if (!$categoria) {
+                return redirect()->back()
+                    ->withErrors(['categoria_id' => 'La categoría seleccionada no existe.'])
+                    ->withInput();
+            }
+
+            // MongoDB standalone no soporta transacciones, comentamos por ahora
+            // \DB::beginTransaction();
 
             $data = [
                 'nombre' => trim($validated['nombre']),
                 'descripcion' => $validated['descripcion'] ? trim($validated['descripcion']) : null,
                 'precio' => round($validated['precio'], 2),
                 'categoria_id' => $validated['categoria_id'],
+                'categoria_data' => [
+                    '_id' => $categoria->_id,
+                    'nombre' => $categoria->nombre,
+                    'slug' => $categoria->slug ?? null,
+                    'activo' => $categoria->activo ?? true
+                ],
                 'stock' => $validated['stock'],
+                'stock_minimo' => 5, // Stock mínimo por defecto
                 'activo' => $request->boolean('activo', true),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -118,20 +144,30 @@ class ProductoController extends Controller
 
             $producto = Producto::create($data);
 
-            \DB::commit();
+            // \DB::commit();
 
             return redirect()->route('admin.productos.index')
-                ->with('success', 'Producto creado exitosamente.');
+                ->with('success', "Producto '{$producto->nombre}' creado exitosamente y agregado al catálogo.");
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                            ->withErrors($e->validator)
                            ->withInput();
         } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Error al crear producto: ' . $e->getMessage());
+            // \DB::rollBack();
+            \Log::error('Error al crear producto: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'request_data' => $request->all(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            $errorMessage = 'Ha ocurrido un error inesperado al crear el producto.';
+            if (app()->environment('local')) {
+                $errorMessage .= ' Detalles: ' . $e->getMessage();
+            }
+
             return redirect()->back()
-                           ->with('error', 'Error al crear el producto: ' . $e->getMessage())
+                           ->with('error', $errorMessage)
                            ->withInput();
         }
     }
@@ -150,55 +186,176 @@ class ProductoController extends Controller
 
     public function update(Request $request, Producto $producto)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
-            'categoria_id' => 'required|string',
-            'stock' => 'required|integer|min:0',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255|min:2',
+                'descripcion' => 'nullable|string|max:1000',
+                'precio' => 'required|numeric|min:0.01|max:999999.99',
+                'categoria_id' => 'required|string',
+                'stock' => 'required|integer|min:0|max:999999',
+                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120|dimensions:min_width=200,min_height=200,max_width=2000,max_height=2000'
+            ], [
+                'nombre.required' => 'El nombre del producto es obligatorio.',
+                'nombre.min' => 'El nombre debe tener al menos 2 caracteres.',
+                'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+                'descripcion.max' => 'La descripción no puede tener más de 1000 caracteres.',
+                'precio.required' => 'El precio es obligatorio.',
+                'precio.numeric' => 'El precio debe ser un número válido.',
+                'precio.min' => 'El precio debe ser mayor a 0.',
+                'precio.max' => 'El precio no puede ser mayor a $999,999.99.',
+                'categoria_id.required' => 'Debe seleccionar una categoría.',
+                'stock.required' => 'El stock es obligatorio.',
+                'stock.integer' => 'El stock debe ser un número entero.',
+                'stock.min' => 'El stock no puede ser negativo.',
+                'stock.max' => 'El stock no puede ser mayor a 999,999 unidades.',
+                'imagen.image' => 'El archivo debe ser una imagen válida.',
+                'imagen.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
+                'imagen.max' => 'La imagen no puede pesar más de 5MB.',
+                'imagen.dimensions' => 'La imagen debe tener entre 200x200px y 2000x2000px.',
+            ]);
 
-        $data = $request->all();
-        $data['activo'] = $request->has('activo');
-
-        // Manejar imagen
-        if ($request->hasFile('imagen')) {
-            // Eliminar imagen anterior si existe
-            if ($producto->imagen) {
-                Storage::disk('public')->delete($producto->imagen);
+            // Validar que la categoría existe
+            $categoria = Categoria::find($validated['categoria_id']);
+            if (!$categoria) {
+                return redirect()->back()
+                    ->withErrors(['categoria_id' => 'La categoría seleccionada no existe.'])
+                    ->withInput();
             }
 
-            $imagen = $request->file('imagen');
-            $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
-            $data['imagen'] = $imagen->storeAs('productos', $nombreImagen, 'public');
+            $data = [
+                'nombre' => trim($validated['nombre']),
+                'descripcion' => $validated['descripcion'] ? trim($validated['descripcion']) : null,
+                'precio' => round($validated['precio'], 2),
+                'categoria_id' => $validated['categoria_id'],
+                'categoria_data' => [
+                    '_id' => $categoria->_id,
+                    'nombre' => $categoria->nombre,
+                    'slug' => $categoria->slug ?? null,
+                    'activo' => $categoria->activo ?? true
+                ],
+                'stock' => $validated['stock'],
+                'activo' => $request->boolean('activo', true),
+                'updated_at' => now(),
+            ];
+
+            // Manejar imagen
+            if ($request->hasFile('imagen')) {
+                $imagen = $request->file('imagen');
+
+                // Verificar que el archivo sea válido
+                if ($imagen->isValid()) {
+                    // Eliminar imagen anterior si existe
+                    if ($producto->imagen) {
+                        Storage::disk('public')->delete($producto->imagen);
+                    }
+
+                    // Generar nombre único y seguro
+                    $extension = $imagen->getClientOriginalExtension();
+                    $nombreSeguro = preg_replace('/[^a-zA-Z0-9]/', '_', pathinfo($imagen->getClientOriginalName(), PATHINFO_FILENAME));
+                    $nombreImagen = time() . '_' . $nombreSeguro . '.' . $extension;
+
+                    // Almacenar imagen
+                    $rutaImagen = $imagen->storeAs('productos', $nombreImagen, 'public');
+
+                    if ($rutaImagen) {
+                        $data['imagen'] = $rutaImagen;
+                    } else {
+                        throw new \Exception('Error al almacenar la imagen.');
+                    }
+                }
+            }
+
+            $producto->update($data);
+
+            return redirect()->route('admin.productos.index')
+                ->with('success', "Producto '{$producto->nombre}' actualizado exitosamente.");
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                           ->withErrors($e->validator)
+                           ->withInput();
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar producto: ' . $e->getMessage(), [
+                'producto_id' => $producto->_id,
+                'user_id' => auth()->id(),
+                'request_data' => $request->all(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            $errorMessage = 'Ha ocurrido un error inesperado al actualizar el producto.';
+            if (app()->environment('local')) {
+                $errorMessage .= ' Detalles: ' . $e->getMessage();
+            }
+
+            return redirect()->back()
+                           ->with('error', $errorMessage)
+                           ->withInput();
         }
-
-        $producto->update($data);
-
-        return redirect()->route('admin.productos.index')
-            ->with('success', 'Producto actualizado exitosamente.');
     }
 
     public function destroy(Producto $producto)
     {
-        // Eliminar imagen si existe
-        if ($producto->imagen) {
-            Storage::disk('public')->delete($producto->imagen);
+        try {
+            $nombreProducto = $producto->nombre;
+
+            // \DB::beginTransaction();
+
+            // Verificar si el producto tiene pedidos asociados
+            $tienePedidos = $producto->detallesPedidos()->count() > 0;
+
+            if ($tienePedidos) {
+                return redirect()->back()
+                    ->with('warning', "No se puede eliminar '{$nombreProducto}' porque tiene pedidos asociados. Puede desactivarlo en su lugar.");
+            }
+
+            // Eliminar imagen si existe
+            if ($producto->imagen) {
+                Storage::disk('public')->delete($producto->imagen);
+            }
+
+            $producto->delete();
+
+            // \DB::commit();
+
+            return redirect()->route('admin.productos.index')
+                ->with('success', "Producto '{$nombreProducto}' eliminado exitosamente del sistema.");
+
+        } catch (\Exception $e) {
+            // \DB::rollBack();
+            \Log::error('Error al eliminar producto: ' . $e->getMessage(), [
+                'producto_id' => $producto->_id,
+                'user_id' => auth()->id(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el producto. Por favor, intente nuevamente.');
         }
-
-        $producto->delete();
-
-        return redirect()->route('admin.productos.index')
-            ->with('success', 'Producto eliminado exitosamente.');
     }
 
     public function toggleStatus(Producto $producto)
     {
-        $producto->update(['activo' => !$producto->activo]);
+        try {
+            $nuevoEstado = !$producto->activo;
+            $producto->update(['activo' => $nuevoEstado]);
 
-        $estado = $producto->activo ? 'activado' : 'desactivado';
-        return redirect()->back()
-            ->with('success', "Producto {$estado} exitosamente.");
+            $accion = $nuevoEstado ? 'activado' : 'desactivado';
+            $mensaje = $nuevoEstado
+                ? "Producto '{$producto->nombre}' activado. Ahora está visible en el catálogo."
+                : "Producto '{$producto->nombre}' desactivado. Ya no aparece en el catálogo.";
+
+            return redirect()->back()
+                ->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al cambiar estado del producto: ' . $e->getMessage(), [
+                'producto_id' => $producto->_id,
+                'user_id' => auth()->id(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Error al cambiar el estado del producto. Por favor, intente nuevamente.');
+        }
     }
 }

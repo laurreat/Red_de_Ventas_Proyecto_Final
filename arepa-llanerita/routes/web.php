@@ -51,6 +51,8 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Pedidos
         Route::resource('admin/pedidos', \App\Http\Controllers\Admin\PedidoController::class, ['as' => 'admin']);
         Route::patch('admin/pedidos/{pedido}/status', [\App\Http\Controllers\Admin\PedidoController::class, 'updateStatus'])->name('admin.pedidos.update-status');
+        Route::post('admin/pedidos/search-cliente', [\App\Http\Controllers\Admin\PedidoController::class, 'searchCliente'])->name('admin.pedidos.search-cliente');
+        Route::post('admin/pedidos/search-vendedor', [\App\Http\Controllers\Admin\PedidoController::class, 'searchVendedor'])->name('admin.pedidos.search-vendedor');
 
         // Roles y Permisos
         Route::resource('admin/roles', \App\Http\Controllers\Admin\RoleController::class, ['as' => 'admin']);
@@ -259,4 +261,26 @@ Route::middleware(['auth', 'role'])->group(function () {
 // Redireccionar /home al dashboard
 Route::get('/home', function () {
     return redirect()->route('dashboard');
+});
+
+// Rutas de prueba para verificar alertas (TEMPORAL)
+Route::get('/test/success', function () {
+    return redirect('/admin/productos')->with('success', 'Mensaje de éxito de prueba - ¡Las alertas funcionan!');
+});
+
+Route::get('/test/error', function () {
+    return redirect('/admin/productos')->with('error', 'Mensaje de error de prueba - ¡Las alertas funcionan!');
+});
+
+Route::get('/test/warning', function () {
+    return redirect('/admin/productos')->with('warning', 'Mensaje de advertencia de prueba - ¡Las alertas funcionan!');
+});
+
+Route::get('/test/validation', function () {
+    $validator = \Validator::make([], [
+        'nombre' => 'required',
+        'email' => 'required|email',
+        'precio' => 'required|numeric'
+    ]);
+    return redirect('/admin/productos')->withErrors($validator);
 });

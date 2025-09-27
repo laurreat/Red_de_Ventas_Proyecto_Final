@@ -37,40 +37,82 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="row">
+                            <!-- Búsqueda de Cliente por Cédula -->
                             <div class="col-md-6 mb-3">
-                                <label for="cliente_id" class="form-label">Cliente *</label>
-                                <select class="form-select @error('cliente_id') is-invalid @enderror"
-                                        id="cliente_id"
-                                        name="cliente_id"
-                                        required>
-                                    <option value="">Seleccionar cliente</option>
-                                    @foreach($clientes as $cliente)
-                                        <option value="{{ $cliente->id }}"
-                                                {{ old('cliente_id') == $cliente->id ? 'selected' : '' }}>
-                                            {{ $cliente->name }} - {{ $cliente->email }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label for="cliente_cedula" class="form-label">Cédula del Cliente *</label>
+                                <div class="input-group">
+                                    <input type="text"
+                                           class="form-control @error('cliente_id') is-invalid @enderror"
+                                           id="cliente_cedula"
+                                           placeholder="Ingrese cédula del cliente"
+                                           autocomplete="off">
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-buscar-cliente">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Información del cliente encontrado -->
+                                <div id="cliente-info" class="mt-2" style="display: none;">
+                                    <div class="card border-success">
+                                        <div class="card-body p-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-person-check text-success me-2"></i>
+                                                <div>
+                                                    <small class="text-success fw-bold">Cliente encontrado:</small>
+                                                    <div class="small" id="cliente-nombre"></div>
+                                                    <div class="small text-muted" id="cliente-email"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campo oculto para el ID del cliente -->
+                                <input type="hidden" id="cliente_id" name="cliente_id" value="{{ old('cliente_id') }}">
+
                                 @error('cliente_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
+                            <!-- Búsqueda de Vendedor por Cédula -->
                             <div class="col-md-6 mb-3">
-                                <label for="vendedor_id" class="form-label">Vendedor</label>
-                                <select class="form-select @error('vendedor_id') is-invalid @enderror"
-                                        id="vendedor_id"
-                                        name="vendedor_id">
-                                    <option value="">Sin vendedor asignado</option>
-                                    @foreach($vendedores as $vendedor)
-                                        <option value="{{ $vendedor->id }}"
-                                                {{ old('vendedor_id') == $vendedor->id ? 'selected' : '' }}>
-                                            {{ $vendedor->name }} - {{ $vendedor->email }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label for="vendedor_cedula" class="form-label">Cédula del Vendedor (Opcional)</label>
+                                <div class="input-group">
+                                    <input type="text"
+                                           class="form-control @error('vendedor_id') is-invalid @enderror"
+                                           id="vendedor_cedula"
+                                           placeholder="Ingrese cédula del vendedor"
+                                           autocomplete="off">
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-buscar-vendedor">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn btn-outline-warning" type="button" id="btn-limpiar-vendedor" style="display: none;">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Información del vendedor encontrado -->
+                                <div id="vendedor-info" class="mt-2" style="display: none;">
+                                    <div class="card border-info">
+                                        <div class="card-body p-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-person-badge text-info me-2"></i>
+                                                <div>
+                                                    <small class="text-info fw-bold">Vendedor encontrado:</small>
+                                                    <div class="small" id="vendedor-nombre"></div>
+                                                    <div class="small text-muted" id="vendedor-email"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campo oculto para el ID del vendedor -->
+                                <input type="hidden" id="vendedor_id" name="vendedor_id" value="{{ old('vendedor_id') }}">
+
                                 @error('vendedor_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -212,8 +254,189 @@
 </div>
 
 <script>
+// Variables globales
 let productosSeleccionados = [];
 let contadorProductos = 0;
+
+// URLs para las búsquedas AJAX
+const searchUrls = {
+    cliente: '{{ route("admin.pedidos.search-cliente") }}',
+    vendedor: '{{ route("admin.pedidos.search-vendedor") }}'
+};
+
+// Funciones de búsqueda por cédula
+async function buscarCliente() {
+    const cedula = document.getElementById('cliente_cedula').value.trim();
+    const btnBuscar = document.getElementById('btn-buscar-cliente');
+    const clienteInfo = document.getElementById('cliente-info');
+
+    if (!cedula) {
+        mostrarToast('Por favor ingrese una cédula', 'warning');
+        return;
+    }
+
+    // Mostrar loading
+    btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    btnBuscar.disabled = true;
+
+    try {
+        const response = await fetch(searchUrls.cliente, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ cedula: cedula })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Cliente encontrado
+            document.getElementById('cliente_id').value = data.user.id;
+            document.getElementById('cliente-nombre').textContent = data.user.name;
+            document.getElementById('cliente-email').textContent = data.user.email;
+            clienteInfo.style.display = 'block';
+            mostrarToast('Cliente encontrado correctamente', 'success');
+        } else {
+            // Cliente no encontrado
+            document.getElementById('cliente_id').value = '';
+            clienteInfo.style.display = 'none';
+            mostrarToast(data.message || 'Cliente no encontrado', 'error');
+        }
+    } catch (error) {
+        console.error('Error al buscar cliente:', error);
+        mostrarToast('Error al buscar cliente', 'error');
+    } finally {
+        btnBuscar.innerHTML = '<i class="bi bi-search"></i>';
+        btnBuscar.disabled = false;
+    }
+}
+
+async function buscarVendedor() {
+    const cedula = document.getElementById('vendedor_cedula').value.trim();
+    const btnBuscar = document.getElementById('btn-buscar-vendedor');
+    const btnLimpiar = document.getElementById('btn-limpiar-vendedor');
+    const vendedorInfo = document.getElementById('vendedor-info');
+
+    if (!cedula) {
+        mostrarToast('Por favor ingrese una cédula', 'warning');
+        return;
+    }
+
+    // Mostrar loading
+    btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    btnBuscar.disabled = true;
+
+    try {
+        const response = await fetch(searchUrls.vendedor, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ cedula: cedula })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Vendedor encontrado
+            document.getElementById('vendedor_id').value = data.user.id;
+            document.getElementById('vendedor-nombre').textContent = data.user.name;
+            document.getElementById('vendedor-email').textContent = data.user.email;
+            vendedorInfo.style.display = 'block';
+            btnLimpiar.style.display = 'inline-block';
+            mostrarToast('Vendedor encontrado correctamente', 'success');
+        } else {
+            // Vendedor no encontrado
+            limpiarVendedor();
+            mostrarToast(data.message || 'Vendedor no encontrado', 'error');
+        }
+    } catch (error) {
+        console.error('Error al buscar vendedor:', error);
+        mostrarToast('Error al buscar vendedor', 'error');
+    } finally {
+        btnBuscar.innerHTML = '<i class="bi bi-search"></i>';
+        btnBuscar.disabled = false;
+    }
+}
+
+function limpiarVendedor() {
+    document.getElementById('vendedor_cedula').value = '';
+    document.getElementById('vendedor_id').value = '';
+    document.getElementById('vendedor-info').style.display = 'none';
+    document.getElementById('btn-limpiar-vendedor').style.display = 'none';
+}
+
+// Función para mostrar toasts
+function mostrarToast(mensaje, tipo = 'info') {
+    const toastId = 'toast_' + Date.now();
+    const colorClass = {
+        'success': 'text-bg-success',
+        'error': 'text-bg-danger',
+        'warning': 'text-bg-warning',
+        'info': 'text-bg-info'
+    }[tipo] || 'text-bg-info';
+
+    const toastHtml = `
+        <div class="toast ${colorClass}" role="alert" id="${toastId}" style="z-index: 9999;">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto">Pedidos</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${mensaje}</div>
+        </div>
+    `;
+
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+    }
+
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
+}
+
+// Event listeners para búsquedas
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda de cliente
+    document.getElementById('btn-buscar-cliente').addEventListener('click', buscarCliente);
+    document.getElementById('cliente_cedula').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarCliente();
+        }
+    });
+
+    // Búsqueda de vendedor
+    document.getElementById('btn-buscar-vendedor').addEventListener('click', buscarVendedor);
+    document.getElementById('vendedor_cedula').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarVendedor();
+        }
+    });
+
+    // Limpiar vendedor
+    document.getElementById('btn-limpiar-vendedor').addEventListener('click', limpiarVendedor);
+
+    // Inicializar cálculos
+    calcularTotal();
+});
+
+// === FUNCIONES EXISTENTES DE PRODUCTOS ===
 
 function agregarProducto() {
     const selector = document.getElementById('producto_selector');
@@ -221,7 +444,7 @@ function agregarProducto() {
     const cantidad = parseInt(cantidadInput.value);
 
     if (!selector.value || cantidad <= 0) {
-        alert('Selecciona un producto y una cantidad válida');
+        mostrarToast('Selecciona un producto y una cantidad válida', 'warning');
         return;
     }
 
@@ -236,7 +459,7 @@ function agregarProducto() {
     };
 
     if (cantidad > producto.stock) {
-        alert('La cantidad no puede ser mayor al stock disponible (' + producto.stock + ')');
+        mostrarToast('La cantidad no puede ser mayor al stock disponible (' + producto.stock + ')', 'error');
         return;
     }
 
@@ -245,7 +468,7 @@ function agregarProducto() {
     if (existeIndex !== -1) {
         productosSeleccionados[existeIndex].cantidad += cantidad;
         if (productosSeleccionados[existeIndex].cantidad > producto.stock) {
-            alert('La cantidad total no puede ser mayor al stock disponible (' + producto.stock + ')');
+            mostrarToast('La cantidad total no puede ser mayor al stock disponible (' + producto.stock + ')', 'error');
             productosSeleccionados[existeIndex].cantidad -= cantidad;
             return;
         }
@@ -274,7 +497,7 @@ function cambiarCantidad(index, nuevaCantidad) {
     }
 
     if (nuevaCantidad > productosSeleccionados[index].stock) {
-        alert('La cantidad no puede ser mayor al stock disponible (' + productosSeleccionados[index].stock + ')');
+        mostrarToast('La cantidad no puede ser mayor al stock disponible (' + productosSeleccionados[index].stock + ')', 'error');
         return;
     }
 
@@ -352,12 +575,7 @@ function calcularTotal() {
 
     // Habilitar/deshabilitar botón crear
     const btnCrear = document.getElementById('btn-crear');
-    btnCrear.disabled = productosSeleccionados.length === 0;
+    btnCrear.disabled = productosSeleccionados.length === 0 || !document.getElementById('cliente_id').value;
 }
-
-// Inicializar cálculos
-document.addEventListener('DOMContentLoaded', function() {
-    calcularTotal();
-});
 </script>
 @endsection

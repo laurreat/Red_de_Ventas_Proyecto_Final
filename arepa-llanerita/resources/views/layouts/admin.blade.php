@@ -18,6 +18,12 @@
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
 
+    <!-- CSS personalizado para mensajes -->
+    <link rel="stylesheet" href="{{ asset('css/admin/messages.css') }}">
+
+    <!-- CSS personalizado para pedidos -->
+    <link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
+
     <style>
         :root {
             --primary-color: #722F37;
@@ -770,11 +776,17 @@
 
     <!-- Main Content -->
     <main class="admin-main" id="adminMain">
+        @include('admin.partials.messages-simple')
         @yield('content')
     </main>
 
+    {{-- Incluir modales de confirmación --}}
+    @include('admin.partials.modals')
+
     @livewireScripts
-    @livewire('toast-notifications')
+
+    {{-- Incluir componentes de toasts al final --}}
+    @include('admin.partials.toasts')
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -827,6 +839,12 @@
             alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
     </script>
+
+    {{-- Incluir funciones JavaScript para alertas --}}
+    <script src="{{ asset('js/admin/admin-functions.js') }}"></script>
+
+    {{-- Incluir funciones JavaScript para pedidos --}}
+    <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script>
 
     @stack('scripts')
 </body>

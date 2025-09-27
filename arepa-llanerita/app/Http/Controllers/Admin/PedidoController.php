@@ -83,18 +83,52 @@ class PedidoController extends Controller
         return view('admin.pedidos.index', compact('pedidos', 'stats', 'vendedores', 'estados'));
     }
 
-    public function show(Pedido $pedido)
+    public function show(Request $request, Pedido $pedido)
     {
+        // Si es una petición AJAX, devolver datos JSON para el modal
+        if ($request->ajax()) {
+            $data = [
+                'id' => $pedido->id,
+                'numero_pedido' => $pedido->numero_pedido,
+                'cliente' => [
+                    'name' => $pedido->cliente->name,
+                    'email' => $pedido->cliente->email,
+                    'telefono' => $pedido->cliente_data['telefono'] ?? 'No disponible'
+                ],
+                'vendedor' => $pedido->vendedor ? [
+                    'name' => $pedido->vendedor->name,
+                    'email' => $pedido->vendedor->email
+                ] : null,
+                'estado' => $pedido->estado,
+                'estado_texto' => ucfirst(str_replace('_', ' ', $pedido->estado)),
+                'total_productos' => $pedido->subtotal,
+                'descuento' => $pedido->descuento,
+                'total_final' => $pedido->total_final,
+                'fecha_pedido' => $pedido->created_at->format('d/m/Y H:i'),
+                'observaciones' => $pedido->observaciones,
+                'detalles' => $pedido->detalles->map(function($detalle) {
+                    return [
+                        'producto_nombre' => $detalle->producto_nombre,
+                        'cantidad' => $detalle->cantidad,
+                        'precio_unitario' => $detalle->precio_unitario,
+                        'total' => $detalle->total
+                    ];
+                })
+            ];
+
+            return response()->json($data);
+        }
+
+        // Si no es AJAX, devolver la vista normal
         return view('admin.pedidos.show', compact('pedido'));
     }
 
     public function create()
     {
-        $clientes = User::clientes()->orderBy('name')->get();
-        $vendedores = User::vendedores()->orderBy('name')->get();
+        // Solo necesitamos los productos, ya que clientes y vendedores se buscan por cédula
         $productos = Producto::where('activo', true)->orderBy('nombre')->get();
 
-        return view('admin.pedidos.create', compact('clientes', 'vendedores', 'productos'));
+        return view('admin.pedidos.create', compact('productos'));
     }
 
     public function store(Request $request)
@@ -305,5 +339,89 @@ class PedidoController extends Controller
 
         return redirect()->route('admin.pedidos.index')
             ->with('success', 'Pedido eliminado exitosamente.');
+    }
+
+    /**
+     * Buscar cliente por cédula
+     */
+    public function searchCliente(Request $request)
+    {
+        $request->validate([
+            'cedula' => 'required|string'
+        ]);
+
+        try {
+            $cedula = $request->cedula;
+
+            // Buscar usuario con rol cliente por cédula
+            $cliente = User::where('cedula', $cedula)
+                          ->where('rol', 'cliente')
+                          ->first();
+
+            if ($cliente) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'id' => $cliente->id,
+                        'name' => $cliente->name,
+                        'email' => $cliente->email,
+                        'cedula' => $cliente->cedula
+                    ],
+                    'message' => 'Cliente encontrado correctamente'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró ningún cliente con la cédula: ' . $cedula
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar cliente: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Buscar vendedor por cédula
+     */
+    public function searchVendedor(Request $request)
+    {
+        $request->validate([
+            'cedula' => 'required|string'
+        ]);
+
+        try {
+            $cedula = $request->cedula;
+
+            // Buscar usuario con rol vendedor por cédula
+            $vendedor = User::where('cedula', $cedula)
+                           ->where('rol', 'vendedor')
+                           ->first();
+
+            if ($vendedor) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'id' => $vendedor->id,
+                        'name' => $vendedor->name,
+                        'email' => $vendedor->email,
+                        'cedula' => $vendedor->cedula
+                    ],
+                    'message' => 'Vendedor encontrado correctamente'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró ningún vendedor con la cédula: ' . $cedula
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar vendedor: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -27,7 +27,10 @@
         </div>
     </div>
 
-    <form action="{{ route('admin.productos.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.productos.store') }}" method="POST" enctype="multipart/form-data"
+          class="needs-confirmation"
+          data-confirm-message="¿Estás seguro de crear este nuevo producto? Se agregará al catálogo de productos."
+          id="createProductForm">
         @csrf
 
         <div class="row">
@@ -64,8 +67,8 @@
                                         required>
                                     <option value="">Seleccionar categoría</option>
                                     @foreach($categorias as $categoria)
-                                        <option value="{{ $categoria->id }}"
-                                                {{ old('categoria_id') == $categoria->id ? 'selected' : '' }}>
+                                        <option value="{{ $categoria->_id }}"
+                                                {{ old('categoria_id') == $categoria->_id ? 'selected' : '' }}>
                                             {{ $categoria->nombre }}
                                         </option>
                                     @endforeach

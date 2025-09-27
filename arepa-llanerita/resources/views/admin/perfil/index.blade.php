@@ -61,7 +61,10 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.perfil.update') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('admin.perfil.update') }}" enctype="multipart/form-data"
+                          class="needs-profile-confirmation"
+                          data-confirm-message="¿Estás seguro de actualizar tu información personal? Los cambios se aplicarán a tu perfil."
+                          id="updateProfileForm">
                         @csrf
                         <div class="row">
                             <!-- Avatar -->
@@ -172,7 +175,10 @@
                 </div>
                 <div class="card-body">
                     <div class="collapse" id="changePassword">
-                        <form method="POST" action="{{ route('admin.perfil.update-password') }}">
+                        <form method="POST" action="{{ route('admin.perfil.update-password') }}"
+                              class="needs-profile-confirmation"
+                              data-confirm-message="¿Estás seguro de cambiar tu contraseña? Esta acción es irreversible."
+                              id="updatePasswordForm">
                             @csrf
                             <div class="row">
                                 <div class="col-md-4">
@@ -284,7 +290,10 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.perfil.update-notifications') }}">
+                    <form method="POST" action="{{ route('admin.perfil.update-notifications') }}"
+                          class="needs-profile-confirmation"
+                          data-confirm-message="¿Estás seguro de actualizar tus preferencias de notificaciones?"
+                          id="updateNotificationsForm">
                         @csrf
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="email_pedidos"
@@ -854,6 +863,176 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Funciones para modales de confirmación en perfil - FORZAR SOBRESCRITURA
+    setTimeout(function() {
+        console.log('🔧 Inicializando funciones para perfil con prioridad (después de app.js)...');
+
+        // Interceptar formularios que necesitan confirmación
+        const formsNeedingConfirmation = document.querySelectorAll('form.needs-profile-confirmation');
+        console.log('📋 Formularios encontrados:', formsNeedingConfirmation.length);
+
+        formsNeedingConfirmation.forEach((form, index) => {
+            console.log(`📝 Configurando formulario ${index + 1}:`, form.id);
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('🛑 Formulario interceptado:', this.id);
+
+                const message = this.dataset.confirmMessage || 'Los cambios se aplicarán a tu perfil.';
+                const formId = this.id;
+
+                // Determinar qué modal mostrar según el formulario
+                if (formId.includes('Password')) {
+                    console.log('🔑 Mostrando modal de contraseña');
+                    confirmPasswordChange(formId, message);
+                } else if (formId.includes('Notifications')) {
+                    console.log('🔔 Mostrando modal de notificaciones');
+                    confirmNotificationsUpdate(formId, message);
+                } else {
+                    console.log('👤 Mostrando modal de información personal');
+                    confirmProfileInfoUpdate(formId, message);
+                }
+            });
+        });
+
+    // Función para confirmar actualización de información personal
+    window.confirmProfileInfoUpdate = function(formId, message = 'Los cambios se aplicarán a tu información personal.') {
+        console.log('confirmProfileInfoUpdate ejecutada para:', formId);
+
+        // Actualizar contenido del modal
+        const messageEl = document.getElementById('profileInfoMessage');
+        if (messageEl) messageEl.textContent = message;
+
+        // Configurar botón de confirmación
+        const confirmBtn = document.getElementById('confirmProfileInfoBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.submit();
+                }
+            };
+        }
+
+        // Mostrar modal
+        const modalElement = document.getElementById('profileInfoConfirmModal');
+        if (modalElement) {
+            console.log('Mostrando modal de actualización de información personal');
+            modalElement.style.display = 'block';
+            modalElement.classList.add('show');
+            document.body.classList.add('modal-open');
+
+            // Crear backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    };
+
+    // Función para confirmar cambio de contraseña
+    window.confirmPasswordChange = function(formId, message = 'Esta acción es irreversible. Asegúrate de recordar tu nueva contraseña.') {
+        console.log('confirmPasswordChange ejecutada para:', formId);
+
+        // Actualizar contenido del modal
+        const messageEl = document.getElementById('passwordChangeMessage');
+        if (messageEl) messageEl.textContent = message;
+
+        // Configurar botón de confirmación
+        const confirmBtn = document.getElementById('confirmPasswordChangeBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.submit();
+                }
+            };
+        }
+
+        // Mostrar modal
+        const modalElement = document.getElementById('passwordChangeConfirmModal');
+        if (modalElement) {
+            console.log('Mostrando modal de cambio de contraseña');
+            modalElement.style.display = 'block';
+            modalElement.classList.add('show');
+            document.body.classList.add('modal-open');
+
+            // Crear backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    };
+
+    // Función para confirmar actualización de notificaciones
+    window.confirmNotificationsUpdate = function(formId, message = 'Se aplicarán las nuevas preferencias de notificación.') {
+        console.log('confirmNotificationsUpdate ejecutada para:', formId);
+
+        // Actualizar contenido del modal
+        const messageEl = document.getElementById('notificationsMessage');
+        if (messageEl) messageEl.textContent = message;
+
+        // Configurar botón de confirmación
+        const confirmBtn = document.getElementById('confirmNotificationsBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.submit();
+                }
+            };
+        }
+
+        // Mostrar modal
+        const modalElement = document.getElementById('notificationsConfirmModal');
+        if (modalElement) {
+            console.log('Mostrando modal de actualización de notificaciones');
+            modalElement.style.display = 'block';
+            modalElement.classList.add('show');
+            document.body.classList.add('modal-open');
+
+            // Crear backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    };
+
+    // Función para cerrar modales
+    window.closeProfileModal = function(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (modalElement) {
+            modalElement.style.display = 'none';
+            modalElement.classList.remove('show');
+            document.body.classList.remove('modal-open');
+
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    };
+
+    // Event listeners para cerrar modales
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) closeProfileModal(modal.id);
+        });
+    });
+
+    // Cerrar con backdrop
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-backdrop')) {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) closeProfileModal(openModal.id);
+        }
+    });
+
+        console.log('✅ Funciones de perfil inicializadas correctamente con prioridad');
+    }, 1500); // Aumentar timeout para ejecutar después de app.js
+
 });
 </script>
+
+{{-- Incluir modales específicos para perfil --}}
+@include('admin.partials.modals-profile')
+
 @endpush

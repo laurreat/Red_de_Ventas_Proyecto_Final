@@ -64,7 +64,10 @@
 
                 <div class="register-form-container">
                     <!-- Formulario -->
-                    <form method="POST" action="{{ route('register') }}" novalidate>
+                    <form method="POST" action="{{ route('register') }}" novalidate
+                          class="needs-register-confirmation"
+                          data-confirm-message="¿Estás seguro de crear tu cuenta? Se te enviará un email de verificación."
+                          id="registerForm">
                         @csrf
                         
                         <div class="row">
@@ -511,5 +514,102 @@
             icon.classList.add('bi-eye');
         }
     }
+
+    // Funciones para modales de confirmación en registro
+    setTimeout(function() {
+        console.log('Inicializando funciones para registro...');
+
+        // Interceptar formularios que necesitan confirmación
+        const formsNeedingConfirmation = document.querySelectorAll('form.needs-register-confirmation');
+
+        formsNeedingConfirmation.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const message = this.dataset.confirmMessage || 'Se creará tu cuenta en el sistema.';
+                const formId = this.id || 'registerForm';
+
+                if (!this.id) {
+                    this.id = formId;
+                }
+
+                confirmRegister(formId, 'Crear Cuenta', message);
+            });
+        });
+
+        // Función para confirmar registro
+        window.confirmRegister = function(formId, title = 'Crear Cuenta', message = 'Se creará tu cuenta en el sistema.') {
+            console.log('confirmRegister ejecutada para:', formId);
+
+            // Actualizar contenido del modal
+            const titleEl = document.getElementById('userSaveTitle');
+            const messageEl = document.getElementById('userSaveMessage');
+            const saveBtnText = document.getElementById('userSaveBtnText');
+
+            if (titleEl) titleEl.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+            if (saveBtnText) saveBtnText.textContent = 'Crear Cuenta';
+
+            // Configurar botón de confirmación
+            const confirmBtn = document.getElementById('confirmUserSaveBtn');
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    const form = document.getElementById(formId);
+                    if (form) {
+                        form.submit();
+                    }
+                };
+            }
+
+            // Mostrar modal
+            const modalElement = document.getElementById('userSaveConfirmModal');
+            if (modalElement) {
+                console.log('Mostrando modal de registro');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+
+                // Crear backdrop
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        };
+
+        // Función para cerrar modales
+        window.closeRegisterModal = function(modalId) {
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                modalElement.style.display = 'none';
+                modalElement.classList.remove('show');
+                document.body.classList.remove('modal-open');
+
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+        };
+
+        // Event listeners para cerrar modales
+        document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) closeRegisterModal(modal.id);
+            });
+        });
+
+        // Cerrar con backdrop
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-backdrop')) {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) closeRegisterModal(openModal.id);
+            }
+        });
+
+        console.log('Funciones de registro inicializadas correctamente');
+    }, 1000);
 </script>
+
+{{-- Incluir modales de confirmación para registro --}}
+@include('admin.partials.modals-users')
+
 @endpush

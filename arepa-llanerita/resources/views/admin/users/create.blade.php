@@ -27,7 +27,10 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.users.store') }}">
+    <form method="POST" action="{{ route('admin.users.store') }}"
+          class="needs-user-confirmation"
+          data-confirm-message="¿Estás seguro de crear este nuevo usuario? Se agregará al sistema con los datos especificados."
+          id="createUserForm">
         @csrf
         <div class="row">
             <!-- Información Personal -->
@@ -248,3 +251,105 @@
     </form>
 </div>
 @endsection
+
+{{-- Incluir modales de confirmación para usuarios --}}
+@include('admin.partials.modals-users')
+
+@push('scripts')
+<script>
+// Funciones específicas para crear usuario
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        console.log('Inicializando funciones para crear usuario...');
+
+        // Interceptar formularios que necesitan confirmación
+        const formsNeedingConfirmation = document.querySelectorAll('form.needs-user-confirmation');
+
+        formsNeedingConfirmation.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const message = this.dataset.confirmMessage || 'El nuevo usuario se creará en el sistema.';
+                const formId = this.id || 'createUserForm';
+
+                if (!this.id) {
+                    this.id = formId;
+                }
+
+                confirmUserSave(formId, 'Crear Usuario', message);
+            });
+        });
+
+        // Función para confirmar guardado de usuario
+        window.confirmUserSave = function(formId, title = 'Crear Usuario', message = 'El nuevo usuario se creará en el sistema.') {
+            console.log('confirmUserSave ejecutada para:', formId);
+
+            // Actualizar contenido del modal
+            const titleEl = document.getElementById('userSaveTitle');
+            const messageEl = document.getElementById('userSaveMessage');
+            const saveBtnText = document.getElementById('userSaveBtnText');
+
+            if (titleEl) titleEl.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+            if (saveBtnText) saveBtnText.textContent = 'Crear Usuario';
+
+            // Configurar botón de confirmación
+            const confirmBtn = document.getElementById('confirmUserSaveBtn');
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    const form = document.getElementById(formId) || document.querySelector(`form[data-form-id="${formId}"]`);
+                    if (form) {
+                        form.submit();
+                    }
+                };
+            }
+
+            // Mostrar modal
+            const modalElement = document.getElementById('userSaveConfirmModal');
+            if (modalElement) {
+                console.log('Mostrando modal de creación para usuario');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+
+                // Crear backdrop
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        };
+
+        // Función para cerrar modales
+        window.closeUserModal = function(modalId) {
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                modalElement.style.display = 'none';
+                modalElement.classList.remove('show');
+                document.body.classList.remove('modal-open');
+
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+        };
+
+        // Event listeners para cerrar modales
+        document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) closeUserModal(modal.id);
+            });
+        });
+
+        // Cerrar con backdrop
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-backdrop')) {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) closeUserModal(openModal.id);
+            }
+        });
+
+        console.log('Funciones de crear usuario inicializadas correctamente');
+    }, 1000);
+});
+</script>
+@endpush

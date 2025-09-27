@@ -1,0 +1,196 @@
+/* Estilos para mensajes de error y éxito mejorados */
+
+.alert {
+    animation: slideInDown 0.4s ease-out;
+    margin-bottom: 1.5rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.alert .alert-heading {
+    color: inherit;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.alert p {
+    line-height: 1.5;
+}
+
+.alert .bi {
+    font-size: 1.25rem;
+}
+
+/* Animaciones */
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+.alert.fade.hide {
+    animation: fadeOut 0.3s ease-out;
+}
+
+/* Mejoras específicas por tipo de alerta */
+.alert-success {
+    background-color: #f8f9fa;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.alert-success .bi-check-circle-fill {
+    color: #28a745;
+}
+
+.alert-danger {
+    background-color: #fdf2f2;
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.alert-danger .bi-exclamation-triangle-fill {
+    color: #dc3545;
+}
+
+.alert-warning {
+    background-color: #fffbf0;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.alert-warning .bi-exclamation-circle-fill {
+    color: #ffc107;
+}
+
+.alert-info {
+    background-color: #f0f8ff;
+    border-color: #17a2b8;
+    color: #0c5460;
+}
+
+.alert-info .bi-info-circle-fill {
+    color: #17a2b8;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .alert {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .alert .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .alert .me-3 {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert .bi {
+        font-size: 2rem;
+    }
+}
+
+/* Estilos para listas de errores */
+.alert ul {
+    margin-bottom: 0;
+    padding-left: 1.25rem;
+}
+
+.alert li {
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.alert li:last-child {
+    margin-bottom: 0;
+}
+
+/* Botón de cerrar personalizado */
+.alert .btn-close {
+    position: relative;
+    top: -2px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.alert .btn-close:hover {
+    opacity: 1;
+}
+
+/* Efectos adicionales */
+.alert:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+/* Estados especiales */
+.alert.alert-dismissible {
+    padding-right: 3rem;
+}
+
+.alert .flex-grow-1 {
+    min-width: 0;
+}
+
+/* Mejoras para contenido largo */
+.alert .small {
+    font-size: 0.875rem;
+    line-height: 1.3;
+}
+
+/* Iconos con animación sutil */
+.alert .bi {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Para toasts */
+.toast-container .toast {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.toast-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toast-body {
+    color: #495057;
+    font-weight: 500;
+}

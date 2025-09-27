@@ -279,10 +279,12 @@
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('admin.pedidos.show', $pedido) }}"
-                                                   class="btn btn-sm btn-outline-info" title="Ver">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-info"
+                                                        title="Ver Detalles"
+                                                        onclick="pedidosManager.showDetails({{ $pedido->id }})">
                                                     <i class="bi bi-eye"></i>
-                                                </a>
+                                                </button>
                                                 @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
                                                     <a href="{{ route('admin.pedidos.edit', $pedido) }}"
                                                        class="btn btn-sm btn-outline-primary" title="Editar">
@@ -299,7 +301,7 @@
                                                             @if($valor != $pedido->estado)
                                                                 <li>
                                                                     <a class="dropdown-item" href="#"
-                                                                       onclick="updateStatus({{ $pedido->id }}, '{{ $valor }}')">
+                                                                       onclick="event.preventDefault(); pedidosManager.updateStatus({{ $pedido->id }}, '{{ $valor }}', '{{ $pedido->numero_pedido }}', '{{ $pedido->cliente->name }}', '{{ $pedido->estado }}', '{{ $nombre }}')">
                                                                         {{ $nombre }}
                                                                     </a>
                                                                 </li>
@@ -311,7 +313,7 @@
                                                     <button type="button"
                                                             class="btn btn-sm btn-outline-danger"
                                                             title="Eliminar"
-                                                            onclick="confirmDelete({{ $pedido->id }})">
+                                                            onclick="event.preventDefault(); pedidosManager.confirmDelete({{ $pedido->id }}, '{{ $pedido->numero_pedido }}', '{{ $pedido->cliente->name }}', '${{ number_format($pedido->total_final, 0) }}', '{{ ucfirst($pedido->estado) }}')">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 @endif
@@ -360,18 +362,61 @@
     </div>
 </div>
 
-<script>
-function updateStatus(pedidoId, estado) {
-    if (confirm('¿Estás seguro de que quieres cambiar el estado de este pedido?')) {
-        document.getElementById('estado-' + pedidoId).value = estado;
-        document.getElementById('status-form-' + pedidoId).submit();
-    }
-}
+<!-- Incluir modales de pedidos -->
+@include('admin.partials.modals-pedidos')
 
-function confirmDelete(pedidoId) {
-    if (confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
-        document.getElementById('delete-form-' + pedidoId).submit();
+<script>
+// Variables globales para las rutas
+window.pedidosRoutes = {
+    details: '{{ route("admin.pedidos.show", ":id") }}',
+    updateStatus: '{{ route("admin.pedidos.update-status", ":id") }}',
+    destroy: '{{ route("admin.pedidos.destroy", ":id") }}'
+};
+
+// Inicializar el manager de pedidos cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Pedidos Index JS cargado...');
+
+    // Inicializar el manager si existe
+    if (typeof PedidosManager !== 'undefined') {
+        window.pedidosManager = new PedidosManager();
+        console.log('✅ PedidosManager inicializado correctamente');
+    } else {
+        console.error('❌ PedidosManager no encontrado');
     }
-}
+});
+
+// Funciones de fallback (por si el manager no carga)
+setTimeout(function() {
+    if (typeof window.pedidosManager === 'undefined') {
+        console.log('⚠️ Cargando funciones de fallback para pedidos...');
+
+        window.updateStatus = function(pedidoId, estado) {
+            if (confirm('¿Estás seguro de que quieres cambiar el estado de este pedido?')) {
+                document.getElementById('estado-' + pedidoId).value = estado;
+                document.getElementById('status-form-' + pedidoId).submit();
+            }
+        };
+
+        window.confirmDelete = function(pedidoId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
+                document.getElementById('delete-form-' + pedidoId).submit();
+            }
+        };
+
+        // Crear manager básico
+        window.pedidosManager = {
+            updateStatus: function(id, estado, numero, cliente, estadoActual, estadoNuevo) {
+                window.updateStatus(id, estado);
+            },
+            confirmDelete: function(id, numero, cliente, total, estado) {
+                window.confirmDelete(id);
+            },
+            showDetails: function(id) {
+                window.location.href = window.pedidosRoutes.details.replace(':id', id);
+            }
+        };
+    }
+}, 1000);
 </script>
 @endsection

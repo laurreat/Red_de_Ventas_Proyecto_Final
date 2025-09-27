@@ -27,7 +27,10 @@
         </div>
     </div>
 
-    <form action="{{ route('admin.productos.update', $producto) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.productos.update', $producto) }}" method="POST" enctype="multipart/form-data"
+          class="needs-confirmation"
+          data-confirm-message="¿Estás seguro de actualizar la información de este producto? Los cambios se guardarán en el sistema."
+          id="editProductForm">
         @csrf
         @method('PUT')
 
