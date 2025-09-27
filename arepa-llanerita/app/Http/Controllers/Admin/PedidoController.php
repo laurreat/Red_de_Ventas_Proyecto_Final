@@ -135,41 +135,40 @@ class PedidoController extends Controller
     {
         try {
             $validated = $request->validate([
-                'user_id' => 'required|string|exists:users,_id',
+                'cliente_id' => 'required|string|exists:users,_id',
                 'vendedor_id' => 'nullable|string|exists:users,_id',
                 'productos' => 'required|array|min:1|max:50',
                 'productos.*.id' => 'required|string|exists:productos,_id',
                 'productos.*.cantidad' => 'required|integer|min:1|max:1000',
                 'descuento' => 'nullable|numeric|min:0|max:999999',
-                'notas' => 'nullable|string|max:500',
-                'direccion_entrega' => 'required|string|max:500',
-                'telefono_entrega' => 'required|string|regex:/^[\+]?[0-9\s\-\(\)]+$/'
+                'observaciones' => 'nullable|string|max:500'
             ], [
+                'cliente_id.required' => 'Debe seleccionar un cliente.',
+                'productos.required' => 'Debe agregar al menos un producto.',
                 'productos.max' => 'No puedes agregar más de 50 productos por pedido.',
-                'productos.*.cantidad.max' => 'La cantidad máxima por producto es 1000.',
-                'telefono_entrega.regex' => 'El teléfono de entrega no tiene un formato válido.',
+                'productos.*.cantidad.max' => 'La cantidad máxima por producto es 1000.'
             ]);
 
             \DB::beginTransaction();
 
-        $cliente = User::find($request->user_id);
+        $cliente = User::find($request->cliente_id);
         $vendedor = $request->vendedor_id ? User::find($request->vendedor_id) : null;
 
         $pedido = new Pedido([
             'numero_pedido' => $this->generarNumeroPedido(),
-            'user_id' => $request->user_id,
+            'user_id' => $request->cliente_id,
             'vendedor_id' => $request->vendedor_id,
             'estado' => 'pendiente',
+            'subtotal' => 0, // Se calculará después
             'descuento' => $request->descuento ?? 0.00,
-            'notas' => $request->notas,
-            'direccion_entrega' => $request->direccion_entrega,
-            'telefono_entrega' => $request->telefono_entrega,
+            'total_final' => 0, // Se calculará después
+            'observaciones' => $request->observaciones,
             'cliente_data' => [
                 '_id' => $cliente->_id,
                 'name' => $cliente->name,
-                'apellidos' => $cliente->apellidos,
+                'apellidos' => $cliente->apellidos ?? '',
                 'email' => $cliente->email,
-                'telefono' => $cliente->telefono,
+                'telefono' => $cliente->telefono ?? '',
                 'cedula' => $cliente->cedula
             ]
         ]);
@@ -178,9 +177,9 @@ class PedidoController extends Controller
             $pedido->vendedor_data = [
                 '_id' => $vendedor->_id,
                 'name' => $vendedor->name,
-                'apellidos' => $vendedor->apellidos,
+                'apellidos' => $vendedor->apellidos ?? '',
                 'email' => $vendedor->email,
-                'telefono' => $vendedor->telefono
+                'telefono' => $vendedor->telefono ?? ''
             ];
         }
 
@@ -209,16 +208,16 @@ class PedidoController extends Controller
 
             $detalles[] = [
                 'producto_id' => $producto->_id,
+                'producto_nombre' => $producto->nombre,
                 'producto_data' => [
                     '_id' => $producto->_id,
                     'nombre' => $producto->nombre,
                     'precio' => $producto->precio,
-                    'imagen' => $producto->imagen,
-                    'categoria' => $producto->categoria ? $producto->categoria->nombre : null
+                    'imagen' => $producto->imagen ?? null
                 ],
                 'cantidad' => $cantidad,
                 'precio_unitario' => $precioUnitario,
-                'subtotal' => $subtotal,
+                'total' => $subtotal,
                 'fecha_agregado' => now()
             ];
 
@@ -229,7 +228,7 @@ class PedidoController extends Controller
         }
 
         $pedido->detalles = $detalles;
-        $pedido->total = $total;
+        $pedido->subtotal = $total;
         $pedido->total_final = $total - $pedido->descuento;
 
             $pedido->save();
