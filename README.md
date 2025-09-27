@@ -28,11 +28,11 @@ Sistema completo de gestión de ventas multinivel (MLM) especializado en la vent
 
 ## 🍽️ Descripción del Proyecto
 
-**Red de Ventas - Arepa la Llanerita** es un sistema de gestión empresarial diseñado específicamente para manejar una red de ventas multinivel de arepas tradicionales venezolanas. El sistema permite gestionar vendedores, clientes, pedidos, comisiones y un complejo sistema de referidos con múltiples niveles jerárquicos.
+**Red de Ventas - Arepa la Llanerita** es un sistema de gestión empresarial diseñado específicamente para manejar una red de ventas multinivel de arepas tradicionales Colombianas Amazónicas. El sistema permite gestionar vendedores, clientes, pedidos, comisiones y un complejo sistema de referidos con múltiples niveles jerárquicos.
 
 ### Contexto del Negocio
 
-- **Producto Principal**: Arepas tradicionales venezolanas
+- **Producto Principal**: Arepas tradicionales Colombianas Amazónicas
 - **Modelo de Negocio**: Red de ventas multinivel (MLM)
 - **Mercado Objetivo**: Comunidad venezolana y amantes de la gastronomía latinoamericana
 - **Operación**: Delivery y puntos de venta físicos
@@ -1127,10 +1127,6 @@ Descripción de alternativas que has considerado.
 Agregar cualquier contexto adicional, capturas de pantalla, etc.
 ```
 
-## 📜 Licencia
-
-Este proyecto está licenciado bajo la **MIT License** - ver el archivo [LICENSE](LICENSE) para detalles.
-
 ### Términos de Uso
 
 - ✅ **Uso comercial**: Permitido
@@ -1142,7 +1138,7 @@ Este proyecto está licenciado bajo la **MIT License** - ver el archivo [LICENSE
 
 ### Atribución
 
-Desarrollado por **[Tu Nombre/Empresa]** para la gestión eficiente de redes de ventas de productos alimenticios tradicionales venezolanos.
+Desarrollado por **Luis Alberto Urrea Trujillo - Aprendiz SENA** para la gestión eficiente de redes de ventas de productos alimenticios tradicionales venezolanos.
 
 ---
 
@@ -1150,23 +1146,16 @@ Desarrollado por **[Tu Nombre/Empresa]** para la gestión eficiente de redes de 
 
 ### Información de Contacto
 
-- **Email**: <soporte@arepallanerita.com>
-- **Teléfono**: +58 424 000 0000
-- **Website**: <https://arepallanerita.com>
-- **GitHub**: <https://github.com/usuario/red-de-ventas-arepa-llanerita>
+- **Email**: <luis2005.320@gmail.com>
+- **Teléfono**: +57 315 431 1266
+- **Website**: <luis.adso.pro>
+- **GitHub**: <https://github.com/laurreat/red-de-ventas-arepa-llanerita>
 
 ### Horarios de Soporte
 
 - **Lunes a Viernes**: 8:00 AM - 6:00 PM (VET)
 - **Sábados**: 9:00 AM - 2:00 PM (VET)
 - **Emergencias**: 24/7 para problemas críticos
-
-### Recursos Adicionales
-
-- 📚 **Documentación API**: `/docs/api`
-- 🎥 **Video Tutoriales**: [YouTube Channel](https://youtube.com/arepallanerita)
-- 💬 **Chat de Soporte**: [Discord Server](https://discord.gg/arepallanerita)
-- 📖 **Wiki del Proyecto**: [GitHub Wiki](https://github.com/usuario/red-de-ventas-arepa-llanerita/wiki)
 
 ### 🥘 Créditos y Reconocimientos
 
