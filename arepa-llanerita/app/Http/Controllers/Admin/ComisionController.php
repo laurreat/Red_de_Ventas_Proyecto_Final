@@ -51,11 +51,11 @@ class ComisionController extends Controller
 
             $totalPedidos = $pedidosVendedor->count();
             $pedidosEntregados = $pedidosVendedor->where('estado', 'entregado');
-            $totalVentas = $pedidosEntregados->sum('total_final');
+            $totalVentas = to_float($pedidosEntregados->sum('total_final'));
             $comisionGanada = $totalVentas * 0.1;
 
             $pedidosPendientes = $pedidosVendedor->whereNotIn('estado', ['entregado', 'cancelado']);
-            $comisionPendiente = $pedidosPendientes->sum('total_final') * 0.1;
+            $comisionPendiente = to_float($pedidosPendientes->sum('total_final')) * 0.1;
 
             return (object)[
                 'id' => $vendedor->_id,
@@ -75,11 +75,11 @@ class ComisionController extends Controller
 
         // Estadísticas generales
         $stats = [
-            'total_comisiones_ganadas' => $comisiones->sum('comision_ganada'),
-            'total_comisiones_pendientes' => $comisiones->sum('comision_pendiente'),
+            'total_comisiones_ganadas' => to_float($comisiones->sum('comision_ganada')),
+            'total_comisiones_pendientes' => to_float($comisiones->sum('comision_pendiente')),
             'vendedores_activos' => $comisiones->where('total_pedidos', '>', 0)->count(),
-            'promedio_comision' => $comisiones->count() > 0 ? $comisiones->avg('comision_ganada') : 0,
-            'total_ventas' => $comisiones->sum('total_ventas'),
+            'promedio_comision' => $comisiones->count() > 0 ? to_float($comisiones->avg('comision_ganada')) : 0,
+            'total_ventas' => to_float($comisiones->sum('total_ventas')),
             'mejor_vendedor' => $comisiones->sortByDesc('total_ventas')->first()
         ];
 
@@ -88,7 +88,7 @@ class ComisionController extends Controller
             return $pedido->created_at->format('Y-m-d');
         })->map(function ($pedidosDia, $fecha) {
             $pedidosEntregados = $pedidosDia->where('estado', 'entregado');
-            $ventas = $pedidosEntregados->sum('total_final');
+            $ventas = to_float($pedidosEntregados->sum('total_final'));
 
             return (object)[
                 'fecha' => $fecha,
@@ -136,9 +136,9 @@ class ComisionController extends Controller
         $statsVendedor = [
             'total_pedidos' => $pedidos->total(),
             'pedidos_entregados' => $pedidos->where('estado', 'entregado')->count(),
-            'total_ventas' => $pedidos->where('estado', 'entregado')->sum('total_final'),
-            'comision_ganada' => $pedidos->where('estado', 'entregado')->sum('total_final') * 0.1,
-            'comision_pendiente' => $pedidos->whereNotIn('estado', ['entregado', 'cancelado'])->sum('total_final') * 0.1,
+            'total_ventas' => to_float($pedidos->where('estado', 'entregado')->sum('total_final')),
+            'comision_ganada' => to_float($pedidos->where('estado', 'entregado')->sum('total_final')) * 0.1,
+            'comision_pendiente' => to_float($pedidos->whereNotIn('estado', ['entregado', 'cancelado'])->sum('total_final')) * 0.1,
             'tasa_conversion' => $pedidos->count() > 0 ? ($pedidos->where('estado', 'entregado')->count() / $pedidos->count()) * 100 : 0
         ];
 
@@ -151,7 +151,7 @@ class ComisionController extends Controller
             return $pedido->created_at->format('Y-m');
         })->map(function ($pedidosMes, $periodoMes) {
             $pedidosEntregados = $pedidosMes->where('estado', 'entregado');
-            $ventas = $pedidosEntregados->sum('total_final');
+            $ventas = to_float($pedidosEntregados->sum('total_final'));
 
             [$año, $mes] = explode('-', $periodoMes);
 
@@ -190,7 +190,7 @@ class ComisionController extends Controller
 
         $resumenCalculo = $pedidosEntregados->groupBy('vendedor_id')->map(function ($pedidos) {
             $vendedor = $pedidos->first()->vendedor;
-            $totalVentas = $pedidos->sum('total_final');
+            $totalVentas = to_float($pedidos->sum('total_final'));
             $comision = $totalVentas * 0.1; // 10%
 
             return [
@@ -210,7 +210,7 @@ class ComisionController extends Controller
                 'fin' => $fechaFin
             ],
             'resumen' => $resumenCalculo,
-            'total_comisiones' => $resumenCalculo->sum('comision')
+            'total_comisiones' => to_float($resumenCalculo->sum('comision'))
         ]);
     }
 
@@ -238,7 +238,7 @@ class ComisionController extends Controller
 
             $totalPedidos = $pedidosVendedor->count();
             $pedidosEntregados = $pedidosVendedor->where('estado', 'entregado');
-            $totalVentas = $pedidosEntregados->sum('total_final');
+            $totalVentas = to_float($pedidosEntregados->sum('total_final'));
             $comisionGanada = $totalVentas * 0.1;
 
             return [

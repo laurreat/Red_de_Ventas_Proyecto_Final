@@ -86,7 +86,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
                         <i class="bi bi-currency-dollar fs-2 text-success"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-success">${{ number_format($stats['total_comisiones_ganadas'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1 text-success">${{ number_format(to_float($stats['total_comisiones_ganadas']), 0) }}</h3>
                     <p class="text-muted mb-0 small">Comisiones Ganadas</p>
                 </div>
             </div>
@@ -99,7 +99,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
                         <i class="bi bi-clock fs-2 text-warning"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-warning">${{ number_format($stats['total_comisiones_pendientes'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1 text-warning">${{ number_format(to_float($stats['total_comisiones_pendientes']), 0) }}</h3>
                     <p class="text-muted mb-0 small">Comisiones Pendientes</p>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.1);">
                         <i class="bi bi-bar-chart fs-2 text-primary"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-primary">${{ number_format($stats['promedio_comision'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1 text-primary">${{ number_format(to_float($stats['promedio_comision']), 0) }}</h3>
                     <p class="text-muted mb-0 small">Promedio Comisión</p>
                 </div>
             </div>
@@ -168,9 +168,9 @@
                                         </td>
                                         <td><span class="badge bg-primary">{{ $comision->total_pedidos }}</span></td>
                                         <td><span class="badge bg-success">{{ $comision->pedidos_entregados }}</span></td>
-                                        <td><strong>${{ number_format($comision->total_ventas, 0) }}</strong></td>
-                                        <td><strong class="text-success">${{ number_format($comision->comision_ganada, 0) }}</strong></td>
-                                        <td><strong class="text-warning">${{ number_format($comision->comision_pendiente, 0) }}</strong></td>
+                                        <td><strong>${{ number_format(to_float($comision->total_ventas), 0) }}</strong></td>
+                                        <td><strong class="text-success">${{ number_format(to_float($comision->comision_ganada), 0) }}</strong></td>
+                                        <td><strong class="text-warning">${{ number_format(to_float($comision->comision_pendiente), 0) }}</strong></td>
                                         <td>
                                             <a href="{{ route('admin.comisiones.show', $comision->id) }}"
                                                class="btn btn-sm btn-outline-info" title="Ver detalles">
@@ -205,18 +205,18 @@
                 </div>
                 <div class="card-body p-4">
                     @if($topVendedores->count() > 0)
-                        @foreach($topVendedores as $index => $vendedor)
+                        @foreach($topVendedores as $vendedor)
                             <div class="d-flex justify-content-between align-items-center {{ !$loop->last ? 'mb-3 pb-3 border-bottom' : '' }}">
                                 <div class="d-flex align-items-center">
                                     <div class="me-3">
-                                        @if($index == 0)
+                                        @if($loop->iteration == 1)
                                             <div class="badge bg-warning text-dark fs-6">🥇</div>
-                                        @elseif($index == 1)
+                                        @elseif($loop->iteration == 2)
                                             <div class="badge bg-secondary fs-6">🥈</div>
-                                        @elseif($index == 2)
+                                        @elseif($loop->iteration == 3)
                                             <div class="badge bg-danger fs-6">🥉</div>
                                         @else
-                                            <div class="badge bg-light text-dark">{{ $index + 1 }}</div>
+                                            <div class="badge bg-light text-dark">{{ $loop->iteration }}</div>
                                         @endif
                                     </div>
                                     <div>
@@ -225,8 +225,8 @@
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold text-success">${{ number_format($vendedor->comision_ganada, 0) }}</div>
-                                    <small class="text-muted">${{ number_format($vendedor->total_ventas, 0) }} ventas</small>
+                                    <div class="fw-bold text-success">${{ number_format(to_float($vendedor->comision_ganada), 0) }}</div>
+                                    <small class="text-muted">${{ number_format(to_float($vendedor->total_ventas), 0) }} ventas</small>
                                 </div>
                             </div>
                         @endforeach
@@ -258,7 +258,7 @@
                     <div class="row text-center">
                         <div class="col-6">
                             <div class="border-end">
-                                <h6 class="fw-semibold mb-1 text-success">${{ number_format($stats['mejor_vendedor']->comision_ganada, 0) }}</h6>
+                                <h6 class="fw-semibold mb-1 text-success">${{ number_format(to_float($stats['mejor_vendedor']->comision_ganada), 0) }}</h6>
                                 <small class="text-muted">Comisión</small>
                             </div>
                         </div>
@@ -300,8 +300,8 @@
                                 <tr>
                                     <td>{{ \Carbon\Carbon::parse($dia->fecha)->format('d/m/Y') }}</td>
                                     <td><span class="badge bg-primary">{{ $dia->pedidos }}</span></td>
-                                    <td><strong>${{ number_format($dia->ventas, 0) }}</strong></td>
-                                    <td><strong class="text-success">${{ number_format($dia->comisiones, 0) }}</strong></td>
+                                    <td><strong>${{ number_format(to_float($dia->ventas), 0) }}</strong></td>
+                                    <td><strong class="text-success">${{ number_format(to_float($dia->comisiones), 0) }}</strong></td>
                                 </tr>
                                 @endforeach
                             </tbody>

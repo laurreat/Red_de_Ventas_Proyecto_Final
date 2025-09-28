@@ -66,7 +66,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('admin/reportes/ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'ventas'])->name('admin.reportes.ventas');
         Route::get('admin/reportes/productos', [\App\Http\Controllers\Admin\ReporteController::class, 'productos'])->name('admin.reportes.productos');
         Route::get('admin/reportes/comisiones', [\App\Http\Controllers\Admin\ReporteController::class, 'comisiones'])->name('admin.reportes.comisiones');
-        Route::post('admin/reportes/exportar-ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'exportarVentas'])->name('admin.reportes.exportar-ventas');
+        Route::get('admin/reportes/exportar-ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'exportarVentas'])->name('admin.reportes.exportar-ventas');
 
         // Comisiones
         Route::get('admin/comisiones', [\App\Http\Controllers\Admin\ComisionController::class, 'index'])->name('admin.comisiones.index');

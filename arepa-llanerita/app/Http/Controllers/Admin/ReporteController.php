@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Pedido;
 use App\Models\User;
 use App\Models\Producto;
+// use App\Exports\VentasExport; // Removed - Excel export functionality removed
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+// use Maatwebsite\Excel\Facades\Excel; // Removed - Excel export functionality removed
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReporteController extends Controller
 {
@@ -259,7 +262,146 @@ class ReporteController extends Controller
 
     public function exportarVentas(Request $request)
     {
-        // TODO: Implementar exportación a Excel/PDF
-        return response()->json(['message' => 'Funcionalidad de exportación en desarrollo']);
+        $fechaInicio = $request->get('fecha_inicio', now()->subMonth()->format('Y-m-d'));
+        $fechaFin = $request->get('fecha_fin', now()->format('Y-m-d'));
+        $vendedorId = $request->get('vendedor_id');
+
+        // Obtener los mismos datos que en el método ventas
+        $data = $this->getDatosVentas($fechaInicio, $fechaFin, $vendedorId);
+
+        return $this->exportarVentasPDF($data, $fechaInicio, $fechaFin);
     }
+
+    private function getDatosVentas($fechaInicio, $fechaFin, $vendedorId = null)
+    {
+        // Consulta base
+        $query = Pedido::with(['cliente', 'vendedor', 'detalles.producto'])
+            ->whereDate('created_at', '>=', $fechaInicio)
+            ->whereDate('created_at', '<=', $fechaFin)
+            ->where('estado', '!=', 'cancelado');
+
+        if ($vendedorId) {
+            $query->where('vendedor_id', $vendedorId);
+        }
+
+        $pedidos = $query->get();
+
+        // Estadísticas generales
+        $stats = [
+            'total_ventas' => $pedidos->count(),
+            'total_ingresos' => to_float($pedidos->sum('total_final')),
+            'ticket_promedio' => $pedidos->count() > 0 ? $pedidos->avg('total_final') : 0,
+            'productos_vendidos' => $pedidos->sum(function ($pedido) {
+                return collect($pedido->detalles)->sum(function($detalle) {
+                    return $detalle['cantidad'] ?? 0;
+                });
+            }),
+        ];
+
+        // Ventas por día
+        $ventasPorDia = $pedidos->groupBy(function ($pedido) {
+            return $pedido->created_at->format('Y-m-d');
+        })->map(function ($pedidosDia) {
+            return [
+                'cantidad' => $pedidosDia->count(),
+                'total' => to_float($pedidosDia->sum('total_final'))
+            ];
+        });
+
+        // Ventas por vendedor
+        $ventasPorVendedor = $pedidos->whereNotNull('vendedor_id')
+            ->groupBy('vendedor_id')
+            ->map(function ($pedidosVendedor) {
+                $vendedor = $pedidosVendedor->first()->vendedor;
+                return [
+                    'vendedor' => $vendedor->name,
+                    'email' => $vendedor->email,
+                    'cantidad_pedidos' => $pedidosVendedor->count(),
+                    'total_ventas' => to_float($pedidosVendedor->sum('total_final')),
+                    'comision_estimada' => to_float($pedidosVendedor->sum('total_final')) * 0.1,
+                ];
+            });
+
+        // Productos más vendidos
+        $productosData = [];
+        foreach ($pedidos as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'] ?? null;
+                if (!$productoId) continue;
+
+                if (!isset($productosData[$productoId])) {
+                    $productosData[$productoId] = [
+                        'producto' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
+                        'categoria' => $detalle['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría',
+                        'cantidad_vendida' => 0,
+                        'total_ingresos' => 0,
+                    ];
+                }
+
+                $productosData[$productoId]['cantidad_vendida'] += $detalle['cantidad'] ?? 0;
+                $productosData[$productoId]['total_ingresos'] += $detalle['subtotal'] ?? 0;
+            }
+        }
+
+        $productosMasVendidos = collect($productosData)
+            ->sortByDesc('cantidad_vendida')
+            ->take(10);
+
+        // Clientes más activos
+        $clientesMasActivos = $pedidos->groupBy('cliente_id')
+            ->map(function ($pedidosCliente) {
+                $cliente = $pedidosCliente->first()->cliente;
+                return [
+                    'cliente' => $cliente->name,
+                    'email' => $cliente->email,
+                    'cantidad_pedidos' => $pedidosCliente->count(),
+                    'total_gastado' => to_float($pedidosCliente->sum('total_final')),
+                ];
+            })
+            ->sortByDesc('total_gastado')
+            ->take(10);
+
+        // Ventas por estado
+        $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {
+            return [
+                'cantidad' => $pedidosEstado->count(),
+                'total' => to_float($pedidosEstado->sum('total_final'))
+            ];
+        });
+
+        return [
+            'stats' => $stats,
+            'ventasPorDia' => $ventasPorDia,
+            'ventasPorVendedor' => $ventasPorVendedor,
+            'productosMasVendidos' => $productosMasVendidos,
+            'clientesMasActivos' => $clientesMasActivos,
+            'ventasPorEstado' => $ventasPorEstado,
+        ];
+    }
+
+    private function exportarVentasPDF($data, $fechaInicio, $fechaFin)
+    {
+        try {
+            $viewData = array_merge($data, [
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin
+            ]);
+
+            $pdf = Pdf::loadView('admin.reportes.pdf.ventas', $viewData);
+            $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions([
+                'defaultFont' => 'Arial',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => false
+            ]);
+
+            $nombreArchivo = 'reporte_ventas_' . str_replace('-', '_', $fechaInicio) . '_al_' . str_replace('-', '_', $fechaFin) . '.pdf';
+
+            return $pdf->download($nombreArchivo);
+        } catch (\Exception $e) {
+            \Log::error('Error generando PDF: ' . $e->getMessage());
+            return response()->json(['error' => 'Error generando PDF: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

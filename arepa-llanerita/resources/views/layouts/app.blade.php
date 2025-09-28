@@ -228,13 +228,115 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
         
-        // Toast functions (compatibility with old system)
+        // Toast functions
+        function showToast(message, type = 'success') {
+            // Crear contenedor de toasts si no existe
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 99999;
+                    max-width: 350px;
+                `;
+                document.body.appendChild(toastContainer);
+            }
+
+            // Crear toast
+            const toast = document.createElement('div');
+            const toastId = 'toast-' + Date.now();
+            toast.id = toastId;
+
+            const colors = {
+                success: { bg: '#28a745', icon: 'bi-check-circle-fill' },
+                error: { bg: '#dc3545', icon: 'bi-x-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'bi-exclamation-triangle-fill' },
+                info: { bg: '#17a2b8', icon: 'bi-info-circle-fill' }
+            };
+
+            const color = colors[type] || colors.success;
+
+            toast.style.cssText = `
+                background: ${color.bg};
+                color: white;
+                padding: 15px 20px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                font-size: 14px;
+                font-weight: 500;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+            `;
+
+            toast.innerHTML = `
+                <i class="bi ${color.icon} me-2"></i>
+                <span>${message}</span>
+                <button onclick="hideToast('${toastId}')" style="
+                    background: none;
+                    border: none;
+                    color: white;
+                    margin-left: auto;
+                    padding: 0 0 0 10px;
+                    cursor: pointer;
+                    font-size: 18px;
+                    line-height: 1;
+                ">&times;</button>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Animar entrada
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Auto hide después de 4 segundos
+            setTimeout(() => {
+                hideToast(toastId);
+            }, 4000);
+
+            // Hacer clickeable para cerrar
+            toast.addEventListener('click', () => hideToast(toastId));
+        }
+
+        function hideToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+
         function showSuccessToast(message) {
             showToast(message, 'success');
         }
-        
+
         function showErrorToast(message) {
             showToast(message, 'error');
+        }
+
+        function showWarningToast(message) {
+            showToast(message, 'warning');
+        }
+
+        function showInfoToast(message) {
+            showToast(message, 'info');
         }
         
         // Coming soon modal

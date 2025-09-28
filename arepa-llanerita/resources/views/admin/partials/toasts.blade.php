@@ -1,5 +1,5 @@
 {{-- Container para Toast Notifications --}}
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 99999;"></div>
 
 <style>
 .toast {
