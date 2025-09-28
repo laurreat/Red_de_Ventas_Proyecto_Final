@@ -20,10 +20,24 @@
                                 <i class="bi bi-diagram-3 me-1"></i>
                                 Vista Gráfica
                             </button>
-                            <button type="button" class="btn btn-outline-light" onclick="exportarRed()">
-                                <i class="bi bi-download me-1"></i>
-                                Exportar
-                            </button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-download me-1"></i>
+                                    Exportar
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="exportarRedPDF()">
+                                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="exportarRedCSV()">
+                                        <i class="bi bi-file-earmark-excel me-2"></i>Exportar CSV
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="exportarRed()">
+                                        <i class="bi bi-code-square me-2"></i>Exportar JSON (Dev)
+                                    </a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1727,6 +1741,86 @@
 
         // Mostrar mensaje de éxito
         console.log('Datos descargados como:', filename);
+    }
+
+    // Nueva función para exportar PDF usando el servidor
+    function exportarRedPDF() {
+        const cedula = document.querySelector('input[name="cedula"]') ? document.querySelector('input[name="cedula"]').value : '';
+
+        // Crear formulario para enviar datos al servidor
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("admin.referidos.exportar") }}';
+        form.target = '_blank';
+
+        // Token CSRF
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+
+        // Formato
+        const formatoInput = document.createElement('input');
+        formatoInput.type = 'hidden';
+        formatoInput.name = 'formato';
+        formatoInput.value = 'pdf';
+        form.appendChild(formatoInput);
+
+        // Cédula si está presente
+        if (cedula) {
+            const cedulaInput = document.createElement('input');
+            cedulaInput.type = 'hidden';
+            cedulaInput.name = 'cedula';
+            cedulaInput.value = cedula;
+            form.appendChild(cedulaInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        console.log('Generando PDF de red de referidos...');
+    }
+
+    // Nueva función para exportar CSV
+    function exportarRedCSV() {
+        const cedula = document.querySelector('input[name="cedula"]') ? document.querySelector('input[name="cedula"]').value : '';
+
+        // Crear formulario para enviar datos al servidor
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("admin.referidos.exportar") }}';
+        form.target = '_blank';
+
+        // Token CSRF
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+
+        // Formato
+        const formatoInput = document.createElement('input');
+        formatoInput.type = 'hidden';
+        formatoInput.name = 'formato';
+        formatoInput.value = 'csv';
+        form.appendChild(formatoInput);
+
+        // Cédula si está presente
+        if (cedula) {
+            const cedulaInput = document.createElement('input');
+            cedulaInput.type = 'hidden';
+            cedulaInput.name = 'cedula';
+            cedulaInput.value = cedula;
+            form.appendChild(cedulaInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        console.log('Generando CSV de red de referidos...');
     }
 </script>
 @endsection

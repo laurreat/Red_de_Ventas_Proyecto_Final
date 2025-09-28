@@ -32,3 +32,19 @@ if (!function_exists('format_currency')) {
         return number_format(to_float($value), $decimals, $decimal_separator, $thousands_separator);
     }
 }
+
+if (!function_exists('format_number')) {
+    /**
+     * Formatea un número manejando MongoDB Decimal128
+     *
+     * @param mixed $value
+     * @param int $decimals
+     * @param string $decimal_separator
+     * @param string $thousands_separator
+     * @return string
+     */
+    function format_number($value, $decimals = 0, $decimal_separator = '.', $thousands_separator = ',')
+    {
+        return number_format(to_float($value), $decimals, $decimal_separator, $thousands_separator);
+    }
+}

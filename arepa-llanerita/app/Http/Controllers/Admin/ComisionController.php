@@ -255,6 +255,8 @@ class ComisionController extends Controller
 
         if ($formato === 'csv') {
             return $this->exportarCSV($comisionesPorVendedor, $fechaInicio, $fechaFin);
+        } elseif ($formato === 'pdf') {
+            return $this->exportarPDF($comisionesPorVendedor, $fechaInicio, $fechaFin);
         } else {
             return $this->exportarExcel($comisionesPorVendedor, $fechaInicio, $fechaFin);
         }
@@ -289,6 +291,36 @@ class ComisionController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function exportarPDF($datos, $fechaInicio, $fechaFin)
+    {
+        // Estadísticas adicionales para el PDF
+        $totalComisiones = $datos->sum('Comisión Ganada');
+        $totalVentas = $datos->sum('Total Ventas');
+        $totalPedidos = $datos->sum('Total Pedidos');
+        $totalEntregados = $datos->sum('Pedidos Entregados');
+
+        $data = [
+            'comisiones' => $datos,
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
+            'stats' => [
+                'total_comisiones' => $totalComisiones,
+                'total_ventas' => $totalVentas,
+                'total_pedidos' => $totalPedidos,
+                'total_entregados' => $totalEntregados,
+                'vendedores_activos' => $datos->count(),
+                'promedio_comision' => $datos->count() > 0 ? $totalComisiones / $datos->count() : 0
+            ]
+        ];
+
+        $pdf = \PDF::loadView('admin.comisiones.pdf', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = "reporte_comisiones_{$fechaInicio}_a_{$fechaFin}.pdf";
+
+        return $pdf->download($filename);
     }
 
     private function exportarExcel($datos, $fechaInicio, $fechaFin)

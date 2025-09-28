@@ -727,6 +727,108 @@ class ReferidoController extends Controller
             ->get();
     }
 
+    public function exportar(Request $request)
+    {
+        $formato = $request->get('formato', 'pdf');
+        $cedula = $request->get('cedula');
+
+        // Obtener datos de la red de referidos
+        $usuarios = User::whereIn('rol', ['vendedor', 'lider'])
+            ->with(['referidor', 'referidos'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Preparar datos para exportación
+        $datosExportacion = $usuarios->map(function ($usuario) {
+            return [
+                'Nombre' => $usuario->name,
+                'Email' => $usuario->email,
+                'Cédula' => $usuario->cedula ?? 'N/A',
+                'Teléfono' => $usuario->telefono ?? 'N/A',
+                'Rol' => ucfirst($usuario->rol),
+                'Referidor' => $usuario->referidor ? $usuario->referidor->name : 'Sin referidor',
+                'Referidos Directos' => $usuario->referidos->count(),
+                'Código Referido' => $usuario->codigo_referido ?? 'N/A',
+                'Fecha Registro' => $usuario->created_at->format('d/m/Y H:i'),
+                'Estado' => $usuario->activo ? 'Activo' : 'Inactivo'
+            ];
+        });
+
+        // Estadísticas adicionales
+        $stats = [
+            'total_usuarios' => $usuarios->count(),
+            'total_vendedores' => $usuarios->where('rol', 'vendedor')->count(),
+            'total_lideres' => $usuarios->where('rol', 'lider')->count(),
+            'usuarios_con_referidos' => $usuarios->filter(function ($u) { return $u->referidos->count() > 0; })->count(),
+            'usuarios_sin_referidor' => $usuarios->filter(function ($u) { return !$u->referidor; })->count(),
+            'fecha_exportacion' => now()->format('d/m/Y H:i:s')
+        ];
+
+        if ($formato === 'pdf') {
+            return $this->exportarPDF($datosExportacion, $stats, $cedula);
+        } else {
+            return $this->exportarCSV($datosExportacion, $stats, $cedula);
+        }
+    }
+
+    private function exportarPDF($datos, $stats, $cedula = null)
+    {
+        $data = [
+            'referidos' => $datos,
+            'stats' => $stats,
+            'cedula_filtro' => $cedula,
+            'titulo' => $cedula ? "Red de Referidos - Usuario {$cedula}" : 'Red de Referidos Completa'
+        ];
+
+        $pdf = \PDF::loadView('admin.referidos.pdf', $data);
+        $pdf->setPaper('A4', 'landscape');
+
+        $filename = $cedula ?
+            "red_referidos_{$cedula}_" . now()->format('Y-m-d') . ".pdf" :
+            "red_referidos_completa_" . now()->format('Y-m-d') . ".pdf";
+
+        return $pdf->download($filename);
+    }
+
+    private function exportarCSV($datos, $stats, $cedula = null)
+    {
+        $filename = $cedula ?
+            "red_referidos_{$cedula}_" . now()->format('Y-m-d') . ".csv" :
+            "red_referidos_completa_" . now()->format('Y-m-d') . ".csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($datos, $stats) {
+            $file = fopen('php://output', 'w');
+
+            // Escribir BOM para UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Escribir estadísticas como comentario
+            fputcsv($file, ["# Red de Referidos - Exportado el {$stats['fecha_exportacion']}"], ';');
+            fputcsv($file, ["# Total usuarios: {$stats['total_usuarios']}"], ';');
+            fputcsv($file, ["# Vendedores: {$stats['total_vendedores']} | Líderes: {$stats['total_lideres']}"], ';');
+            fputcsv($file, [], ';'); // Línea vacía
+
+            // Headers de datos
+            if ($datos->isNotEmpty()) {
+                fputcsv($file, array_keys($datos->first()), ';');
+
+                // Datos
+                foreach ($datos as $row) {
+                    fputcsv($file, array_values($row), ';');
+                }
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     private function calcularConversionReferidos()
     {
         $total_usuarios = User::whereIn('rol', ['vendedor', 'lider'])->count();

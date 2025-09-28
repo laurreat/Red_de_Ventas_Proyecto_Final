@@ -1,18 +1,12 @@
 const CACHE_NAME = 'arepa-llanerita-v1.0.2';
 const urlsToCache = [
-  '/',
-  '/dashboard',
-  '/admin',
   '/manifest.json',
   '/build/assets/app-HM29PgAA.js',
   '/build/assets/app-CvM0rU53.css',
-  '/css/app-theme.css',
   '/images/favicon.svg',
   '/images/icons/icon-192x192.png',
   '/images/icons/icon-512x512.png',
-  '/images/icons/icon-144x144.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css'
+  '/images/icons/icon-144x144.png'
 ];
 
 // Eventos principales del service worker
@@ -60,8 +54,8 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Si la respuesta es exitosa, clona y guarda en cache
-          if (response.status === 200) {
+          // Si la respuesta es exitosa, clona y guarda en cache (solo GET)
+          if (response.status === 200 && event.request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, responseClone);
@@ -97,8 +91,8 @@ self.addEventListener('fetch', event => {
           }
           return fetch(event.request)
             .then(response => {
-              // Solo cachear respuestas exitosas
-              if (response.status === 200) {
+              // Solo cachear respuestas exitosas de métodos GET
+              if (response.status === 200 && event.request.method === 'GET') {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);

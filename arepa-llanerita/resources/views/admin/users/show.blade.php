@@ -31,9 +31,25 @@
                         <i class="bi bi-pencil me-1"></i>
                         Editar
                     </a>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
+                    @php
+                        $previousUrl = url()->previous();
+                        $backRoute = route('admin.users.index');
+                        $backText = 'Gestión Usuarios';
+
+                        // Detectar si venimos del módulo de referidos
+                        if (str_contains($previousUrl, '/admin/referidos')) {
+                            $backRoute = route('admin.referidos.index');
+                            $backText = 'Red de Referidos';
+                        }
+                        // Detectar si venimos del módulo de comisiones
+                        elseif (str_contains($previousUrl, '/admin/comisiones')) {
+                            $backRoute = route('admin.comisiones.index');
+                            $backText = 'Comisiones';
+                        }
+                    @endphp
+                    <a href="{{ $backRoute }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>
-                        Volver
+                        Volver a {{ $backText }}
                     </a>
                 </div>
             </div>
@@ -73,7 +89,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
                         <i class="bi bi-currency-dollar fs-2 text-warning"></i>
                     </div>
-                    <h3 class="fw-bold mb-1 text-warning">${{ number_format($stats['total_vendido'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1 text-warning">${{ number_format(to_float($stats['total_vendido']), 0) }}</h3>
                     <p class="text-muted mb-0 small">Total Vendido</p>
                 </div>
             </div>
@@ -85,7 +101,7 @@
                          style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
                         <i class="bi bi-gem fs-2" style="color: var(--primary-color);"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">${{ number_format($stats['comisiones_totales'], 0) }}</h3>
+                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">${{ number_format(to_float($stats['comisiones_totales']), 0) }}</h3>
                     <p class="text-muted mb-0 small">Comisiones Totales</p>
                 </div>
             </div>
@@ -191,7 +207,7 @@
                         <div class="col-md-6">
                             <label class="text-muted small">Meta Mensual</label>
                             <div class="fw-semibold">
-                                ${{ number_format($user->meta_mensual ?? 0, 2) }}
+                                ${{ number_format(to_float($user->meta_mensual ?? 0), 2) }}
                             </div>
                         </div>
                     </div>
@@ -284,19 +300,19 @@
                 <div class="card-body p-4">
                     <div class="mb-3">
                         <label class="text-muted small">Ventas Mes Actual</label>
-                        <div class="fw-semibold">${{ number_format($user->ventas_mes_actual ?? 0, 2) }}</div>
+                        <div class="fw-semibold">${{ number_format(to_float($user->ventas_mes_actual ?? 0), 2) }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Comisiones Ganadas</label>
-                        <div class="fw-semibold text-success">${{ number_format($user->comisiones_ganadas ?? 0, 2) }}</div>
+                        <div class="fw-semibold text-success">${{ number_format(to_float($user->comisiones_ganadas ?? 0), 2) }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Comisiones Disponibles</label>
-                        <div class="fw-semibold text-info">${{ number_format($user->comisiones_disponibles ?? 0, 2) }}</div>
+                        <div class="fw-semibold text-info">${{ number_format(to_float($user->comisiones_disponibles ?? 0), 2) }}</div>
                     </div>
                     <div>
                         <label class="text-muted small">Total Gastado</label>
-                        <div class="fw-semibold">${{ number_format($stats['total_gastado'], 2) }}</div>
+                        <div class="fw-semibold">${{ number_format(to_float($stats['total_gastado']), 2) }}</div>
                     </div>
                 </div>
             </div>

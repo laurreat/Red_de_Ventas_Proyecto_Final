@@ -17,9 +17,9 @@
                         <i class="bi bi-calculator me-1"></i>
                         Calcular
                     </button>
-                    <button type="button" class="btn btn-outline-primary" onclick="exportarComisiones()">
-                        <i class="bi bi-download me-1"></i>
-                        Exportar
+                    <button type="button" class="btn btn-outline-danger" onclick="exportarComisiones()">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+                        Exportar PDF
                     </button>
                 </div>
             </div>
@@ -320,7 +320,7 @@ function calcularComisiones() {
     const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
 
     if (!fechaInicio || !fechaFin) {
-        showToast('Por favor selecciona un período válido', 'error');
+        showErrorToast('Por favor selecciona un período válido');
         return;
     }
 
@@ -342,22 +342,33 @@ function calcularComisiones() {
             fecha_fin: fechaFin
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Respuesta del servidor:', data);
         if (data.success) {
-            showToast(`Comisiones calculadas: $${data.total_comisiones.toLocaleString()}`, 'success');
+            const totalComisiones = data.total_comisiones || 0;
+            const totalFormateado = typeof totalComisiones === 'number' ?
+                totalComisiones.toLocaleString('es-CO') :
+                parseFloat(totalComisiones).toLocaleString('es-CO');
+
+            showSuccessToast(`Comisiones calculadas: $${totalFormateado}`);
 
             // Recargar la página para mostrar los nuevos datos
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
         } else {
-            showToast('Error al calcular comisiones', 'error');
+            showErrorToast(data.mensaje || 'Error al calcular comisiones');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('Error al calcular comisiones', 'error');
+        showErrorToast('Error al calcular comisiones');
     })
     .finally(() => {
         btnCalcular.disabled = false;
@@ -370,7 +381,7 @@ function exportarComisiones() {
     const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
 
     if (!fechaInicio || !fechaFin) {
-        showToast('Por favor selecciona un período válido', 'error');
+        showErrorToast('Por favor selecciona un período válido');
         return;
     }
 
@@ -405,14 +416,14 @@ function exportarComisiones() {
     const formatoInput = document.createElement('input');
     formatoInput.type = 'hidden';
     formatoInput.name = 'formato';
-    formatoInput.value = 'csv';
+    formatoInput.value = 'pdf';
     form.appendChild(formatoInput);
 
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
 
-    showToast('Descargando reporte de comisiones...', 'success');
+    showSuccessToast('Generando PDF de comisiones...');
 }
 </script>
 @endsection
