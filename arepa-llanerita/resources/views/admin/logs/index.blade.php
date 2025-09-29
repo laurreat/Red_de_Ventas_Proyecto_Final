@@ -13,7 +13,7 @@
                     <p class="text-muted mb-0">Monitoreo y gestión de logs de la aplicación</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-warning me-2" onclick="limpiarLogs()">
+                    <button class="btn btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#confirmClearModal">
                         <i class="bi bi-trash me-1"></i>
                         Limpiar Log Principal
                     </button>
@@ -228,7 +228,7 @@
                                                 {{ Str::limit($log['message'], 100) }}
                                             </div>
                                             @if(strlen($log['message']) > 100)
-                                                <button class="btn btn-sm btn-link p-0" onclick="mostrarMensajeCompleto('{{ htmlspecialchars($log['message']) }}')">
+                                                <button class="btn btn-sm btn-link p-0" onclick="mostrarMensajeCompleto({{ json_encode($log['message']) }})">
                                                     Ver completo
                                                 </button>
                                             @endif
@@ -268,8 +268,8 @@
 </div>
 
 <!-- Modal para Limpiar Logs Antiguos -->
-<div class="modal fade" id="cleanupModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="cleanupModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Limpiar Logs Antiguos</h5>
@@ -305,8 +305,8 @@
 </div>
 
 <!-- Modal para Exportar Logs -->
-<div class="modal fade" id="exportModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="exportModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Exportar Logs</h5>
@@ -354,15 +354,84 @@
 </div>
 
 <!-- Modal para Mensaje Completo -->
-<div class="modal fade" id="messageModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="messageModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Mensaje Completo del Log</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <pre id="messageContent" style="color: black; max-height: 400px; overflow-y: auto;"></pre>
+                <pre id="messageContent" style="color: black; max-height: 400px; overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Limpiar Log Principal -->
+<div class="modal fade" id="confirmClearModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Confirmar Limpieza
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>¿Estás seguro de limpiar el log principal?</strong>
+                </div>
+                <p>Esta acción eliminará todo el contenido del archivo de log principal y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="confirmarLimpiarLogs()">
+                    <i class="bi bi-trash me-1"></i> Sí, Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="successModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Operación Exitosa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Error -->
+<div class="modal fade" id="errorModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -370,94 +439,232 @@
 
 @endsection
 
-@section('scripts')
+@push('scripts')
+<style>
+/* Forzar modales por encima de todo */
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 99999 !important;
+    display: none !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal-dialog {
+    position: relative !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    max-width: 90% !important;
+    width: auto !important;
+}
+
+.modal-content {
+    position: relative !important;
+    z-index: 99999 !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    border: none !important;
+}
+
+.modal-header,
+.modal-body,
+.modal-footer {
+    position: relative !important;
+    z-index: 99999 !important;
+}
+
+/* Asegurar que todos los elementos sean interactivos */
+.modal-content *,
+.modal button,
+.modal input,
+.modal select,
+.modal textarea,
+.btn,
+.form-control,
+.form-select {
+    position: relative !important;
+    z-index: 99999 !important;
+}
+
+/* Ocultar cualquier backdrop que pueda interferir */
+.modal-backdrop.show {
+    display: none !important;
+}
+
+/* Prevenir scroll del body */
+body.modal-open {
+    overflow: hidden !important;
+}
+</style>
 <script>
-// Limpiar log principal
-function limpiarLogs() {
-    if(confirm('¿Estás seguro de limpiar el log principal? Esta acción no se puede deshacer.')) {
-        fetch('{{ route("admin.logs.clear") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                alert('Log principal limpiado exitosamente');
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-        });
+// Función para forzar modal por encima de todo
+function forceModalOnTop(modalElement) {
+    if (modalElement && modalElement.classList.contains('show')) {
+        modalElement.style.position = 'fixed';
+        modalElement.style.top = '0';
+        modalElement.style.left = '0';
+        modalElement.style.right = '0';
+        modalElement.style.bottom = '0';
+        modalElement.style.width = '100%';
+        modalElement.style.height = '100%';
+        modalElement.style.zIndex = '99999';
+        modalElement.style.display = 'flex';
+        modalElement.style.alignItems = 'center';
+        modalElement.style.justifyContent = 'center';
+        modalElement.style.background = 'rgba(0, 0, 0, 0.5)';
+
+        // Ocultar cualquier backdrop
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.style.display = 'none';
+        }
     }
 }
 
-// Limpiar logs antiguos
-document.getElementById('cleanupForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+// Funciones para mostrar modales
+function showSuccessModal(message) {
+    document.getElementById('successMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+    setTimeout(() => forceModalOnTop(document.getElementById('successModal')), 10);
+}
 
-    const formData = new FormData(this);
+function showErrorModal(message) {
+    document.getElementById('errorMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+    modal.show();
+    setTimeout(() => forceModalOnTop(document.getElementById('errorModal')), 10);
+}
 
-    fetch('{{ route("admin.logs.cleanup") }}', {
+// Limpiar log principal - función de confirmación
+function confirmarLimpiarLogs() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmClearModal'));
+    modal.hide();
+
+    fetch('{{ route("admin.logs.clear") }}', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        },
-        body: formData
+            'Content-Type': 'application/json'
+        }
     })
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            alert(data.message + '\nEspacio liberado: ' + data.space_freed);
-            location.reload();
+            showSuccessModal('Log principal limpiado exitosamente');
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
         } else {
-            alert('Error: ' + data.message);
+            showErrorModal('Error: ' + data.message);
         }
     })
     .catch(error => {
-        alert('Error: ' + error.message);
+        showErrorModal('Error de conexión: ' + error.message);
     });
+}
+
+// Interceptar todos los modales para forzarlos por encima
+document.addEventListener('shown.bs.modal', function (event) {
+    forceModalOnTop(event.target);
 });
 
-// Exportar logs
-document.getElementById('exportForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+// También interceptar cuando se muestran para forzar inmediatamente
+document.addEventListener('show.bs.modal', function (event) {
+    setTimeout(() => forceModalOnTop(event.target), 10);
+});
 
-    const formData = new FormData(this);
+// Limpiar logs antiguos
+document.addEventListener('DOMContentLoaded', function() {
+    const cleanupForm = document.getElementById('cleanupForm');
+    if (cleanupForm) {
+        cleanupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    // Crear un enlace temporal para descargar
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ route("admin.logs.export") }}';
-    form.style.display = 'none';
+            const formData = new FormData(this);
 
-    // Agregar token CSRF
-    const csrfToken = document.createElement('input');
-    csrfToken.type = 'hidden';
-    csrfToken.name = '_token';
-    csrfToken.value = '{{ csrf_token() }}';
-    form.appendChild(csrfToken);
+            fetch('{{ route("admin.logs.cleanup") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Cerrar modal
+                bootstrap.Modal.getInstance(document.getElementById('cleanupModal')).hide();
 
-    // Agregar datos del formulario
-    for (let [key, value] of formData.entries()) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
+                if(data.success) {
+                    showSuccessModal(data.message + '\nEspacio liberado: ' + data.space_freed);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showErrorModal('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                bootstrap.Modal.getInstance(document.getElementById('cleanupModal')).hide();
+                showErrorModal('Error de conexión: ' + error.message);
+            });
+        });
     }
 
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    // Exportar logs
+    const exportForm = document.getElementById('exportForm');
+    if (exportForm) {
+        exportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    // Cerrar modal
-    bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+            const formData = new FormData(this);
+
+            // Crear un enlace temporal para descargar
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.logs.export") }}';
+            form.style.display = 'none';
+
+            // Agregar token CSRF
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+
+            // Agregar datos del formulario
+            for (let [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+        });
+    }
 });
 
 // Mostrar mensaje completo
@@ -491,4 +698,4 @@ setInterval(function() {
 }, 30000);
 @endif
 </script>
-@endsection
+@endpush

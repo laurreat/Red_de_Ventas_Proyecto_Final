@@ -1304,6 +1304,8 @@ function showResultModal(type, title, message, details = null) {
 
     // Mostrar modal
     if (typeof $ !== 'undefined') {
+        // Remover aria-hidden antes de mostrar con jQuery
+        modal.removeAttribute('aria-hidden');
         $(modal).modal('show');
     } else {
         // Mostrar modal de forma simple y directa
@@ -1316,6 +1318,9 @@ function showResultModal(type, title, message, details = null) {
         modal.setAttribute('aria-modal', 'true');
         modal.setAttribute('role', 'dialog');
 
+        // IMPORTANTE: Remover aria-hidden cuando se muestra el modal
+        modal.removeAttribute('aria-hidden');
+
         // Asegurar que el modal-dialog esté visible
         const modalDialog = modal.querySelector('.modal-dialog');
         if (modalDialog) {
@@ -1327,11 +1332,29 @@ function showResultModal(type, title, message, details = null) {
         // Deshabilitar scroll del body
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
+    }
 
+    // Gestión correcta del foco para accesibilidad (fuera del bloque if/else)
+    setTimeout(() => {
+        // Enfocar el botón de cerrar para evitar conflictos de aria-hidden
+        const closeButton = modal.querySelector('[data-bs-dismiss="modal"]');
+        if (closeButton) {
+            closeButton.focus();
+        }
+    }, 200);
+
+    // Solo agregar evento de clic para cerrar si no se está usando jQuery
+    if (typeof $ === 'undefined') {
         // Cerrar modal al hacer clic en el fondo (no en el contenido)
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 // Cerrar modal
+                // Quitar foco antes de cerrar
+                const focusedElement = modal.querySelector(':focus');
+                if (focusedElement) {
+                    focusedElement.blur();
+                }
+
                 modal.classList.remove('show');
                 modal.style.display = 'none';
                 modal.style.backgroundColor = '';
@@ -1339,6 +1362,11 @@ function showResultModal(type, title, message, details = null) {
                 modal.style.justifyContent = '';
                 modal.removeAttribute('aria-modal');
                 modal.removeAttribute('role');
+
+                // Aplicar aria-hidden después de quitar el foco
+                setTimeout(() => {
+                    modal.setAttribute('aria-hidden', 'true');
+                }, 100);
 
                 if (modalDialog) {
                     modalDialog.style.margin = '';
@@ -1385,6 +1413,12 @@ function setupModalCloseHandlers() {
             if (typeof $ !== 'undefined') {
                 $(modal).modal('hide');
             } else {
+                // Quitar foco de elementos dentro del modal antes de cerrarlo
+                const focusedElement = modal.querySelector(':focus');
+                if (focusedElement) {
+                    focusedElement.blur();
+                }
+
                 modal.classList.remove('show');
                 modal.style.display = 'none';
                 modal.style.backgroundColor = '';
@@ -1392,6 +1426,11 @@ function setupModalCloseHandlers() {
                 modal.style.justifyContent = '';
                 modal.removeAttribute('aria-modal');
                 modal.removeAttribute('role');
+
+                // Aplicar aria-hidden solo después de quitar el foco
+                setTimeout(() => {
+                    modal.setAttribute('aria-hidden', 'true');
+                }, 100);
 
                 // Limpiar estilos del modal-dialog
                 const modalDialog = modal.querySelector('.modal-dialog');

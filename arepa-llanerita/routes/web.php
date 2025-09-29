@@ -96,9 +96,9 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('admin/respaldos', [\App\Http\Controllers\Admin\RespaldoController::class, 'index'])->name('admin.respaldos.index');
         Route::post('admin/respaldos/create', [\App\Http\Controllers\Admin\RespaldoController::class, 'create'])->name('admin.respaldos.create');
         Route::get('admin/respaldos/{filename}/download', [\App\Http\Controllers\Admin\RespaldoController::class, 'download'])->name('admin.respaldos.download');
+        Route::get('admin/respaldos/{filename}/view', [\App\Http\Controllers\Admin\RespaldoController::class, 'view'])->name('admin.respaldos.view');
         Route::delete('admin/respaldos/{filename}', [\App\Http\Controllers\Admin\RespaldoController::class, 'delete'])->name('admin.respaldos.delete');
         Route::post('admin/respaldos/{filename}/restore', [\App\Http\Controllers\Admin\RespaldoController::class, 'restore'])->name('admin.respaldos.restore');
-        Route::post('admin/respaldos/schedule', [\App\Http\Controllers\Admin\RespaldoController::class, 'schedule'])->name('admin.respaldos.schedule');
         Route::post('admin/respaldos/cleanup', [\App\Http\Controllers\Admin\RespaldoController::class, 'cleanup'])->name('admin.respaldos.cleanup');
 
         // Logs del Sistema
@@ -110,6 +110,16 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('admin/logs/cleanup', [\App\Http\Controllers\Admin\LogController::class, 'cleanup'])->name('admin.logs.cleanup');
         Route::post('admin/logs/export', [\App\Http\Controllers\Admin\LogController::class, 'export'])->name('admin.logs.export');
         Route::get('admin/logs-stats', [\App\Http\Controllers\Admin\LogController::class, 'stats'])->name('admin.logs.stats');
+
+        // Notificaciones
+        Route::get('admin/notificaciones', [\App\Http\Controllers\Admin\NotificacionController::class, 'index'])->name('admin.notificaciones.index');
+        Route::get('admin/notificaciones/dropdown', [\App\Http\Controllers\Admin\NotificacionController::class, 'dropdown'])->name('admin.notificaciones.dropdown');
+        Route::post('admin/notificaciones/{id}/marcar-leida', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarLeida'])->name('admin.notificaciones.marcar-leida');
+        Route::post('admin/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarTodasLeidas'])->name('admin.notificaciones.marcar-todas-leidas');
+        Route::delete('admin/notificaciones/{id}', [\App\Http\Controllers\Admin\NotificacionController::class, 'eliminar'])->name('admin.notificaciones.eliminar');
+        Route::delete('admin/notificaciones/limpiar-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'limpiarLeidas'])->name('admin.notificaciones.limpiar-leidas');
+        Route::get('admin/notificaciones/contar-no-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'contarNoLeidas'])->name('admin.notificaciones.contar-no-leidas');
+        Route::post('admin/notificaciones/crear-pruebas', [\App\Http\Controllers\Admin\NotificacionController::class, 'crearPruebas'])->name('admin.notificaciones.crear-pruebas');
 
         // Mi Perfil
         Route::get('admin/perfil', [\App\Http\Controllers\Admin\PerfilController::class, 'index'])->name('admin.perfil.index');

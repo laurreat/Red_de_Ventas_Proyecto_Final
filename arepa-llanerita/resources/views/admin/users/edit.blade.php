@@ -152,8 +152,13 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="password" class="form-label">Nueva Contraseña</label>
-                                <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                       id="password" name="password">
+                                <div class="input-group">
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                           id="password" name="password">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                    </button>
+                                </div>
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -161,8 +166,13 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="password_confirmation" class="form-label">Confirmar Nueva Contraseña</label>
-                                <input type="password" class="form-control"
-                                       id="password_confirmation" name="password_confirmation">
+                                <div class="input-group">
+                                    <input type="password" class="form-control"
+                                           id="password_confirmation" name="password_confirmation">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePasswordConfirmation">
+                                        <i class="bi bi-eye" id="togglePasswordConfirmationIcon"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -423,6 +433,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (openModal) closeUserModal(openModal.id);
             }
         });
+
+        // Funcionalidad para mostrar/ocultar contraseña
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+        const togglePasswordConfirmationBtn = document.getElementById('togglePasswordConfirmation');
+        const passwordConfirmationField = document.getElementById('password_confirmation');
+        const togglePasswordConfirmationIcon = document.getElementById('togglePasswordConfirmationIcon');
+
+        if (togglePasswordBtn && passwordField && togglePasswordIcon) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+
+                // Cambiar icono
+                if (type === 'text') {
+                    togglePasswordIcon.classList.remove('bi-eye');
+                    togglePasswordIcon.classList.add('bi-eye-slash');
+                } else {
+                    togglePasswordIcon.classList.remove('bi-eye-slash');
+                    togglePasswordIcon.classList.add('bi-eye');
+                }
+            });
+        }
+
+        if (togglePasswordConfirmationBtn && passwordConfirmationField && togglePasswordConfirmationIcon) {
+            togglePasswordConfirmationBtn.addEventListener('click', function() {
+                const type = passwordConfirmationField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordConfirmationField.setAttribute('type', type);
+
+                // Cambiar icono
+                if (type === 'text') {
+                    togglePasswordConfirmationIcon.classList.remove('bi-eye');
+                    togglePasswordConfirmationIcon.classList.add('bi-eye-slash');
+                } else {
+                    togglePasswordConfirmationIcon.classList.remove('bi-eye-slash');
+                    togglePasswordConfirmationIcon.classList.add('bi-eye');
+                }
+            });
+        }
 
         console.log('Funciones de editar usuario inicializadas correctamente');
     }, 1000);

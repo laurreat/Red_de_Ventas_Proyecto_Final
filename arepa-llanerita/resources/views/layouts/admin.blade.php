@@ -685,6 +685,14 @@
                     Logs del Sistema
                 </a>
             </div>
+
+            <div class="nav-item">
+                <a href="{{ route('admin.notificaciones.index') }}" class="nav-link">
+                    <i class="bi bi-bell"></i>
+                    Notificaciones
+                    <span class="badge bg-warning ms-auto" id="sidebarNotificationBadge" style="display: none;">0</span>
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -701,18 +709,31 @@
             <div class="header-right">
                 <!-- Notifications -->
                 <div class="dropdown">
-                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" id="notificationsDropdown">
                         <i class="bi bi-bell"></i>
-                        <span class="notification-badge">3</span>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;">
+                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;" id="notificationsDropdownMenu">
                         <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
                             <h6 class="mb-0">Notificaciones</h6>
-                            <small class="text-muted">3 nuevas</small>
+                            <div>
+                                <small class="text-muted me-2" id="notificationCount">0 nuevas</small>
+                                <button class="btn btn-sm btn-outline-primary" onclick="verTodasLasNotificaciones()">
+                                    Ver todas
+                                </button>
+                            </div>
                         </div>
-                        <div class="notification-item text-center text-muted">
-                            <i class="bi bi-bell-slash fs-4"></i>
-                            <p class="mb-0 mt-2">Sistema de notificaciones próximamente</p>
+                        <div id="notificationsList" style="max-height: 300px; overflow-y: auto;">
+                            <div class="notification-item text-center text-muted p-3">
+                                <i class="bi bi-bell-slash fs-4"></i>
+                                <p class="mb-0 mt-2">No hay notificaciones nuevas</p>
+                            </div>
+                        </div>
+                        <div class="border-top p-2">
+                            <button class="btn btn-sm btn-outline-success w-100" onclick="marcarTodasLeidasDropdown()">
+                                <i class="bi bi-check-all me-1"></i>
+                                Marcar todas como leídas
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -838,6 +859,172 @@
         function showComingSoon(feature) {
             alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
+
+        // Sistema de notificaciones
+        window.notificationsSystem = {
+            updateInterval: null,
+
+            init: function() {
+                this.loadNotifications();
+                this.startPolling();
+                this.bindEvents();
+            },
+
+            loadNotifications: function() {
+                fetch('{{ route("admin.notificaciones.dropdown") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.updateNotificationUI(data.notificaciones, data.total_no_leidas);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading notifications:', error);
+                    });
+            },
+
+            updateNotificationUI: function(notificaciones, totalNoLeidas) {
+                const badge = document.getElementById('notificationBadge');
+                const sidebarBadge = document.getElementById('sidebarNotificationBadge');
+                const count = document.getElementById('notificationCount');
+                const list = document.getElementById('notificationsList');
+
+                // Actualizar badges
+                if (totalNoLeidas > 0) {
+                    badge.textContent = totalNoLeidas;
+                    badge.style.display = 'inline';
+                    sidebarBadge.textContent = totalNoLeidas;
+                    sidebarBadge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                    sidebarBadge.style.display = 'none';
+                }
+
+                // Actualizar contador
+                count.textContent = totalNoLeidas + ' nuevas';
+
+                // Actualizar lista
+                if (notificaciones.length > 0) {
+                    list.innerHTML = '';
+                    notificaciones.forEach(notif => {
+                        const item = this.createNotificationItem(notif);
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.innerHTML = `
+                        <div class="notification-item text-center text-muted p-3">
+                            <i class="bi bi-bell-slash fs-4"></i>
+                            <p class="mb-0 mt-2">No hay notificaciones nuevas</p>
+                        </div>
+                    `;
+                }
+            },
+
+            createNotificationItem: function(notif) {
+                const div = document.createElement('div');
+                div.className = 'notification-item p-2 border-bottom';
+                div.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <div class="me-2">
+                            ${this.getNotificationIcon(notif.tipo)}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-semibold small">${notif.titulo}</h6>
+                            <p class="mb-1 small text-muted">${notif.mensaje}</p>
+                            <small class="text-muted">${this.timeAgo(notif.created_at)}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-success" onclick="marcarLeidaDropdown('${notif._id}')">
+                            <i class="bi bi-check"></i>
+                        </button>
+                    </div>
+                `;
+                return div;
+            },
+
+            getNotificationIcon: function(tipo) {
+                const icons = {
+                    'pedido': '<i class="bi bi-cart text-primary"></i>',
+                    'venta': '<i class="bi bi-currency-dollar text-success"></i>',
+                    'usuario': '<i class="bi bi-person text-info"></i>',
+                    'comision': '<i class="bi bi-wallet text-warning"></i>',
+                    'sistema': '<i class="bi bi-gear text-secondary"></i>'
+                };
+                return icons[tipo] || '<i class="bi bi-bell text-muted"></i>';
+            },
+
+            timeAgo: function(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+
+                if (seconds < 60) return 'hace un momento';
+                if (seconds < 3600) return `hace ${Math.floor(seconds / 60)} min`;
+                if (seconds < 86400) return `hace ${Math.floor(seconds / 3600)} h`;
+                return `hace ${Math.floor(seconds / 86400)} d`;
+            },
+
+            startPolling: function() {
+                this.updateInterval = setInterval(() => {
+                    this.loadNotifications();
+                }, 30000); // Actualizar cada 30 segundos
+            },
+
+            stopPolling: function() {
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                    this.updateInterval = null;
+                }
+            },
+
+            bindEvents: function() {
+                // Cargar notificaciones cuando se abre el dropdown
+                document.getElementById('notificationsDropdown').addEventListener('click', () => {
+                    this.loadNotifications();
+                });
+            }
+        };
+
+        // Funciones globales para notificaciones
+        window.verTodasLasNotificaciones = function() {
+            window.location.href = '{{ route("admin.notificaciones.index") }}';
+        };
+
+        window.marcarLeidaDropdown = function(id) {
+            fetch(`{{ route('admin.notificaciones.marcar-leida', ':id') }}`.replace(':id', id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationsSystem.loadNotifications();
+                }
+            });
+        };
+
+        window.marcarTodasLeidasDropdown = function() {
+            fetch('{{ route("admin.notificaciones.marcar-todas-leidas") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationsSystem.loadNotifications();
+                }
+            });
+        };
+
+        // Inicializar sistema de notificaciones cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            notificationsSystem.init();
+        });
     </script>
 
     {{-- Incluir funciones JavaScript para alertas --}}

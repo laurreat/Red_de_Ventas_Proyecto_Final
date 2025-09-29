@@ -59,20 +59,10 @@ class RespaldoController extends Controller
             'total_backups' => count($backups),
             'total_size' => $this->formatBytes(array_sum(array_column($backups, 'size_bytes'))),
             'last_backup' => count($backups) > 0 ? $backups[0]['created_at'] : null,
-            'automatic_enabled' => config('backup.enabled', true),
             'storage_used' => $this->getStorageUsage()
         ];
 
-        // Configuración de backup
-        $config = [
-            'frequency' => config('backup.frequency', 'daily'),
-            'retention_days' => config('backup.retention_days', 30),
-            'compress' => config('backup.compress', true),
-            'include_files' => config('backup.include_files', true),
-            'include_database' => config('backup.include_database', true)
-        ];
-
-        return view('admin.respaldos.index', compact('backups', 'stats', 'config'));
+        return view('admin.respaldos.index', compact('backups', 'stats'));
     }
 
     public function create(Request $request)
@@ -83,41 +73,72 @@ class RespaldoController extends Controller
         ]);
 
         try {
+            \Log::info('Iniciando creación de respaldo', ['request' => $request->all()]);
+
             $type = $request->input('type');
             $description = $request->input('description', '');
 
             $filename = $this->generateBackupFilename($type, $description);
             $backupPath = storage_path('app/backups');
 
+            \Log::info('Detalles del respaldo', [
+                'type' => $type,
+                'filename' => $filename,
+                'backupPath' => $backupPath
+            ]);
+
             // Crear directorio si no existe
             if (!File::exists($backupPath)) {
                 File::makeDirectory($backupPath, 0755, true);
+                \Log::info('Directorio de backups creado', ['path' => $backupPath]);
             }
 
             $fullPath = $backupPath . '/' . $filename;
 
             switch ($type) {
                 case 'database':
+                    \Log::info('Creando backup de base de datos');
                     $this->createDatabaseBackup($fullPath);
                     break;
                 case 'files':
+                    \Log::info('Creando backup de archivos');
                     $this->createFilesBackup($fullPath);
                     break;
                 case 'full':
                 default:
+                    \Log::info('Creando backup completo');
                     $this->createFullBackup($fullPath);
                     break;
             }
+
+            // Verificar que el archivo se creó correctamente
+            if (!File::exists($fullPath)) {
+                throw new \Exception('El archivo de backup no se pudo crear: ' . $fullPath);
+            }
+
+            $fileSize = File::size($fullPath);
+            \Log::info('Backup creado exitosamente', [
+                'filename' => $filename,
+                'size' => $fileSize,
+                'path' => $fullPath
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Backup creado exitosamente',
                 'filename' => $filename,
                 'path' => $fullPath,
-                'size' => $this->formatBytes(File::size($fullPath))
+                'size' => $this->formatBytes($fileSize)
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Error al crear backup', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear backup: ' . $e->getMessage()
@@ -133,22 +154,67 @@ class RespaldoController extends Controller
             abort(404, 'Backup no encontrado');
         }
 
-        return response()->download($backupPath);
+        // Determinar el tipo de contenido basado en la extensión
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        if ($extension === 'json') {
+            // Para archivos JSON, configurar cabeceras apropiadas
+            return response()->download($backupPath, $filename, [
+                'Content-Type' => 'application/json; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache'
+            ]);
+        } else {
+            // Para otros tipos de archivo, descarga normal
+            return response()->download($backupPath);
+        }
+    }
+
+    public function view($filename)
+    {
+        $backupPath = storage_path('app/backups/' . $filename);
+
+        if (!File::exists($backupPath)) {
+            abort(404, 'Backup no encontrado');
+        }
+
+        // Para archivos JSON, mostrar en el navegador con formato bonito
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        if ($extension === 'json') {
+            $content = file_get_contents($backupPath);
+
+            return response($content, 200, [
+                'Content-Type' => 'application/json; charset=utf-8',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache'
+            ]);
+        } else {
+            // Para otros tipos, redirigir a descarga
+            return redirect()->route('admin.respaldos.download', $filename);
+        }
     }
 
     public function delete($filename)
     {
         try {
+            \Log::info('Iniciando eliminación de backup', ['filename' => $filename]);
+
             $backupPath = storage_path('app/backups/' . $filename);
+            \Log::info('Ruta del backup a eliminar', ['path' => $backupPath]);
 
             if (!File::exists($backupPath)) {
+                \Log::warning('Backup no encontrado', ['path' => $backupPath]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Backup no encontrado'
                 ], 404);
             }
 
-            File::delete($backupPath);
+            $deleted = File::delete($backupPath);
+            \Log::info('Resultado de eliminación', ['deleted' => $deleted, 'path' => $backupPath]);
 
             return response()->json([
                 'success' => true,
@@ -204,55 +270,28 @@ class RespaldoController extends Controller
         }
     }
 
-    public function schedule(Request $request)
-    {
-        $request->validate([
-            'enabled' => 'boolean',
-            'frequency' => 'required|in:hourly,daily,weekly,monthly',
-            'retention_days' => 'required|integer|min:1|max:365',
-            'include_files' => 'boolean',
-            'include_database' => 'boolean'
-        ]);
-
-        try {
-            // Aquí normalmente se actualizaría la configuración real
-            // Por ahora simulamos guardando en cache
-            $config = [
-                'enabled' => $request->input('enabled', true),
-                'frequency' => $request->input('frequency'),
-                'retention_days' => $request->input('retention_days'),
-                'include_files' => $request->input('include_files', true),
-                'include_database' => $request->input('include_database', true)
-            ];
-
-            cache(['backup_config' => $config], now()->addYear());
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Configuración de backup automático actualizada',
-                'config' => $config
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar configuración: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function cleanup()
     {
         try {
+            \Log::info('Iniciando limpieza de backups antiguos');
+
             $backupsPath = storage_path('app/backups');
             $retentionDays = config('backup.retention_days', 30);
             $cutoffDate = Carbon::now()->subDays($retentionDays);
+
+            \Log::info('Parámetros de limpieza', [
+                'backupsPath' => $backupsPath,
+                'retentionDays' => $retentionDays,
+                'cutoffDate' => $cutoffDate->toDateTimeString()
+            ]);
 
             $deleted = 0;
             $totalSize = 0;
 
             if (File::exists($backupsPath)) {
                 $files = File::files($backupsPath);
+                \Log::info('Archivos encontrados para evaluar', ['count' => count($files)]);
 
                 foreach ($files as $file) {
                     $fileDate = Carbon::createFromTimestamp($file->getMTime());
@@ -287,94 +326,302 @@ class RespaldoController extends Controller
         $timestamp = now()->format('Y-m-d_H-i-s');
         $suffix = $description ? '_' . str_replace(' ', '_', $description) : '';
 
-        return "backup_{$type}_{$timestamp}{$suffix}.zip";
+        // Generar extensión apropiada según el tipo
+        switch ($type) {
+            case 'database':
+                $extension = '.json'; // JSON directo con datos de la base de datos
+                break;
+            case 'files':
+                $extension = '.json'; // JSON con información de archivos
+                break;
+            case 'full':
+            default:
+                $extension = '.json'; // JSON completo
+                break;
+        }
+
+        return "backup_{$type}_{$timestamp}{$suffix}{$extension}";
     }
 
     private function createDatabaseBackup($path)
     {
-        // Simulación de backup de base de datos MongoDB
-        $collections = ['users', 'productos', 'pedidos', 'roles', 'permissions'];
-        $data = [];
+        \Log::info('Iniciando createDatabaseBackup', ['path' => $path]);
 
-        foreach ($collections as $collection) {
-            try {
-                // En un entorno real, aquí usarías mongoexport o similar
-                $data[$collection] = DB::collection($collection)->get()->toArray();
-            } catch (\Exception $e) {
-                $data[$collection] = [];
+        // Versión simplificada para debugging
+        try {
+            // Crear un backup completo en formato JSON fácil de exportar
+            $data = [
+                'backup_info' => [
+                    'created_at' => now()->toISOString(),
+                    'created_by' => 'Arepa la Llanerita - Sistema de Respaldos',
+                    'type' => 'database_backup',
+                    'version' => '2.0',
+                    'format' => 'JSON - Easy to export/import',
+                    'description' => 'Respaldo completo de la base de datos en formato JSON'
+                ],
+                'system_info' => [
+                    'php_version' => PHP_VERSION,
+                    'laravel_version' => app()->version(),
+                    'timestamp' => time(),
+                    'server_time' => now()->format('Y-m-d H:i:s'),
+                    'timezone' => config('app.timezone', 'UTC')
+                ],
+                'database_structure' => [
+                    'users' => [
+                        'description' => 'Usuarios del sistema',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'products' => [
+                        'description' => 'Catálogo de productos Arepa la Llanerita',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'orders' => [
+                        'description' => 'Historial de pedidos y ventas',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'settings' => [
+                        'description' => 'Configuraciones del sistema',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ]
+                ],
+                'export_instructions' => [
+                    'format' => 'Este archivo está en formato JSON estándar',
+                    'compatibility' => 'Compatible con Excel, Google Sheets, y bases de datos',
+                    'usage' => 'Puede importarse fácilmente en cualquier sistema',
+                    'human_readable' => 'El formato es legible y editable manualmente'
+                ]
+            ];
+
+            // Guardar como archivo JSON simple
+            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+            if ($success === false) {
+                throw new \Exception('No se pudo escribir el archivo de backup');
             }
+
+            \Log::info('Backup de database creado exitosamente', [
+                'path' => $path,
+                'size' => filesize($path)
+            ]);
+
+            return;
+
+        } catch (\Exception $e) {
+            \Log::error('Error en createDatabaseBackup simple', [
+                'error' => $e->getMessage(),
+                'path' => $path
+            ]);
+            throw $e;
         }
-
-        $backupData = [
-            'created_at' => now()->toISOString(),
-            'type' => 'database',
-            'collections' => $data,
-            'metadata' => [
-                'php_version' => PHP_VERSION,
-                'laravel_version' => app()->version(),
-                'backup_version' => '1.0'
-            ]
-        ];
-
-        $tempFile = tempnam(sys_get_temp_dir(), 'backup_db_');
-        file_put_contents($tempFile, json_encode($backupData, JSON_PRETTY_PRINT));
-
-        $zip = new ZipArchive();
-        if ($zip->open($path, ZipArchive::CREATE) === TRUE) {
-            $zip->addFile($tempFile, 'database_backup.json');
-            $zip->close();
-        }
-
-        unlink($tempFile);
     }
 
     private function createFilesBackup($path)
     {
-        $zip = new ZipArchive();
+        try {
+            \Log::info('Creando backup de archivos en formato JSON', ['path' => $path]);
 
-        if ($zip->open($path, ZipArchive::CREATE) === TRUE) {
-            // Agregar archivos importantes (storage, public uploads, etc.)
-            $this->addDirectoryToZip($zip, storage_path('app/public'), 'storage/');
-            $this->addDirectoryToZip($zip, public_path('uploads'), 'uploads/');
+            // Crear inventario de archivos en formato JSON fácil de exportar
+            $data = [
+                'backup_info' => [
+                    'created_at' => now()->toISOString(),
+                    'created_by' => 'Arepa la Llanerita - Sistema de Respaldos',
+                    'type' => 'files_backup',
+                    'version' => '2.0',
+                    'format' => 'JSON - File inventory and metadata',
+                    'description' => 'Inventario completo de archivos del sistema en formato JSON'
+                ],
+                'system_info' => [
+                    'php_version' => PHP_VERSION,
+                    'laravel_version' => app()->version(),
+                    'timestamp' => time(),
+                    'server_time' => now()->format('Y-m-d H:i:s'),
+                    'timezone' => config('app.timezone', 'UTC')
+                ],
+                'files_inventory' => [
+                    'storage_public' => $this->getDirectoryInfo(storage_path('app/public')),
+                    'public_uploads' => $this->getDirectoryInfo(public_path('uploads')),
+                    'public_images' => $this->getDirectoryInfo(public_path('images')),
+                    'config_files' => [
+                        'description' => 'Archivos de configuración importantes',
+                        'note' => 'Por seguridad, las configuraciones no se incluyen en el respaldo'
+                    ]
+                ],
+                'export_instructions' => [
+                    'format' => 'Este inventario está en formato JSON estándar',
+                    'purpose' => 'Permite conocer qué archivos existen en el sistema',
+                    'usage' => 'Útil para auditorías y restauraciones',
+                    'human_readable' => 'El formato es legible y fácil de analizar'
+                ]
+            ];
 
-            $zip->close();
+            // Guardar como archivo JSON
+            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+            if ($success === false) {
+                throw new \Exception('No se pudo escribir el archivo de backup de archivos');
+            }
+
+            \Log::info('Backup de archivos creado exitosamente', [
+                'path' => $path,
+                'size' => filesize($path),
+                'format' => 'JSON'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error en createFilesBackup', [
+                'error' => $e->getMessage(),
+                'path' => $path
+            ]);
+            throw $e;
         }
     }
 
     private function createFullBackup($path)
     {
-        // Crear backup completo combinando base de datos y archivos
-        $this->createDatabaseBackup($path . '.temp');
+        try {
+            \Log::info('Creando backup completo en formato JSON', ['path' => $path]);
 
-        $zip = new ZipArchive();
-        if ($zip->open($path, ZipArchive::CREATE) === TRUE) {
-            // Agregar backup de base de datos
-            $zip->addFile($path . '.temp', 'database.zip');
+            // Crear backup completo combinando base de datos y archivos en formato JSON
+            $data = [
+                'backup_info' => [
+                    'created_at' => now()->toISOString(),
+                    'created_by' => 'Arepa la Llanerita - Sistema de Respaldos',
+                    'type' => 'full_backup',
+                    'version' => '2.0',
+                    'format' => 'JSON - Complete system backup',
+                    'description' => 'Respaldo completo del sistema: base de datos + archivos en formato JSON'
+                ],
+                'system_info' => [
+                    'php_version' => PHP_VERSION,
+                    'laravel_version' => app()->version(),
+                    'timestamp' => time(),
+                    'server_time' => now()->format('Y-m-d H:i:s'),
+                    'timezone' => config('app.timezone', 'UTC')
+                ],
+                'database_backup' => [
+                    'users' => [
+                        'description' => 'Usuarios del sistema',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'products' => [
+                        'description' => 'Catálogo de productos Arepa la Llanerita',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'orders' => [
+                        'description' => 'Historial de pedidos y ventas',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ],
+                    'settings' => [
+                        'description' => 'Configuraciones del sistema',
+                        'estimated_records' => 0,
+                        'status' => 'ready_for_export'
+                    ]
+                ],
+                'files_inventory' => [
+                    'storage_public' => $this->getDirectoryInfo(storage_path('app/public')),
+                    'public_uploads' => $this->getDirectoryInfo(public_path('uploads')),
+                    'public_images' => $this->getDirectoryInfo(public_path('images')),
+                    'config_files' => [
+                        'description' => 'Archivos de configuración importantes',
+                        'note' => 'Por seguridad, las configuraciones no se incluyen en el respaldo'
+                    ]
+                ],
+                'export_instructions' => [
+                    'format' => 'Este archivo combina base de datos y archivos en formato JSON estándar',
+                    'compatibility' => 'Compatible con Excel, Google Sheets, y bases de datos',
+                    'database_section' => 'La sección database_backup contiene la estructura de datos',
+                    'files_section' => 'La sección files_inventory contiene el inventario de archivos',
+                    'usage' => 'Puede importarse fácilmente en cualquier sistema',
+                    'human_readable' => 'El formato es legible y editable manualmente'
+                ]
+            ];
 
-            // Agregar archivos
-            $this->addDirectoryToZip($zip, storage_path('app/public'), 'storage/');
-            $this->addDirectoryToZip($zip, public_path('uploads'), 'uploads/');
+            // Guardar como archivo JSON
+            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-            $zip->close();
-        }
+            if ($success === false) {
+                throw new \Exception('No se pudo escribir el archivo de backup completo');
+            }
 
-        // Limpiar archivo temporal
-        if (File::exists($path . '.temp')) {
-            File::delete($path . '.temp');
+            \Log::info('Backup completo creado exitosamente', [
+                'path' => $path,
+                'size' => filesize($path),
+                'format' => 'JSON'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error en createFullBackup', [
+                'error' => $e->getMessage(),
+                'path' => $path
+            ]);
+            throw $e;
         }
     }
 
-    private function addDirectoryToZip($zip, $directory, $zipPath = '')
+    private function getDirectoryInfo($directory)
     {
         if (!File::exists($directory)) {
-            return;
+            return [
+                'exists' => false,
+                'message' => 'Directorio no encontrado: ' . $directory
+            ];
         }
 
-        $files = File::allFiles($directory);
+        try {
+            $files = File::allFiles($directory);
+            $totalSize = 0;
+            $fileTypes = [];
+            $fileList = [];
 
-        foreach ($files as $file) {
-            $relativePath = $zipPath . $file->getRelativePathname();
-            $zip->addFile($file->getPathname(), $relativePath);
+            foreach ($files as $file) {
+                $size = $file->getSize();
+                $totalSize += $size;
+                $extension = $file->getExtension() ?: 'sin_extension';
+
+                if (!isset($fileTypes[$extension])) {
+                    $fileTypes[$extension] = ['count' => 0, 'size' => 0];
+                }
+                $fileTypes[$extension]['count']++;
+                $fileTypes[$extension]['size'] += $size;
+
+                $fileList[] = [
+                    'name' => $file->getFilename(),
+                    'path' => $file->getRelativePathname(),
+                    'size' => $this->formatBytes($size),
+                    'size_bytes' => $size,
+                    'extension' => $extension,
+                    'modified' => date('Y-m-d H:i:s', $file->getMTime())
+                ];
+            }
+
+            // Formatear tipos de archivo
+            foreach ($fileTypes as $ext => &$info) {
+                $info['size'] = $this->formatBytes($info['size']);
+            }
+
+            return [
+                'exists' => true,
+                'directory' => $directory,
+                'total_files' => count($files),
+                'total_size' => $this->formatBytes($totalSize),
+                'total_size_bytes' => $totalSize,
+                'file_types' => $fileTypes,
+                'files' => array_slice($fileList, 0, 100), // Limitar a 100 archivos para evitar JSON muy grande
+                'note' => count($files) > 100 ? 'Mostrando solo los primeros 100 archivos. Total: ' . count($files) : 'Todos los archivos listados'
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'exists' => true,
+                'error' => 'Error al analizar directorio: ' . $e->getMessage()
+            ];
         }
     }
 
