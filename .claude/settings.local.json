@@ -43,7 +43,9 @@
       "Bash(for icon in dashboard admin products orders)",
       "Bash(do cp \"public/images/icons/icon-96x96.png\" \"public/images/icons/$icon-96x96.png\")",
       "Bash(mklink:*)",
-      "WebFetch(domain:127.0.0.1)"
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")"
     ],
     "deny": [],
     "ask": []
