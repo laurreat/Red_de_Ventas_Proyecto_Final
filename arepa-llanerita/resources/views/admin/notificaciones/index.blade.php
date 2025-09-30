@@ -236,202 +236,23 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/notificaciones.css') }}">
+@endpush
+
 @push('scripts')
+{{-- Variables globales para los módulos de notificaciones --}}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Función para mostrar modal de confirmación
-    function showConfirmModal(title, message, actionCallback) {
-        document.getElementById('confirmModalTitle').textContent = title;
-        document.getElementById('confirmModalMessage').textContent = message;
-        document.getElementById('confirmModalAction').onclick = actionCallback;
-        new bootstrap.Modal(document.getElementById('confirmModal')).show();
-    }
-
-    // Función para mostrar modal de resultado
-    function showResultModal(title, message, isSuccess = true) {
-        const header = document.getElementById('resultModalHeader');
-        header.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
-        document.getElementById('resultModalTitle').textContent = title;
-        document.getElementById('resultModalMessage').textContent = message;
-
-        const modal = new bootstrap.Modal(document.getElementById('resultModal'));
-        modal.show();
-
-        if (isSuccess) {
-            setTimeout(() => {
-                modal.hide();
-                location.reload();
-            }, 2000);
-        }
-    }
-
-    // Marcar una notificación como leída
-    window.marcarLeida = function(id) {
-        fetch(`{{ route('admin.notificaciones.marcar-leida', ':id') }}`.replace(':id', id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const item = document.querySelector(`[data-id="${id}"]`);
-                if (item) {
-                    item.classList.remove('bg-light');
-                    const badge = item.querySelector('.badge.bg-warning');
-                    if (badge) badge.remove();
-                    const button = item.querySelector('.btn-outline-success');
-                    if (button) button.remove();
-                }
-                showResultModal('Éxito', data.message);
-            } else {
-                showResultModal('Error', data.message, false);
-            }
-        })
-        .catch(error => {
-            showResultModal('Error', 'Error de conexión', false);
-        });
-    };
-
-    // Marcar todas como leídas
-    window.marcarTodasLeidas = function() {
-        showConfirmModal(
-            'Marcar Todas como Leídas',
-            '¿Estás seguro de marcar todas las notificaciones como leídas?',
-            function() {
-                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-
-                fetch('{{ route('admin.notificaciones.marcar-todas-leidas') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    showResultModal('Éxito', data.message);
-                })
-                .catch(error => {
-                    showResultModal('Error', 'Error de conexión', false);
-                });
-            }
-        );
-    };
-
-    // Eliminar una notificación
-    window.eliminarNotificacion = function(id) {
-        showConfirmModal(
-            'Eliminar Notificación',
-            '¿Estás seguro de eliminar esta notificación?',
-            function() {
-                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-
-                fetch(`{{ route('admin.notificaciones.eliminar', ':id') }}`.replace(':id', id), {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const item = document.querySelector(`[data-id="${id}"]`);
-                        if (item) item.remove();
-                        showResultModal('Éxito', data.message);
-                    } else {
-                        showResultModal('Error', data.message, false);
-                    }
-                })
-                .catch(error => {
-                    showResultModal('Error', 'Error de conexión', false);
-                });
-            }
-        );
-    };
-
-    // Limpiar notificaciones leídas
-    window.limpiarLeidas = function() {
-        showConfirmModal(
-            'Limpiar Notificaciones Leídas',
-            '¿Estás seguro de eliminar todas las notificaciones leídas?',
-            function() {
-                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-
-                fetch('{{ route('admin.notificaciones.limpiar-leidas') }}', {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    showResultModal('Éxito', data.message);
-                })
-                .catch(error => {
-                    showResultModal('Error', 'Error de conexión', false);
-                });
-            }
-        );
-    };
-
-    // Crear notificaciones de prueba
-    window.crearNotificacionesPrueba = function() {
-        showConfirmModal(
-            'Crear Notificaciones de Prueba',
-            '¿Deseas crear algunas notificaciones de prueba para probar el sistema?',
-            function() {
-                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-
-                fetch('{{ route('admin.notificaciones.crear-pruebas') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showResultModal('Éxito', data.message);
-                    } else {
-                        showResultModal('Error', data.message, false);
-                    }
-                })
-                .catch(error => {
-                    showResultModal('Error', 'Error de conexión', false);
-                });
-            }
-        );
-    };
-});
+window.notificacionesRoutes = {
+    marcarLeida: '{{ route("admin.notificaciones.marcar-leida", ":id") }}',
+    marcarTodasLeidas: '{{ route("admin.notificaciones.marcar-todas-leidas") }}',
+    eliminar: '{{ route("admin.notificaciones.eliminar", ":id") }}',
+    limpiarLeidas: '{{ route("admin.notificaciones.limpiar-leidas") }}',
+    crearPruebas: '{{ route("admin.notificaciones.crear-pruebas") }}'
+};
+window.notificacionesCSRF = '{{ csrf_token() }}';
 </script>
 
-<style>
-.notification-item {
-    transition: background-color 0.3s ease;
-}
-
-.notification-item:hover {
-    background-color: #f8f9fa;
-}
-
-.notification-actions .btn {
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-}
-
-.notification-item:hover .notification-actions .btn {
-    opacity: 1;
-}
-
-.notification-icon {
-    width: 50px;
-    text-align: center;
-}
-</style>
+{{-- Módulos de funcionalidad de notificaciones --}}
+<script src="{{ asset('js/admin/notificaciones-management.js') }}"></script>
 @endpush

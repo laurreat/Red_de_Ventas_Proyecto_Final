@@ -48,3 +48,4 @@ if (!function_exists('format_number')) {
         return number_format(to_float($value), $decimals, $decimal_separator, $thousands_separator);
     }
 }
+

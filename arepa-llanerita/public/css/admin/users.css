@@ -1,0 +1,13 @@
+/* Estilos específicos para la gestión de usuarios */
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-title {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 600;
+}

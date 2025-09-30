@@ -145,58 +145,8 @@
 
 @push('scripts')
 <script>
-    // Variable para controlar si hay errores
-    const hasErrors = @json($errors->any());
-
-    // Validación del formulario
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        if (typeof showLoading === 'function') {
-            showLoading();
-        }
-    });
-
-    // Animaciones de entrada
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ocultar loading si hay errores
-        if (hasErrors && typeof hideLoading === 'function') {
-            hideLoading();
-        }
-
-        const loginContent = document.querySelector('.login-content');
-        const brandContent = document.querySelector('.brand-content');
-
-        // Animación de entrada
-        if (loginContent && brandContent) {
-            loginContent.style.opacity = '0';
-            loginContent.style.transform = 'translateX(30px)';
-            brandContent.style.opacity = '0';
-            brandContent.style.transform = 'translateX(-30px)';
-
-            setTimeout(() => {
-                loginContent.style.transition = 'all 0.8s ease';
-                brandContent.style.transition = 'all 0.8s ease';
-                loginContent.style.opacity = '1';
-                loginContent.style.transform = 'translateX(0)';
-                brandContent.style.opacity = '1';
-                brandContent.style.transform = 'translateX(0)';
-            }, 100);
-        }
-
-        // Función para mostrar/ocultar contraseña
-        window.togglePassword = function(inputId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(inputId + '-icon');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
-        };
-    });
+    // Configurar variables antes de cargar el módulo
+    window.setLoginErrors && window.setLoginErrors(@json($errors->any()));
 </script>
+<script src="{{ asset('js/auth/login.js') }}"></script>
 @endpush

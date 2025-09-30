@@ -343,64 +343,27 @@
 <!-- Incluir modales profesionales de pedidos -->
 @include('admin.partials.modals-pedidos-professional')
 
+@push('scripts')
+{{-- Variables globales para los módulos de pedidos --}}
 <script>
-// Variables globales para las rutas
 window.pedidosRoutes = {
     details: '{{ route("admin.pedidos.show", ":id") }}',
     updateStatus: '{{ route("admin.pedidos.update-status", ":id") }}',
     destroy: '{{ route("admin.pedidos.destroy", ":id") }}'
 };
-
-// Inicializar modales profesionales para pedidos
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Pedidos Index con modales profesionales cargado...');
-
-    // Test completo de modales y elementos
-    setTimeout(function() {
-        console.log('🔍 Test completo de modales:');
-        console.log('- Bootstrap disponible:', typeof bootstrap !== 'undefined');
-        console.log('- Bootstrap.Modal disponible:', typeof bootstrap?.Modal !== 'undefined');
-        console.log('- confirmDeletePedido disponible:', typeof confirmDeletePedido !== 'undefined');
-        console.log('- showStatusSelector disponible:', typeof showStatusSelector !== 'undefined');
-
-        // Verificar elementos HTML de modales
-        const deleteModal = document.getElementById('deletePedidoConfirmModal');
-        const statusModal = document.getElementById('statusPedidoConfirmModal');
-        const saveModal = document.getElementById('savePedidoConfirmModal');
-        const statusSelectorModal = document.getElementById('statusSelectorPedidoModal');
-
-        console.log('- HTML deleteModal encontrado:', deleteModal !== null);
-        console.log('- HTML statusModal encontrado:', statusModal !== null);
-        console.log('- HTML saveModal encontrado:', saveModal !== null);
-        console.log('- HTML statusSelectorModal encontrado:', statusSelectorModal !== null);
-
-        if (typeof confirmDeletePedido !== 'undefined' && typeof showStatusSelector !== 'undefined') {
-            console.log('✅ Funciones de modales disponibles');
-        } else {
-            console.error('❌ Funciones de modales no encontradas');
-        }
-    }, 500);
-});
-</script>
-
-{{-- Cargar scripts específicos para pedidos --}}
-<script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
-
-{{-- Mostrar mensajes flash usando AdminAlerts --}}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+window.pedidosFlashMessages = {
     @if(session('success'))
-        if (window.adminAlerts) {
-            window.adminAlerts.showSuccess('¡Éxito!', '{{ session('success') }}');
-        }
+    success: '{{ session('success') }}',
     @endif
-
     @if(session('error'))
-        if (window.adminAlerts) {
-            window.adminAlerts.showError('Error', '{{ session('error') }}');
-        }
+    error: '{{ session('error') }}',
     @endif
-});
+};
 </script>
+
+{{-- Módulos de funcionalidad de pedidos --}}
+<script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/admin/pedidos-init.js') }}"></script>
+@endpush
 
 @endsection

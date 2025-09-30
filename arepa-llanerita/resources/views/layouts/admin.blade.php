@@ -772,12 +772,6 @@
                                 Mi Perfil
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('admin.configuracion-personal.index') }}">
-                                <i class="bi bi-gear me-2"></i>
-                                Configuración
-                            </a>
-                        </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item text-danger" href="{{ route('logout') }}"

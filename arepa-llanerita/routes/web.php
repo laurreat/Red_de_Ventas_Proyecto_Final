@@ -131,15 +131,6 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('admin/perfil/download', [\App\Http\Controllers\Admin\PerfilController::class, 'downloadData'])->name('admin.perfil.download-data');
         Route::get('admin/perfil/activity', [\App\Http\Controllers\Admin\PerfilController::class, 'activity'])->name('admin.perfil.activity');
 
-        // Configuración Personal
-        Route::get('admin/configuracion-personal', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'index'])->name('admin.configuracion-personal.index');
-        Route::post('admin/configuracion-personal/interfaz', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateInterfaz'])->name('admin.configuracion-personal.update-interfaz');
-        Route::post('admin/configuracion-personal/notificaciones', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateNotificaciones'])->name('admin.configuracion-personal.update-notificaciones');
-        Route::post('admin/configuracion-personal/privacidad', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updatePrivacidad'])->name('admin.configuracion-personal.update-privacidad');
-        Route::post('admin/configuracion-personal/seguridad', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateSeguridad'])->name('admin.configuracion-personal.update-seguridad');
-        Route::post('admin/configuracion-personal/dashboard', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'updateDashboard'])->name('admin.configuracion-personal.update-dashboard');
-        Route::post('admin/configuracion-personal/reset', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'reset'])->name('admin.configuracion-personal.reset');
-        Route::get('admin/configuracion-personal/export', [\App\Http\Controllers\Admin\ConfiguracionPersonalController::class, 'export'])->name('admin.configuracion-personal.export');
     });
     
     // Rutas para Líderes y Administradores

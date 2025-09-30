@@ -1,0 +1,26 @@
+/**
+ * Estilos para el módulo de notificaciones
+ * Separado para mejor organización del código
+ */
+
+.notification-item {
+    transition: background-color 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-actions .btn {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.notification-item:hover .notification-actions .btn {
+    opacity: 1;
+}
+
+.notification-icon {
+    width: 50px;
+    text-align: center;
+}

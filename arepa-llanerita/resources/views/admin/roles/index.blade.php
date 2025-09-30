@@ -206,63 +206,10 @@
 </form>
 @endsection
 
-@section('styles')
-<style>
-/* Estilos específicos para la tabla de roles */
-.table td {
-    color: #000 !important;
-    vertical-align: middle;
-}
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/roles.css') }}">
+@endpush
 
-.table th {
-    color: #000 !important;
-    font-weight: 600;
-    background-color: #f8f9fa;
-}
-
-.badge {
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
-}
-
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-}
-
-/* Mejoras de accesibilidad */
-.table-responsive {
-    border-radius: 0.375rem;
-    overflow: hidden;
-}
-
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-/* Tooltips para botones */
-[title] {
-    cursor: help;
-}
-</style>
-@endsection
-
-@section('scripts')
-<script>
-function toggleStatus(roleId) {
-    if (confirm('¿Estás seguro de cambiar el estado de este rol?')) {
-        const form = document.getElementById('toggleForm');
-        form.action = `/admin/roles/${roleId}/toggle`;
-        form.submit();
-    }
-}
-
-function deleteRole(roleId) {
-    if (confirm('¿Estás seguro de eliminar este rol? Esta acción no se puede deshacer.')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `/admin/roles/${roleId}`;
-        form.submit();
-    }
-}
-</script>
-@endsection
+@push('scripts')
+<script src="{{ asset('js/admin/roles-management.js') }}"></script>
+@endpush

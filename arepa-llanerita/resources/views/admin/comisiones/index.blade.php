@@ -314,116 +314,19 @@
     @endif
 </div>
 
+
+@push('scripts')
+{{-- Variables globales para los módulos de comisiones --}}
 <script>
-function calcularComisiones() {
-    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
-    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
-
-    if (!fechaInicio || !fechaFin) {
-        showErrorToast('Por favor selecciona un período válido');
-        return;
-    }
-
-    // Mostrar loading
-    const btnCalcular = document.querySelector('button[onclick="calcularComisiones()"]');
-    const originalText = btnCalcular.innerHTML;
-    btnCalcular.disabled = true;
-    btnCalcular.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Calculando...';
-
-    // Realizar petición AJAX
-    fetch('{{ route("admin.comisiones.calcular") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-            fecha_inicio: fechaInicio,
-            fecha_fin: fechaFin
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Respuesta del servidor:', data);
-        if (data.success) {
-            const totalComisiones = data.total_comisiones || 0;
-            const totalFormateado = typeof totalComisiones === 'number' ?
-                totalComisiones.toLocaleString('es-CO') :
-                parseFloat(totalComisiones).toLocaleString('es-CO');
-
-            showSuccessToast(`Comisiones calculadas: $${totalFormateado}`);
-
-            // Recargar la página para mostrar los nuevos datos
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showErrorToast(data.mensaje || 'Error al calcular comisiones');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showErrorToast('Error al calcular comisiones');
-    })
-    .finally(() => {
-        btnCalcular.disabled = false;
-        btnCalcular.innerHTML = originalText;
-    });
-}
-
-function exportarComisiones() {
-    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
-    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
-
-    if (!fechaInicio || !fechaFin) {
-        showErrorToast('Por favor selecciona un período válido');
-        return;
-    }
-
-    // Crear formulario para descargar
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ route("admin.comisiones.exportar") }}';
-    form.target = '_blank';
-
-    // Token CSRF
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    form.appendChild(csrfInput);
-
-    // Fecha inicio
-    const fechaInicioInput = document.createElement('input');
-    fechaInicioInput.type = 'hidden';
-    fechaInicioInput.name = 'fecha_inicio';
-    fechaInicioInput.value = fechaInicio;
-    form.appendChild(fechaInicioInput);
-
-    // Fecha fin
-    const fechaFinInput = document.createElement('input');
-    fechaFinInput.type = 'hidden';
-    fechaFinInput.name = 'fecha_fin';
-    fechaFinInput.value = fechaFin;
-    form.appendChild(fechaFinInput);
-
-    // Formato
-    const formatoInput = document.createElement('input');
-    formatoInput.type = 'hidden';
-    formatoInput.name = 'formato';
-    formatoInput.value = 'pdf';
-    form.appendChild(formatoInput);
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-
-    showSuccessToast('Generando PDF de comisiones...');
-}
+window.comisionesRoutes = {
+    calcular: '{{ route("admin.comisiones.calcular") }}',
+    exportar: '{{ route("admin.comisiones.exportar") }}'
+};
+window.comisionesCSRF = '{{ csrf_token() }}';
 </script>
+
+{{-- Módulos de funcionalidad de comisiones --}}
+<script src="{{ asset('js/admin/comisiones-management.js') }}"></script>
+@endpush
+
 @endsection

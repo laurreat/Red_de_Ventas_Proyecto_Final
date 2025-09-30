@@ -343,94 +343,17 @@
     </div>
 </div>
 
+@push('scripts')
+{{-- Variables globales para los módulos de reportes --}}
 <script>
-function exportarReporte() {
-    // Obtener los valores actuales de los filtros
-    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
-    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
-    const vendedorId = document.querySelector('select[name="vendedor_id"]').value;
-
-    // Mostrar mensaje de carga
-    const button = document.getElementById('exportButton');
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="bi bi-arrow-clockwise me-1 spin"></i> Generando PDF...';
-    button.disabled = true;
-
-    // Construir URL de exportación
-    const params = new URLSearchParams({
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin
-    });
-
-    if (vendedorId) {
-        params.append('vendedor_id', vendedorId);
-    }
-
-    const url = `{{ route('admin.reportes.exportar-ventas') }}?${params.toString()}`;
-
-    // Usar fetch para manejar errores correctamente
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => Promise.reject(err));
-        }
-
-        // Si la respuesta es exitosa, proceder con la descarga
-        return response.blob().then(blob => {
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-
-            // Nombre del archivo PDF
-            const fechaStr = fechaInicio.replace(/-/g, '_') + '_al_' + fechaFin.replace(/-/g, '_');
-            link.download = `reporte_ventas_${fechaStr}.pdf`;
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(downloadUrl);
-
-            // Mostrar mensaje de éxito
-            if (typeof showSuccessToast === 'function') {
-                showSuccessToast('¡Reporte PDF descargado exitosamente!');
-            }
-        });
-    })
-    .catch(error => {
-        console.error('Error al exportar:', error);
-
-        // Mostrar mensaje de error
-        if (typeof showErrorToast === 'function') {
-            const mensaje = error.error || error.message || 'Error al generar el reporte PDF. Inténtalo nuevamente.';
-            showErrorToast(mensaje);
-        } else {
-            alert('Error al generar el reporte: ' + (error.error || error.message || 'Error desconocido'));
-        }
-    })
-    .finally(() => {
-        // Restaurar botón
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-// Estilos para la animación de carga
-const style = document.createElement('style');
-style.textContent = `
-    .spin {
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
+window.reportesRoutes = {
+    export: '{{ route("admin.reportes.exportar-ventas") }}'
+};
+window.reportesCSRF = '{{ csrf_token() }}';
 </script>
+
+{{-- Módulos de funcionalidad de reportes --}}
+<script src="{{ asset('js/admin/reportes-ventas.js') }}"></script>
+@endpush
+
 @endsection

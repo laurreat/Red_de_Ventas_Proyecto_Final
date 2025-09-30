@@ -135,48 +135,6 @@
 </div>
 @endsection
 
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle de categorías
-    document.querySelectorAll('.category-toggle').forEach(function(toggle) {
-        toggle.addEventListener('change', function() {
-            const category = this.dataset.category;
-            const checkboxes = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]`);
-
-            checkboxes.forEach(function(checkbox) {
-                checkbox.checked = toggle.checked;
-            });
-        });
-    });
-
-    // Actualizar estado de toggle de categoría cuando cambian los permisos individuales
-    document.querySelectorAll('.permission-checkbox').forEach(function(checkbox) {
-        checkbox.addEventListener('change', updateCategoryToggle);
-    });
-
-    function updateCategoryToggle() {
-        document.querySelectorAll('.category-toggle').forEach(function(categoryToggle) {
-            const category = categoryToggle.dataset.category;
-            const categoryCheckboxes = document.querySelectorAll(`.permission-checkbox[data-category="${category}"]`);
-
-            const checkedCount = Array.from(categoryCheckboxes).filter(cb => cb.checked).length;
-
-            if (checkedCount === 0) {
-                categoryToggle.checked = false;
-                categoryToggle.indeterminate = false;
-            } else if (checkedCount === categoryCheckboxes.length) {
-                categoryToggle.checked = true;
-                categoryToggle.indeterminate = false;
-            } else {
-                categoryToggle.checked = false;
-                categoryToggle.indeterminate = true;
-            }
-        });
-    }
-
-    // Inicializar estado de toggles de categoría
-    updateCategoryToggle();
-});
-</script>
-@endsection
+@push('scripts')
+<script src="{{ asset('js/admin/roles-forms.js') }}"></script>
+@endpush

@@ -2,6 +2,10 @@
 
 @section('title', 'Logs del Sistema')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/logs.css') }}">
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
@@ -440,262 +444,19 @@
 @endsection
 
 @push('scripts')
-<style>
-/* Forzar modales por encima de todo */
-.modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 99999 !important;
-    display: none !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-}
-
-.modal.show {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-.modal-backdrop {
-    display: none !important;
-}
-
-.modal-dialog {
-    position: relative !important;
-    z-index: 99999 !important;
-    margin: 0 !important;
-    max-width: 90% !important;
-    width: auto !important;
-}
-
-.modal-content {
-    position: relative !important;
-    z-index: 99999 !important;
-    background: white !important;
-    border-radius: 8px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
-    border: none !important;
-}
-
-.modal-header,
-.modal-body,
-.modal-footer {
-    position: relative !important;
-    z-index: 99999 !important;
-}
-
-/* Asegurar que todos los elementos sean interactivos */
-.modal-content *,
-.modal button,
-.modal input,
-.modal select,
-.modal textarea,
-.btn,
-.form-control,
-.form-select {
-    position: relative !important;
-    z-index: 99999 !important;
-}
-
-/* Ocultar cualquier backdrop que pueda interferir */
-.modal-backdrop.show {
-    display: none !important;
-}
-
-/* Prevenir scroll del body */
-body.modal-open {
-    overflow: hidden !important;
-}
-</style>
+{{-- Variables globales para los módulos de logs --}}
 <script>
-// Función para forzar modal por encima de todo
-function forceModalOnTop(modalElement) {
-    if (modalElement && modalElement.classList.contains('show')) {
-        modalElement.style.position = 'fixed';
-        modalElement.style.top = '0';
-        modalElement.style.left = '0';
-        modalElement.style.right = '0';
-        modalElement.style.bottom = '0';
-        modalElement.style.width = '100%';
-        modalElement.style.height = '100%';
-        modalElement.style.zIndex = '99999';
-        modalElement.style.display = 'flex';
-        modalElement.style.alignItems = 'center';
-        modalElement.style.justifyContent = 'center';
-        modalElement.style.background = 'rgba(0, 0, 0, 0.5)';
-
-        // Ocultar cualquier backdrop
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) {
-            backdrop.style.display = 'none';
-        }
-    }
-}
-
-// Funciones para mostrar modales
-function showSuccessModal(message) {
-    document.getElementById('successMessage').textContent = message;
-    const modal = new bootstrap.Modal(document.getElementById('successModal'));
-    modal.show();
-    setTimeout(() => forceModalOnTop(document.getElementById('successModal')), 10);
-}
-
-function showErrorModal(message) {
-    document.getElementById('errorMessage').textContent = message;
-    const modal = new bootstrap.Modal(document.getElementById('errorModal'));
-    modal.show();
-    setTimeout(() => forceModalOnTop(document.getElementById('errorModal')), 10);
-}
-
-// Limpiar log principal - función de confirmación
-function confirmarLimpiarLogs() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmClearModal'));
-    modal.hide();
-
-    fetch('{{ route("admin.logs.clear") }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.success) {
-            showSuccessModal('Log principal limpiado exitosamente');
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
-        } else {
-            showErrorModal('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        showErrorModal('Error de conexión: ' + error.message);
-    });
-}
-
-// Interceptar todos los modales para forzarlos por encima
-document.addEventListener('shown.bs.modal', function (event) {
-    forceModalOnTop(event.target);
-});
-
-// También interceptar cuando se muestran para forzar inmediatamente
-document.addEventListener('show.bs.modal', function (event) {
-    setTimeout(() => forceModalOnTop(event.target), 10);
-});
-
-// Limpiar logs antiguos
-document.addEventListener('DOMContentLoaded', function() {
-    const cleanupForm = document.getElementById('cleanupForm');
-    if (cleanupForm) {
-        cleanupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-
-            fetch('{{ route("admin.logs.cleanup") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Cerrar modal
-                bootstrap.Modal.getInstance(document.getElementById('cleanupModal')).hide();
-
-                if(data.success) {
-                    showSuccessModal(data.message + '\nEspacio liberado: ' + data.space_freed);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
-                } else {
-                    showErrorModal('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                bootstrap.Modal.getInstance(document.getElementById('cleanupModal')).hide();
-                showErrorModal('Error de conexión: ' + error.message);
-            });
-        });
-    }
-
-    // Exportar logs
-    const exportForm = document.getElementById('exportForm');
-    if (exportForm) {
-        exportForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-
-            // Crear un enlace temporal para descargar
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route("admin.logs.export") }}';
-            form.style.display = 'none';
-
-            // Agregar token CSRF
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-
-            // Agregar datos del formulario
-            for (let [key, value] of formData.entries()) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = value;
-                form.appendChild(input);
-            }
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-
-            // Cerrar modal
-            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
-        });
-    }
-});
-
-// Mostrar mensaje completo
-function mostrarMensajeCompleto(mensaje) {
-    document.getElementById('messageContent').textContent = mensaje;
-    new bootstrap.Modal(document.getElementById('messageModal')).show();
-}
-
-// Obtener estadísticas actualizadas
-function obtenerEstadisticas() {
-    fetch('{{ route("admin.logs.stats") }}')
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                // Aquí podrías actualizar las estadísticas sin recargar la página
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error al obtener estadísticas:', error);
-        });
-}
-
-// Auto-refresh cada 30 segundos si estamos viendo logs del día actual
-@if($date == now()->format('Y-m-d'))
-setInterval(function() {
-    // Solo auto-refresh si no hay modales abiertos
-    if(!document.querySelector('.modal.show')) {
-        obtenerEstadisticas();
-    }
-}, 30000);
-@endif
+window.logsRoutes = {
+    clear: '{{ route("admin.logs.clear") }}',
+    cleanup: '{{ route("admin.logs.cleanup") }}',
+    export: '{{ route("admin.logs.export") }}',
+    stats: '{{ route("admin.logs.stats") }}'
+};
+window.logsCSRF = '{{ csrf_token() }}';
+window.logsCurrentDate = '{{ $date }}';
+window.logsToday = '{{ now()->format("Y-m-d") }}';
 </script>
+
+{{-- Módulos de funcionalidad de logs --}}
+<script src="{{ asset('js/admin/logs-management.js') }}"></script>
 @endpush

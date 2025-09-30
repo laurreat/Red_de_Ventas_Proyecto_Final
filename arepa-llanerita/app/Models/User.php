@@ -48,7 +48,39 @@ class User extends Authenticatable
         'notif_email_usuarios',
         'notif_email_sistema',
         'notif_sms_urgente',
-        'notif_push_browser'
+        'notif_push_browser',
+        // Configuración de Interfaz
+        'tema',
+        'idioma',
+        'zona_horaria',
+        'formato_fecha',
+        'formato_hora',
+        'sidebar_collapsed',
+        'dashboard_widgets',
+        // Configuración de Notificaciones
+        'notif_email_comisiones',
+        'notif_email_reportes',
+        'sonido_notificaciones',
+        'frecuencia_digest',
+        // Configuración de Privacidad
+        'perfil_publico',
+        'mostrar_email',
+        'mostrar_telefono',
+        'mostrar_ultima_conexion',
+        'permitir_mensajes',
+        'indexar_perfil',
+        // Configuración de Seguridad
+        'sesiones_multiples',
+        'logout_automatico',
+        'verificacion_2fa',
+        'alertas_login',
+        'historial_actividad',
+        'refresh_automatico',
+        // Configuración de Dashboard
+        'widgets_activos',
+        'layout_dashboard',
+        'densidade_informacion',
+        'mostrar_tips'
     ];
 
     protected $hidden = [
@@ -107,6 +139,11 @@ class User extends Authenticatable
     }
 
     public function referidos()
+    {
+        return $this->hasMany(User::class, 'referido_por');
+    }
+
+    public function referidosComisiones()
     {
         return $this->hasMany(Referido::class, 'referidor_id');
     }

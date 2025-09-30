@@ -194,22 +194,6 @@
 </form>
 @endsection
 
-@section('scripts')
-<script>
-function toggleStatus(roleId) {
-    if (confirm('¿Estás seguro de cambiar el estado de este rol?')) {
-        const form = document.getElementById('toggleForm');
-        form.action = `/admin/roles/${roleId}/toggle`;
-        form.submit();
-    }
-}
-
-function deleteRole(roleId) {
-    if (confirm('¿Estás seguro de eliminar este rol? Esta acción no se puede deshacer.')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `/admin/roles/${roleId}`;
-        form.submit();
-    }
-}
-</script>
-@endsection
+@push('scripts')
+<script src="{{ asset('js/admin/roles-management.js') }}"></script>
+@endpush

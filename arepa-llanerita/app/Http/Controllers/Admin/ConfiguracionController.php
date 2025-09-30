@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Configuracion;
 
 class ConfiguracionController extends Controller
 {
@@ -22,24 +23,21 @@ class ConfiguracionController extends Controller
 
     public function index()
     {
-        // Configuraciones del sistema
+        // Configuraciones del sistema desde la base de datos
         $configuraciones = [
             'general' => [
-                'nombre_empresa' => config('app.name', 'Arepa la Llanerita'),
-                'email_empresa' => env('MAIL_FROM_ADDRESS', 'admin@arepa-llanerita.com'),
-                'telefono_empresa' => '(57) 300 123 4567',
-                'direccion_empresa' => 'Calle 123 #45-67, Bogotá, Colombia',
-                'moneda' => 'COP',
-                'timezone' => config('app.timezone', 'America/Bogota'),
-                'idioma' => 'es',
+                'nombre_empresa' => Configuracion::obtener('nombre_empresa', 'Arepa la Llanerita'),
+                'email_empresa' => Configuracion::obtener('email_empresa', 'admin@arepa-llanerita.com'),
+                'telefono_empresa' => Configuracion::obtener('telefono_empresa', '(57) 300 123 4567'),
+                'direccion_empresa' => Configuracion::obtener('direccion_empresa', 'Calle 123 #45-67, Bogotá, Colombia'),
             ],
             'mlm' => [
-                'comision_directa' => 10.0, // 10%
-                'comision_referido' => 3.0, // 3%
-                'comision_lider' => 2.0, // 2%
-                'niveles_maximos' => 5,
-                'bonificacion_lider' => 5.0, // 5%
-                'minimo_ventas_mes' => 100000, // $100,000 COP
+                'comision_directa' => Configuracion::obtener('comision_directa', 10.0),
+                'comision_referido' => Configuracion::obtener('comision_referido', 3.0),
+                'comision_lider' => Configuracion::obtener('comision_lider', 2.0),
+                'niveles_maximos' => Configuracion::obtener('niveles_maximos', 5),
+                'bonificacion_lider' => Configuracion::obtener('bonificacion_lider', 5.0),
+                'minimo_ventas_mes' => Configuracion::obtener('minimo_ventas_mes', 100000),
             ],
             'pedidos' => [
                 'estados_disponibles' => [
@@ -51,9 +49,9 @@ class ConfiguracionController extends Controller
                     'entregado' => 'Entregado',
                     'cancelado' => 'Cancelado'
                 ],
-                'tiempo_preparacion' => 30, // minutos
-                'costo_envio' => 5000, // $5,000 COP
-                'envio_gratis_desde' => 50000, // $50,000 COP
+                'tiempo_preparacion' => Configuracion::obtener('tiempo_preparacion', 30),
+                'costo_envio' => Configuracion::obtener('costo_envio', 5000),
+                'envio_gratis_desde' => Configuracion::obtener('envio_gratis_desde', 50000),
             ],
             'notificaciones' => [
                 'email_pedidos' => true,
@@ -97,11 +95,19 @@ class ConfiguracionController extends Controller
             'direccion_empresa' => 'required|string|max:500',
         ]);
 
-        // Aquí normalmente se guardarían en una tabla de configuraciones
-        // Por ahora simulamos la funcionalidad
+        try {
+            // Guardar cada configuración en la base de datos
+            Configuracion::establecer('nombre_empresa', $request->nombre_empresa, auth()->id());
+            Configuracion::establecer('email_empresa', $request->email_empresa, auth()->id());
+            Configuracion::establecer('telefono_empresa', $request->telefono_empresa, auth()->id());
+            Configuracion::establecer('direccion_empresa', $request->direccion_empresa, auth()->id());
 
-        return redirect()->route('admin.configuracion.index')
-            ->with('success', 'Configuración general actualizada exitosamente.');
+            return redirect()->route('admin.configuracion.index')
+                ->with('success', 'Configuración general actualizada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar configuración: ' . $e->getMessage());
+        }
     }
 
     public function updateMlm(Request $request)
@@ -115,14 +121,20 @@ class ConfiguracionController extends Controller
             'minimo_ventas_mes' => 'required|numeric|min:0',
         ]);
 
-        // Simular guardado de configuración MLM
-        Cache::put('mlm_config', $request->only([
-            'comision_directa', 'comision_referido', 'comision_lider',
-            'niveles_maximos', 'bonificacion_lider', 'minimo_ventas_mes'
-        ]), now()->addYear());
+        try {
+            Configuracion::establecer('comision_directa', $request->comision_directa, auth()->id());
+            Configuracion::establecer('comision_referido', $request->comision_referido, auth()->id());
+            Configuracion::establecer('comision_lider', $request->comision_lider, auth()->id());
+            Configuracion::establecer('niveles_maximos', $request->niveles_maximos, auth()->id());
+            Configuracion::establecer('bonificacion_lider', $request->bonificacion_lider, auth()->id());
+            Configuracion::establecer('minimo_ventas_mes', $request->minimo_ventas_mes, auth()->id());
 
-        return redirect()->route('admin.configuracion.index')
-            ->with('success', 'Configuración MLM actualizada exitosamente.');
+            return redirect()->route('admin.configuracion.index')
+                ->with('success', 'Configuración MLM actualizada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar configuración MLM: ' . $e->getMessage());
+        }
     }
 
     public function updatePedidos(Request $request)
@@ -133,13 +145,17 @@ class ConfiguracionController extends Controller
             'envio_gratis_desde' => 'required|numeric|min:0',
         ]);
 
-        // Simular guardado de configuración de pedidos
-        Cache::put('pedidos_config', $request->only([
-            'tiempo_preparacion', 'costo_envio', 'envio_gratis_desde'
-        ]), now()->addYear());
+        try {
+            Configuracion::establecer('tiempo_preparacion', $request->tiempo_preparacion, auth()->id());
+            Configuracion::establecer('costo_envio', $request->costo_envio, auth()->id());
+            Configuracion::establecer('envio_gratis_desde', $request->envio_gratis_desde, auth()->id());
 
-        return redirect()->route('admin.configuracion.index')
-            ->with('success', 'Configuración de pedidos actualizada exitosamente.');
+            return redirect()->route('admin.configuracion.index')
+                ->with('success', 'Configuración de pedidos actualizada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar configuración de pedidos: ' . $e->getMessage());
+        }
     }
 
     public function updateNotificaciones(Request $request)
