@@ -239,146 +239,29 @@
 @include('admin.partials.modals')
 
 @push('scripts')
+{{-- Pasar datos del producto a JavaScript --}}
 <script>
-// Funciones específicas para la vista de detalles del producto
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        console.log('Inicializando funciones para vista show del producto...');
+window.productoData = {
+    id: '{{ $producto->_id }}',
+    nombre: '{{ $producto->nombre }}',
+    categoria: '{{ $producto->categoria->nombre ?? 'Sin categoría' }}',
+    imagen: '{{ $producto->imagen ? asset("storage/" . $producto->imagen) : "https://via.placeholder.com/50" }}',
+    activo: {{ $producto->activo ? 'true' : 'false' }}
+};
 
-        // Función para confirmar eliminación
-        window.confirmDelete = function(productId) {
-            console.log('Show confirmDelete ejecutada para:', productId);
+// Override funciones globales con datos del producto
+window.confirmDelete = function(productId) {
+    if (window.originalConfirmDelete) {
+        window.originalConfirmDelete(productId, window.productoData);
+    }
+};
 
-            // Obtener información del producto de la página
-            const productName = '{{ $producto->nombre }}';
-            const productCategory = '{{ $producto->categoria->nombre }}';
-            const productImage = '{{ $producto->imagen ? asset("storage/" . $producto->imagen) : "https://via.placeholder.com/50" }}';
-
-            // Actualizar modal
-            const nameEl = document.getElementById('deleteProductName');
-            const categoryEl = document.getElementById('deleteProductCategory');
-            const imageEl = document.getElementById('deleteProductImage');
-
-            if (nameEl) nameEl.textContent = productName;
-            if (categoryEl) categoryEl.textContent = productCategory;
-            if (imageEl) {
-                imageEl.src = productImage;
-                imageEl.alt = productName;
-            }
-
-            // Configurar botón de confirmación
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
-            if (confirmBtn) {
-                confirmBtn.onclick = function() {
-                    document.getElementById(`delete-form-${productId}`).submit();
-                };
-            }
-
-            // Mostrar modal
-            const modalElement = document.getElementById('deleteConfirmModal');
-            if (modalElement) {
-                console.log('Mostrando modal de eliminación en vista show');
-                modalElement.style.display = 'block';
-                modalElement.classList.add('show');
-                document.body.classList.add('modal-open');
-
-                // Crear backdrop
-                const backdrop = document.createElement('div');
-                backdrop.className = 'modal-backdrop fade show';
-                document.body.appendChild(backdrop);
-            }
-        };
-
-        // Función para cambiar estado
-        window.toggleStatus = function(productId) {
-            console.log('Show toggleStatus ejecutada para:', productId);
-
-            const isActive = {{ $producto->activo ? 'true' : 'false' }};
-            const productName = '{{ $producto->nombre }}';
-
-            // Configurar modal dinámicamente
-            const statusHeader = document.getElementById('statusModalHeader');
-            const statusIcon = document.getElementById('statusIcon');
-            const statusIconContainer = document.getElementById('statusIconContainer');
-            const statusTitle = document.getElementById('statusTitle');
-            const statusMessage = document.getElementById('statusMessage');
-            const statusBtn = document.getElementById('confirmStatusBtn');
-            const statusBtnText = document.getElementById('statusBtnText');
-            const statusBtnIcon = document.getElementById('statusBtnIcon');
-
-            if (isActive) {
-                // Desactivar
-                statusHeader.style.background = 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)';
-                statusIconContainer.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
-                statusIcon.className = 'bi bi-pause-fill text-warning fs-1';
-                statusTitle.textContent = '¿Deseas desactivar este producto?';
-                statusMessage.textContent = 'El producto no será visible en el catálogo y no estará disponible para venta.';
-                statusBtn.className = 'btn btn-warning';
-                statusBtnIcon.className = 'bi bi-pause me-1';
-                statusBtnText.textContent = 'Desactivar Producto';
-            } else {
-                // Activar
-                statusHeader.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-                statusIconContainer.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
-                statusIcon.className = 'bi bi-play-fill text-success fs-1';
-                statusTitle.textContent = '¿Deseas activar este producto?';
-                statusMessage.textContent = 'El producto será visible en el catálogo y estará disponible para venta.';
-                statusBtn.className = 'btn btn-success';
-                statusBtnIcon.className = 'bi bi-play me-1';
-                statusBtnText.textContent = 'Activar Producto';
-            }
-
-            // Configurar botón de confirmación
-            statusBtn.onclick = function() {
-                document.getElementById(`toggle-form-${productId}`).submit();
-            };
-
-            // Mostrar modal
-            const modalElement = document.getElementById('statusConfirmModal');
-            if (modalElement) {
-                console.log('Mostrando modal de estado en vista show');
-                modalElement.style.display = 'block';
-                modalElement.classList.add('show');
-                document.body.classList.add('modal-open');
-
-                // Crear backdrop
-                const backdrop = document.createElement('div');
-                backdrop.className = 'modal-backdrop fade show';
-                document.body.appendChild(backdrop);
-            }
-        };
-
-        // Función para cerrar modales
-        window.closeModal = function(modalId) {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                modalElement.style.display = 'none';
-                modalElement.classList.remove('show');
-                document.body.classList.remove('modal-open');
-
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) backdrop.remove();
-            }
-        };
-
-        // Event listeners para cerrar modales
-        document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.modal');
-                if (modal) closeModal(modal.id);
-            });
-        });
-
-        // Cerrar con backdrop
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal-backdrop')) {
-                const openModal = document.querySelector('.modal.show');
-                if (openModal) closeModal(openModal.id);
-            }
-        });
-
-        console.log('Funciones inicializadas para vista show');
-    }, 1000);
-});
+window.toggleStatus = function(productId) {
+    if (window.originalToggleStatus) {
+        window.originalToggleStatus(productId, window.productoData);
+    }
+};
 </script>
+{{-- JavaScript movido a: public/js/admin/productos-show.js --}}
+<script src="{{ asset('js/admin/productos-show.js') }}"></script>
 @endpush

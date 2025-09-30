@@ -1,0 +1,13 @@
+.timeline {
+    position: relative;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 35px;
+    bottom: 35px;
+    width: 2px;
+    background-color: #dee2e6;
+}

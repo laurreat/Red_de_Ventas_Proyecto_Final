@@ -196,41 +196,6 @@
 @endsection
 
 @push('styles')
-<style>
-.red-jerarquica {
-    font-family: 'Courier New', monospace;
-}
-
-.red-node {
-    margin-left: 20px;
-    border-left: 2px solid #e9ecef;
-    padding-left: 15px;
-    margin-bottom: 10px;
-}
-
-.red-node:last-child {
-    border-left: 2px solid transparent;
-}
-
-.red-node::before {
-    content: '';
-    position: absolute;
-    left: -2px;
-    top: 20px;
-    width: 15px;
-    height: 2px;
-    background-color: #e9ecef;
-}
-
-.nivel-badge {
-    font-size: 0.75rem;
-    padding: 2px 6px;
-}
-
-.status-badge {
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    border-radius: 12px;
-}
-</style>
+{{-- Estilos específicos movidos a: public/css/admin/referidos-show.css --}}
+<link rel="stylesheet" href="{{ asset('css/admin/referidos-show.css') }}">
 @endpush

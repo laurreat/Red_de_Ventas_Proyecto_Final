@@ -353,19 +353,6 @@
 {{-- Cargar scripts específicos para pedidos --}}
 <script src="{{ asset('js/admin/pedidos-modals.js') }}"></script>
 
-<style>
-.timeline {
-    position: relative;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 17px;
-    top: 35px;
-    bottom: 35px;
-    width: 2px;
-    background-color: #dee2e6;
-}
-</style>
+{{-- Estilos específicos movidos a: public/css/admin/pedidos-edit.css --}}
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos-edit.css') }}">
 @endsection

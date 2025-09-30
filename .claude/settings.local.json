@@ -45,7 +45,8 @@
       "Bash(mklink:*)",
       "WebFetch(domain:127.0.0.1)",
       "Bash(for:*)",
-      "Bash(do echo \"=== $file ===\")"
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

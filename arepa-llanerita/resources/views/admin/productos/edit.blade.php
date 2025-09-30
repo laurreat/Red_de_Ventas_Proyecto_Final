@@ -256,30 +256,6 @@
     </form>
 </div>
 
-<script>
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            document.getElementById('preview').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-
-            // Ocultar imagen actual si existe
-            const currentImage = document.getElementById('currentImage');
-            if (currentImage) {
-                currentImage.style.opacity = '0.5';
-            }
-
-            // Ocultar placeholder si existe
-            const placeholder = document.getElementById('placeholderImage');
-            if (placeholder) {
-                placeholder.style.display = 'none';
-            }
-        }
-
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
+{{-- JavaScript movido a: public/js/admin/productos-edit.js --}}
+<script src="{{ asset('js/admin/productos-edit.js') }}"></script>
 @endsection

@@ -217,19 +217,6 @@
     </form>
 </div>
 
-<script>
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            document.getElementById('preview').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-            document.getElementById('placeholderImage').style.display = 'none';
-        }
-
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-</script>
+{{-- JavaScript movido a: public/js/admin/productos-create.js --}}
+<script src="{{ asset('js/admin/productos-create.js') }}"></script>
 @endsection

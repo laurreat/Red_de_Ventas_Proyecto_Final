@@ -1,0 +1,35 @@
+/**
+ * Toasts Styles
+ * Estilos para notificaciones toast
+ */
+
+.toast {
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.toast-header {
+    font-weight: 600;
+}
+
+.toast-body {
+    background-color: white;
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+@media (max-width: 576px) {
+    .toast-container {
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        right: 10px !important;
+        transform: none !important;
+    }
+
+    .toast {
+        width: 100% !important;
+        min-width: auto !important;
+        max-width: none !important;
+    }
+}

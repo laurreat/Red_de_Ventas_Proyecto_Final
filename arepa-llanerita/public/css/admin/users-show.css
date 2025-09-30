@@ -1,0 +1,13 @@
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-title {
+    font-weight: 600;
+}

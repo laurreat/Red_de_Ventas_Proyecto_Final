@@ -194,3 +194,23 @@
     color: #495057;
     font-weight: 500;
 }
+
+/* Estilos para modales de confirmación */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: scale(0.8);
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+/* Modal de eliminación */
+#deleteConfirmModal .modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* Modal de cambio de estado */
+#statusConfirmModal .modal-header {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
