@@ -99,13 +99,10 @@ class ProductoController extends Controller
                     ->withInput();
             }
 
-            // MongoDB standalone no soporta transacciones, comentamos por ahora
-            // \DB::beginTransaction();
-
             $data = [
                 'nombre' => trim($validated['nombre']),
                 'descripcion' => $validated['descripcion'] ? trim($validated['descripcion']) : null,
-                'precio' => round($validated['precio'], 2),
+                'precio' => (float) round($validated['precio'], 2), // Conversión explícita a float
                 'categoria_id' => $validated['categoria_id'],
                 'categoria_data' => [
                     '_id' => $categoria->_id,
@@ -113,7 +110,7 @@ class ProductoController extends Controller
                     'slug' => $categoria->slug ?? null,
                     'activo' => $categoria->activo ?? true
                 ],
-                'stock' => $validated['stock'],
+                'stock' => (int) $validated['stock'], // CONVERSIÓN EXPLÍCITA A INTEGER
                 'stock_minimo' => 5, // Stock mínimo por defecto
                 'activo' => $request->boolean('activo', true),
                 'created_at' => now(),
@@ -144,17 +141,14 @@ class ProductoController extends Controller
 
             $producto = Producto::create($data);
 
-            // \DB::commit();
-
             return redirect()->route('admin.productos.index')
                 ->with('success', "Producto '{$producto->nombre}' creado exitosamente y agregado al catálogo.");
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
-                           ->withErrors($e->validator)
-                           ->withInput();
+                        ->withErrors($e->validator)
+                        ->withInput();
         } catch (\Exception $e) {
-            // \DB::rollBack();
             \Log::error('Error al crear producto: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'request_data' => $request->all(),
@@ -167,8 +161,8 @@ class ProductoController extends Controller
             }
 
             return redirect()->back()
-                           ->with('error', $errorMessage)
-                           ->withInput();
+                        ->with('error', $errorMessage)
+                        ->withInput();
         }
     }
 
