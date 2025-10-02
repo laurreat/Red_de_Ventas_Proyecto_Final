@@ -8,19 +8,24 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Control y seguimiento de comisiones de vendedores</p>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-outline-success me-2" onclick="calcularComisiones()">
-                        <i class="bi bi-calculator me-1"></i>
-                        Calcular
-                    </button>
-                    <button type="button" class="btn btn-outline-danger" onclick="exportarComisiones()">
-                        <i class="bi bi-file-earmark-pdf me-1"></i>
-                        Exportar PDF
-                    </button>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Control y seguimiento de comisiones de vendedores</h2>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-outline-success me-2" onclick="calcularComisiones()">
+                                <i class="bi bi-calculator me-1"></i>
+                                Calcular
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="exportarComisiones()">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>
+                                Exportar PDF
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

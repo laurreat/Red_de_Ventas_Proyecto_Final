@@ -12,15 +12,19 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Administra todos los pedidos del sistema</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.pedidos.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>
-                        Nuevo Pedido
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Administra todos los pedidos del sistema</h2>
+                        </div>
+                    <div>
+                        <a href="{{ route('admin.pedidos.create') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Nuevo Pedido
+                        </a>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>

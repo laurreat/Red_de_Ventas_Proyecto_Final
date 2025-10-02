@@ -49,10 +49,13 @@
     @livewireStyles
     
     <!-- Alpine.js -->
-    
+
     <!-- App Theme -->
     <link rel="stylesheet" href="{{ asset('css/app-theme.css') }}">
-    
+
+    <!-- Mobile Optimizations -->
+    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+
     @stack('styles')
 </head>
 <body>

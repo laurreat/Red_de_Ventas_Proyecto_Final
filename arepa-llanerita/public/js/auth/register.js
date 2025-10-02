@@ -4,6 +4,116 @@
  */
 
 /**
+ * Función para aceptar términos desde el modal
+ * DEBE estar al inicio para estar disponible inmediatamente
+ */
+window.aceptarTerminos = function() {
+    const termsCheckbox = document.getElementById('terms');
+    if (termsCheckbox) {
+        termsCheckbox.checked = true;
+        termsCheckbox.classList.remove('is-invalid');
+    }
+
+    // Cerrar el modal de términos
+    const modalElement = document.getElementById('terminosModal');
+    if (modalElement) {
+        // Intentar con Bootstrap 5
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const terminosModal = bootstrap.Modal.getInstance(modalElement);
+            if (terminosModal) {
+                terminosModal.hide();
+            } else {
+                // Crear instancia si no existe
+                const newModal = new bootstrap.Modal(modalElement);
+                newModal.hide();
+            }
+        } else {
+            // Fallback manual
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    }
+
+    // Mostrar mensaje de confirmación
+    console.log('✅ Términos y condiciones aceptados');
+
+    // Mostrar toast de confirmación si está disponible
+    if (typeof showSuccessToast === 'function') {
+        showSuccessToast('Has aceptado los términos y condiciones');
+    } else {
+        // Mostrar alerta simple
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            Has aceptado los términos y condiciones
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);
+    }
+};
+
+/**
+ * Función para aceptar política de privacidad desde el modal
+ * DEBE estar al inicio para estar disponible inmediatamente
+ */
+window.aceptarPrivacidad = function() {
+    const termsCheckbox = document.getElementById('terms');
+    if (termsCheckbox) {
+        termsCheckbox.checked = true;
+        termsCheckbox.classList.remove('is-invalid');
+    }
+
+    // Cerrar el modal de privacidad
+    const modalElement = document.getElementById('privacidadModal');
+    if (modalElement) {
+        // Intentar con Bootstrap 5
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const privacidadModal = bootstrap.Modal.getInstance(modalElement);
+            if (privacidadModal) {
+                privacidadModal.hide();
+            } else {
+                // Crear instancia si no existe
+                const newModal = new bootstrap.Modal(modalElement);
+                newModal.hide();
+            }
+        } else {
+            // Fallback manual
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    }
+
+    // Mostrar mensaje de confirmación
+    console.log('✅ Política de privacidad aceptada');
+
+    // Mostrar toast de confirmación si está disponible
+    if (typeof showSuccessToast === 'function') {
+        showSuccessToast('Has aceptado la política de privacidad');
+    } else {
+        // Mostrar alerta simple
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            Has aceptado la política de privacidad
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);
+    }
+};
+
+/**
  * Función para mostrar/ocultar contraseña
  */
 function togglePassword(inputId) {
@@ -327,3 +437,9 @@ document.addEventListener('DOMContentLoaded', initializeRegisterModule);
 window.togglePassword = togglePassword;
 window.confirmRegister = confirmRegister;
 window.closeRegisterModal = closeRegisterModal;
+
+// Las funciones aceptarTerminos y aceptarPrivacidad ya están expuestas arriba
+console.log('✅ Funciones de términos y privacidad cargadas:', {
+    aceptarTerminos: typeof window.aceptarTerminos,
+    aceptarPrivacidad: typeof window.aceptarPrivacidad
+});

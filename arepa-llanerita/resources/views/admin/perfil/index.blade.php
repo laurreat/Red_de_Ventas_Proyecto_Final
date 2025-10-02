@@ -14,7 +14,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>Mi Perfil</h2>
-                    <p class="text-muted mb-0">Gestiona tu información personal y configuración</p>
+                    <h3 class="text-muted mb-0">Gestiona tu información personal y configuración</h3>
                 </div>
                 <div>
                     <button class="btn btn-perfil btn-perfil-outline me-2" id="descargar-datos-btn">

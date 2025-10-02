@@ -1,0 +1,772 @@
+/**
+ * Arepa la Llanerita - Optimizaciones para Dispositivos Móviles
+ * Mejoras de UX/UI para pantallas pequeñas y medianas
+ * Versión: 1.0.0
+ */
+
+/* ========================================
+   VARIABLES MÓVILES
+   ======================================== */
+:root {
+    --mobile-padding: 12px;
+    --mobile-header-height: 56px;
+    --mobile-button-height: 44px; /* Recomendación Apple para áreas táctiles */
+    --mobile-card-padding: 16px;
+    --mobile-font-base: 14px;
+}
+
+/* ========================================
+   RESET Y MEJORAS GENERALES MÓVIL
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Body optimizado para móvil */
+    body {
+        font-size: var(--mobile-font-base);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Container fluido en móvil */
+    .container,
+    .container-fluid {
+        padding-left: var(--mobile-padding);
+        padding-right: var(--mobile-padding);
+    }
+
+    /* Filas sin espacio negativo */
+    .row {
+        margin-left: calc(var(--mobile-padding) * -0.5);
+        margin-right: calc(var(--mobile-padding) * -0.5);
+    }
+
+    .row > * {
+        padding-left: calc(var(--mobile-padding) * 0.5);
+        padding-right: calc(var(--mobile-padding) * 0.5);
+    }
+}
+
+/* ========================================
+   NAVEGACIÓN MÓVIL
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Navbar compacta */
+    .navbar {
+        padding: 8px var(--mobile-padding);
+        min-height: var(--mobile-header-height);
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+        padding: 0;
+    }
+
+    .navbar-brand img {
+        height: 32px !important;
+        width: auto;
+    }
+
+    /* Toggler más grande (área táctil) */
+    .navbar-toggler {
+        padding: 8px 12px;
+        min-width: 44px;
+        min-height: 44px;
+        border: none;
+        border-radius: 8px;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.2);
+    }
+
+    /* Menú colapsado optimizado */
+    .navbar-collapse {
+        margin-top: 8px;
+        background: white;
+        border-radius: 8px;
+        padding: 8px 0;
+    }
+
+    .nav-link {
+        padding: 12px 16px !important;
+        font-size: 1rem;
+        min-height: var(--mobile-button-height);
+        display: flex;
+        align-items: center;
+    }
+
+    /* Dropdown en móvil */
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-top: 4px;
+    }
+
+    .dropdown-item {
+        padding: 12px 16px;
+        min-height: var(--mobile-button-height);
+    }
+}
+
+/* ========================================
+   TARJETAS (CARDS) MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    .card {
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+
+    .card-body {
+        padding: var(--mobile-card-padding);
+    }
+
+    .card-header {
+        padding: 12px var(--mobile-card-padding);
+        font-size: 1rem;
+    }
+
+    .card-footer {
+        padding: 12px var(--mobile-card-padding);
+    }
+
+    /* Cards de estadísticas más compactas */
+    .stats-card .card-body {
+        padding: 12px !important;
+    }
+
+    .stats-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+
+    .stats-card p {
+        font-size: 0.75rem;
+    }
+
+    .stats-card .rounded-circle {
+        width: 48px !important;
+        height: 48px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .stats-card i {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* ========================================
+   BOTONES MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Botones con área táctil adecuada */
+    .btn {
+        min-height: var(--mobile-button-height);
+        padding: 10px 16px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .btn-lg {
+        min-height: 52px;
+        padding: 12px 24px;
+        font-size: 1.1rem;
+    }
+
+    /* Botones en grupos */
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-group .btn {
+        margin-bottom: 8px;
+        margin-right: 0 !important;
+        width: 100%;
+    }
+
+    .btn-group .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Botones de acción en tablas */
+    .table .btn-group {
+        flex-direction: row;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .table .btn-group .btn {
+        margin: 0;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        min-width: 36px;
+        width: auto;
+    }
+
+    /* Botones flotantes en móvil */
+    .btn-float-mobile {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        box-shadow: 0 4px 16px rgba(114, 47, 55, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+}
+
+/* ========================================
+   TABLAS MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Tabla responsiva con scroll horizontal */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Tabla compacta */
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .table thead {
+        display: none; /* Ocultar headers en móvil */
+    }
+
+    .table tbody tr {
+        display: block;
+        margin-bottom: 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border: none;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    /* Mostrar etiqueta antes del contenido */
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--arepa-primary);
+        margin-right: 12px;
+        min-width: 100px;
+    }
+
+    /* Columna de acciones */
+    .table tbody td:last-child {
+        justify-content: center;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .table tbody td:last-child::before {
+        display: none;
+    }
+}
+
+/* ========================================
+   FORMULARIOS MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Inputs con mejor área táctil */
+    .form-control,
+    .form-select {
+        min-height: var(--mobile-button-height);
+        padding: 10px 12px;
+        font-size: 16px; /* Previene zoom en iOS */
+        border-radius: 8px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.15);
+    }
+
+    /* Labels más legibles */
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    /* Form floating */
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        height: calc(3.5rem + 2px);
+        font-size: 16px;
+    }
+
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* Checkboxes y radios más grandes */
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.15rem;
+    }
+
+    .form-check-label {
+        padding-left: 8px;
+        font-size: 0.95rem;
+    }
+
+    /* Grupos de formularios */
+    .input-group {
+        flex-wrap: wrap;
+    }
+
+    .input-group > * {
+        min-width: 100%;
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+    }
+
+    .input-group > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* ========================================
+   MODALES MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Modal de pantalla completa en móvil */
+    .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        border-radius: 16px 16px 0 0 !important;
+        max-height: 90vh;
+        border: none;
+    }
+
+    /* Modal header sticky */
+    .modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: white;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 16px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-body {
+        padding: 16px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modal footer sticky */
+    .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        padding: 12px 16px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+        margin: 0;
+    }
+
+    /* Botón cerrar más grande */
+    .btn-close {
+        padding: 12px;
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* ========================================
+   ALERTAS Y TOASTS MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    .alert {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .alert-heading {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+
+    /* Toasts en móvil */
+    .toast-container {
+        position: fixed;
+        top: auto !important;
+        bottom: 80px !important;
+        left: 50% !important;
+        transform: translateX(-50%);
+        z-index: 9999;
+        width: calc(100% - 24px);
+        max-width: 400px;
+    }
+
+    .toast {
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        width: 100%;
+    }
+
+    .toast-header {
+        padding: 12px 16px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .toast-body {
+        padding: 12px 16px;
+    }
+}
+
+/* ========================================
+   BADGES Y ETIQUETAS
+   ======================================== */
+@media (max-width: 768px) {
+
+    .badge {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        border-radius: 6px;
+    }
+
+    /* Badges en tablas móviles */
+    .table .badge {
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+}
+
+/* ========================================
+   PAGINACIÓN MÓVIL
+   ======================================== */
+@media (max-width: 768px) {
+
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        margin: 0;
+    }
+
+    .page-item {
+        margin: 0;
+    }
+
+    /* Ocultar números intermedios en móvil */
+    .pagination .page-item:not(.active):not(:first-child):not(:last-child):not(.disabled) {
+        display: none;
+    }
+
+    /* Mostrar solo first, prev, active, next, last */
+    .pagination .page-item.active,
+    .pagination .page-item:first-child,
+    .pagination .page-item:last-child,
+    .pagination .page-item:nth-child(2),
+    .pagination .page-item:nth-last-child(2) {
+        display: block;
+    }
+}
+
+/* ========================================
+   BREADCRUMBS MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    .breadcrumb {
+        padding: 8px 0;
+        font-size: 0.85rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .breadcrumb-item {
+        white-space: nowrap;
+    }
+}
+
+/* ========================================
+   FILTROS Y BÚSQUEDA MÓVIL
+   ======================================== */
+@media (max-width: 768px) {
+
+    .filters-card .card-body {
+        padding: 12px !important;
+    }
+
+    .filters-card .row {
+        margin: 0;
+    }
+
+    .filters-card .col-lg-3,
+    .filters-card .col-lg-2,
+    .filters-card .col-md-4,
+    .filters-card .col-md-6 {
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+        margin-bottom: 12px;
+    }
+
+    .filters-card .btn-group {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+
+    .filters-card .btn {
+        flex: 1;
+    }
+}
+
+/* ========================================
+   TABS MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    .nav-tabs {
+        border-bottom: 2px solid #e9ecef;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tabs .nav-link {
+        white-space: nowrap;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        border: none;
+        border-bottom: 3px solid transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+        border-bottom-color: var(--arepa-primary);
+        color: var(--arepa-primary);
+        font-weight: 600;
+    }
+
+    .tab-content {
+        padding-top: 16px;
+    }
+}
+
+/* ========================================
+   ACORDEONES MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    .accordion-item {
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .accordion-button {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        min-height: var(--mobile-button-height);
+    }
+
+    .accordion-body {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========================================
+   UTILIDADES MÓVILES
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Espaciado reducido */
+    .mb-4 { margin-bottom: 1rem !important; }
+    .mt-4 { margin-top: 1rem !important; }
+    .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+    .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+    /* Texto responsivo */
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+    h5 { font-size: 1rem; }
+    h6 { font-size: 0.95rem; }
+
+    /* Ocultar en móvil */
+    .d-mobile-none {
+        display: none !important;
+    }
+
+    /* Mostrar solo en móvil */
+    .d-mobile-block {
+        display: block !important;
+    }
+
+    .d-mobile-flex {
+        display: flex !important;
+    }
+
+    /* Texto más pequeño en móvil */
+    .text-mobile-small {
+        font-size: 0.85rem !important;
+    }
+
+    /* Full width en móvil */
+    .w-mobile-100 {
+        width: 100% !important;
+    }
+}
+
+/* ========================================
+   MEJORAS DE PERFORMANCE MÓVIL
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Optimizar animaciones */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Scroll suave */
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Imágenes responsivas */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Videos responsivos */
+    video {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* ========================================
+   LANDSCAPE MODE (Modo horizontal)
+   ======================================== */
+@media (max-width: 768px) and (orientation: landscape) {
+
+    .modal-content {
+        max-height: 95vh;
+    }
+
+    .navbar {
+        padding: 4px var(--mobile-padding);
+    }
+
+    .stats-card .card-body {
+        padding: 8px !important;
+    }
+
+    .stats-card h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* ========================================
+   PANTALLAS EXTRA PEQUEÑAS (< 576px)
+   ======================================== */
+@media (max-width: 576px) {
+
+    :root {
+        --mobile-padding: 10px;
+        --mobile-card-padding: 12px;
+        --mobile-font-base: 13px;
+    }
+
+    body {
+        font-size: var(--mobile-font-base);
+    }
+
+    .card-body {
+        padding: 12px;
+    }
+
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.35rem; }
+    h3 { font-size: 1.15rem; }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+    }
+}
+
+/* ========================================
+   DARK MODE SUPPORT (Opcional)
+   ======================================== */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+
+    /* Aquí se pueden agregar estilos para modo oscuro en móvil */
+    /* Por ahora está comentado para implementación futura */
+}

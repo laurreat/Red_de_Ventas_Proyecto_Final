@@ -24,6 +24,9 @@
     <!-- CSS personalizado para pedidos -->
     <link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
 
+    <!-- Mobile Optimizations -->
+    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+
     <style>
         :root {
             --primary-color: #722F37;

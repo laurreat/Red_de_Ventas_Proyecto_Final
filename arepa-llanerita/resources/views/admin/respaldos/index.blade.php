@@ -14,7 +14,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>Gestión de Respaldos</h2>
-                    <p class="text-muted mb-0">Administra los respaldos del sistema</p>
+                    <h4 class="text-muted mb-0">Administra los respaldos del sistema</h4>
                 </div>
                 <div>
                     <button class="btn btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#cleanupBackupsModal">

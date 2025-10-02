@@ -10,7 +10,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="text-muted mb-0">Modificar pedido: <strong>{{ $pedido->numero_pedido }}</strong></p>
+                    <h2 class="text-muted mb-0">Modificar pedido: <strong>{{ $pedido->numero_pedido }}</strong></h2>
                 </div>
                 <div>
                     <a href="{{ route('admin.pedidos.show', $pedido) }}" class="btn btn-outline-info me-2">

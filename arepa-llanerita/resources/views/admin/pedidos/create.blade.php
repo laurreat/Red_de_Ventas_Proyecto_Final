@@ -8,15 +8,20 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-0">Crear un nuevo pedido para un cliente</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.pedidos.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Volver a Pedidos
-                    </a>
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Crear un nuevo pedido para un cliente</h2>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('admin.pedidos.index') }}" class="btn btn-primary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Volver a Pedidos
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

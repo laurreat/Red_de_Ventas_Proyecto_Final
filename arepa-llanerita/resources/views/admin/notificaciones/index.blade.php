@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>Centro de Notificaciones</h2>
-                    <p class="text-muted mb-0">Gestiona todas tus notificaciones del sistema</p>
+                    <h4 class="text-muted mb-0">Gestiona todas tus notificaciones del sistema</h4>
                 </div>
                 <div>
                     <button class="btn btn-outline-info me-2" onclick="crearNotificacionesPrueba()">

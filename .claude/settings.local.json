@@ -46,7 +46,8 @@
       "WebFetch(domain:127.0.0.1)",
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(do grep -l \"app-theme.css\" \"$file\")"
     ],
     "deny": [],
     "ask": []

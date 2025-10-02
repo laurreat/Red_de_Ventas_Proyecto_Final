@@ -14,7 +14,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <p class="text-muted mb-0">Información completa del pedido: <strong>{{ $pedido->numero_pedido }}</strong></p>
+                    <h2 class="text-muted mb-0">Información completa del pedido: <strong>{{ $pedido->numero_pedido }}</strong></h2>
                 </div>
                 <div>
                     <a href="{{ route('admin.pedidos.index') }}" class="btn btn-outline-secondary">

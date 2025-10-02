@@ -405,3 +405,202 @@
 .form-floating.position-relative > .form-control:not(:placeholder-shown) ~ label {
     padding-right: 3.5rem !important;
 }
+
+/* =========================================
+   ESTILOS PARA MODALES DE TÉRMINOS Y PRIVACIDAD
+   ========================================= */
+
+/* Estilos generales de contenido de modales */
+.terms-content,
+.privacy-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #333;
+}
+
+.terms-content h6,
+.privacy-content h6 {
+    color: var(--arepa-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-bottom: 2px solid rgba(114, 47, 55, 0.1);
+    padding-bottom: 0.5rem;
+}
+
+.terms-content p,
+.privacy-content p {
+    margin-bottom: 0.8rem;
+    text-align: justify;
+}
+
+.terms-content ul,
+.privacy-content ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.terms-content ul li,
+.privacy-content ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+/* Estilos para alertas dentro de modales */
+.terms-content .alert,
+.privacy-content .alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Header de modales con colores personalizados */
+#terminosModal .modal-header {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+#privacidadModal .modal-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Estilo para modales scrollables */
+.modal-dialog-scrollable .modal-body {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+/* Scrollbar personalizado para modales */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--arepa-primary);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--arepa-accent);
+}
+
+/* Footer de modales */
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+.modal-footer .btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, var(--arepa-primary) 0%, var(--arepa-accent) 100%);
+    border: none;
+}
+
+.modal-footer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+}
+
+.modal-footer .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.modal-footer .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.modal-footer .btn-secondary {
+    background: #6c757d;
+    border: none;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Modal content styling */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Título de modal */
+.modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-title i {
+    margin-right: 0.5rem;
+}
+
+/* Responsive para modales en móviles */
+@media (max-width: 575.98px) {
+    .modal-dialog-scrollable .modal-body {
+        max-height: calc(100vh - 180px);
+        font-size: 0.9rem;
+    }
+
+    .terms-content h6,
+    .privacy-content h6 {
+        font-size: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-footer .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Destacar información importante */
+.terms-content strong,
+.privacy-content strong {
+    color: var(--arepa-primary);
+    font-weight: 700;
+}
+
+/* Espaciado para mejor lectura */
+.terms-content .fw-semibold,
+.privacy-content .fw-semibold {
+    color: #495057;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Estilos para enlaces dentro de modales */
+.terms-content a,
+.privacy-content a {
+    color: var(--arepa-primary);
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.terms-content a:hover,
+.privacy-content a:hover {
+    color: var(--arepa-accent);
+}

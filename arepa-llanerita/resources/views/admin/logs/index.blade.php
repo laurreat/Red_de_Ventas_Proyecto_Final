@@ -14,7 +14,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2>Logs del Sistema</h2>
-                    <p class="text-muted mb-0">Monitoreo y gestión de logs de la aplicación</p>
+                    <h4 class="text-muted mb-0">Monitoreo y gestión de logs de la aplicación</h4>
                 </div>
                 <div>
                     <button class="btn btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#confirmClearModal">
