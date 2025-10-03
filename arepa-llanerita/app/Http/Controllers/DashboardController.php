@@ -35,6 +35,7 @@ class DashboardController extends Controller
         $finMes = Carbon::now()->endOfMonth();
         $hoy = Carbon::today();
 
+        // Estadísticas reales de MongoDB
         $stats = [
             'total_usuarios' => User::count(),
             'total_vendedores' => User::vendedores()->count(),
@@ -42,19 +43,20 @@ class DashboardController extends Controller
             'productos_stock_bajo' => Producto::stockBajo()->count(),
             'pedidos_hoy' => Pedido::whereDate('created_at', $hoy)->count(),
             'pedidos_pendientes' => Pedido::pendientes()->count(),
-            'ventas_mes' => (float) Pedido::whereBetween('created_at', [$inicioMes, $finMes])
+            'ventas_mes' => to_float(Pedido::whereBetween('created_at', [$inicioMes, $finMes])
                                  ->where('estado', '!=', 'cancelado')
-                                 ->sum('total_final'),
-            'comisiones_pendientes' => (float) Comision::pendientes()->sum('monto'),
-            'ventas_hoy' => (float) Pedido::whereDate('created_at', $hoy)
+                                 ->sum('total_final')),
+            'comisiones_pendientes' => to_float(Comision::pendientes()->sum('monto')),
+            'ventas_hoy' => to_float(Pedido::whereDate('created_at', $hoy)
                                  ->where('estado', '!=', 'cancelado')
-                                 ->sum('total_final'),
+                                 ->sum('total_final')),
             'clientes_activos' => User::where('rol', 'cliente')
                                     ->where('activo', true)->count(),
-            'total_comisiones_mes' => (float) Comision::whereBetween('created_at', [$inicioMes, $finMes])
-                                            ->sum('monto'),
+            'total_comisiones_mes' => to_float(Comision::whereBetween('created_at', [$inicioMes, $finMes])
+                                            ->sum('monto')),
         ];
 
+        // Pedidos recientes reales
         $pedidos_recientes = Pedido::orderBy('created_at', 'desc')
                                   ->take(10)
                                   ->get()
@@ -79,8 +81,13 @@ class DashboardController extends Controller
                                       ];
                                   });
 
+        // Productos más vendidos del mes
         $productos_populares = $this->obtenerProductosPopulares();
+
+        // Gráfico de ventas de los últimos 7 días
         $ventasSemanales = $this->obtenerVentasSemanales();
+
+        // Top vendedores del mes
         $topVendedores = $this->obtenerTopVendedores();
 
         return view('dashboard.admin', compact(
@@ -97,14 +104,16 @@ class DashboardController extends Controller
         $user = auth()->user();
         $inicioMes = Carbon::now()->startOfMonth();
 
+        // Vendedores bajo este líder (referidos por él)
         $equipo = User::where('referido_por', $user->_id)
                      ->where('rol', 'vendedor')
                      ->get()
                      ->map(function ($miembro) use ($inicioMes) {
-                         $ventasMes = (float) Pedido::where('vendedor_id', $miembro->_id)
+                         // Calcular ventas reales del mes
+                         $ventasMes = to_float(Pedido::where('vendedor_id', $miembro->_id)
                                            ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                                            ->where('estado', '!=', 'cancelado')
-                                           ->sum('total_final');
+                                           ->sum('total_final'));
 
                          $miembro->ventas_mes_actual = $ventasMes;
                          $miembro->meta_mensual = $miembro->meta_mensual ?? 0;
@@ -112,19 +121,23 @@ class DashboardController extends Controller
                          return $miembro;
                      });
 
-        $ventasPersonales = (float) Pedido::where('vendedor_id', $user->_id)
+        // Ventas personales del líder
+        $ventasPersonales = to_float(Pedido::where('vendedor_id', $user->_id)
                                  ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                                  ->where('estado', '!=', 'cancelado')
-                                 ->sum('total_final');
+                                 ->sum('total_final'));
 
-        $comisionesMes = (float) Comision::where('user_id', $user->_id)
+        // Comisiones del líder este mes
+        $comisionesMes = to_float(Comision::where('user_id', $user->_id)
                                 ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                ->sum('monto');
+                                ->sum('monto'));
 
+        // Nuevos miembros del equipo este mes
         $nuevosMes = User::where('referido_por', $user->_id)
                         ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                         ->count();
 
+        // Estadísticas reales del líder
         $stats = [
             'total_equipo' => $equipo->count(),
             'ventas_equipo_mes' => $equipo->sum('ventas_mes_actual'),
@@ -133,9 +146,9 @@ class DashboardController extends Controller
             'nuevos_mes' => $nuevosMes,
             'meta_mensual' => $user->meta_mensual ?? 0,
             'meta_equipo' => $equipo->sum('meta_mensual'),
-            'comisiones_pendientes' => (float) Comision::where('user_id', $user->_id)
+            'comisiones_pendientes' => to_float(Comision::where('user_id', $user->_id)
                                               ->where('estado', 'pendiente')
-                                              ->sum('monto'),
+                                              ->sum('monto')),
         ];
 
         return view('dashboard.lider', compact('stats', 'equipo'));
@@ -146,31 +159,38 @@ class DashboardController extends Controller
         $user = auth()->user();
         $inicioMes = Carbon::now()->startOfMonth();
 
-        $ventasMes = (float) Pedido::where('vendedor_id', $user->_id)
+        // Ventas reales del mes
+        $ventasMes = to_float(Pedido::where('vendedor_id', $user->_id)
                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                           ->where('estado', '!=', 'cancelado')
-                          ->sum('total_final');
+                          ->sum('total_final'));
 
+        // Pedidos del mes
         $pedidosMes = Pedido::where('vendedor_id', $user->_id)
                            ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                            ->count();
 
-        $comisionesGanadas = (float) Comision::where('user_id', $user->_id)
+        // Comisiones ganadas este mes
+        $comisionesGanadas = to_float(Comision::where('user_id', $user->_id)
                                    ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                   ->sum('monto');
+                                   ->sum('monto'));
 
-        $comisionesDisponibles = (float) Comision::where('user_id', $user->_id)
+        // Comisiones disponibles para retiro
+        $comisionesDisponibles = to_float(Comision::where('user_id', $user->_id)
                                         ->where('estado', 'pendiente')
-                                        ->sum('monto');
+                                        ->sum('monto'));
 
+        // Nuevos referidos este mes
         $nuevosReferidosMes = User::where('referido_por', $user->_id)
                                  ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                                  ->count();
 
+        // Referidos activos (que han hecho pedidos)
         $referidosActivos = User::where('referido_por', $user->_id)
                                ->whereHas('pedidosComoCliente')
                                ->count();
 
+        // Estadísticas del vendedor
         $stats = [
             'ventas_mes' => $ventasMes,
             'meta_mensual' => $user->meta_mensual ?? 0,
@@ -184,6 +204,7 @@ class DashboardController extends Controller
                              round(($ventasMes / $user->meta_mensual) * 100, 2) : 0,
         ];
 
+        // Pedidos recientes reales
         $pedidos_recientes = Pedido::where('vendedor_id', $user->_id)
                                   ->orderBy('created_at', 'desc')
                                   ->take(5)
@@ -208,32 +229,152 @@ class DashboardController extends Controller
         return view('dashboard.vendedor', compact('stats', 'pedidos_recientes'));
     }
 
+    private function generarResumenProductos($pedido)
+    {
+        $detalles = $pedido->detalles()->with('producto')->get();
+        if ($detalles->count() === 0) return 'Sin productos';
+
+        $resumen = $detalles->map(function ($detalle) {
+            return $detalle->cantidad . 'x ' . $detalle->producto->nombre;
+        })->take(3)->implode(', ');
+
+        if ($detalles->count() > 3) {
+            $resumen .= '...';
+        }
+
+        return $resumen;
+    }
+
+    private function generarResumenProductosEmbebido($pedido)
+    {
+        $detalles = $pedido->detalles ?? [];
+        if (empty($detalles)) return 'Sin productos';
+
+        $resumen = collect($detalles)->map(function ($detalle) {
+            $nombre = $detalle['producto_data']['nombre'] ?? 'Producto sin nombre';
+            $cantidad = $detalle['cantidad'] ?? 0;
+            return $cantidad . 'x ' . $nombre;
+        })->take(3)->implode(', ');
+
+        if (count($detalles) > 3) {
+            $resumen .= '...';
+        }
+
+        return $resumen;
+    }
+
     private function clienteDashboard()
     {
-        // Método faltante - implementación básica
         $user = auth()->user();
         $inicioMes = Carbon::now()->startOfMonth();
 
+        // Pedidos reales del cliente
+        $totalPedidos = Pedido::where('user_id', $user->_id)->count();
+        $pedidosMes = Pedido::where('user_id', $user->_id)
+                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
+                           ->count();
+
+        // Total gastado real
+        $totalGastado = to_float(Pedido::where('user_id', $user->_id)
+                             ->where('estado', '!=', 'cancelado')
+                             ->sum('total_final'));
+
+        // Promedio de pedido
+        $pedidoPromedio = $totalPedidos > 0 ? $totalGastado / $totalPedidos : 0;
+
+        // Referidos reales
+        $totalReferidos = User::where('referido_por', $user->_id)->count();
+        $referidosConPedidos = User::where('referido_por', $user->_id)
+                                  ->whereHas('pedidosComoCliente')
+                                  ->count();
+
+        // Estadísticas reales del cliente
         $stats = [
-            'pedidos_mes' => Pedido::where('cliente_id', $user->_id)
-                                  ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                  ->count(),
-            'total_gastado_mes' => (float) Pedido::where('cliente_id', $user->_id)
-                                        ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                        ->where('estado', '!=', 'cancelado')
-                                        ->sum('total_final'),
-            'pedidos_pendientes' => Pedido::where('cliente_id', $user->_id)
-                                         ->where('estado', 'pendiente')
-                                         ->count(),
+            'total_pedidos' => $totalPedidos,
+            'pedidos_mes' => $pedidosMes,
+            'total_gastado' => $totalGastado,
+            'pedido_promedio' => $pedidoPromedio,
+            'total_referidos' => $totalReferidos,
+            'referidos_realizados' => $referidosConPedidos,
         ];
 
-        return view('dashboard.cliente', compact('stats'));
+        // Pedidos recientes reales
+        $pedidos_recientes = Pedido::where('user_id', $user->_id)
+                                  ->orderBy('created_at', 'desc')
+                                  ->take(5)
+                                  ->get()
+                                  ->map(function ($pedido) {
+                                      $vendedorData = $pedido->vendedor_data ?? [];
+
+                                      return (object)[
+                                          'id' => $pedido->_id,
+                                          'numero_pedido' => $pedido->numero_pedido,
+                                          'vendedor' => (object)[
+                                              'name' => is_array($vendedorData) ? ($vendedorData['name'] ?? 'Vendedor') : 'Vendedor',
+                                              'email' => is_array($vendedorData) ? ($vendedorData['email'] ?? '') : ''
+                                          ],
+                                          'total_final' => $pedido->total_final,
+                                          'estado' => $pedido->estado,
+                                          'productos_resumen' => $this->generarResumenProductosEmbebido($pedido),
+                                          'created_at' => $pedido->created_at
+                                      ];
+                                  });
+
+        // Productos favoritos (los más comprados por el cliente)
+        $productos_favoritos = $this->obtenerProductosFavoritosCliente($user->_id);
+
+        return view('dashboard.cliente', compact('stats', 'pedidos_recientes', 'productos_favoritos'));
     }
 
+    // Métodos auxiliares para el dashboard admin
     private function obtenerProductosPopulares()
     {
-        // Implementación básica - debes ajustar según tu estructura de datos
-        return collect([]);
+        // Obtener productos más vendidos del mes basado en los detalles embebidos
+        $inicioMes = Carbon::now()->startOfMonth();
+        $pedidosMes = Pedido::whereBetween('created_at', [$inicioMes, Carbon::now()])
+                           ->where('estado', '!=', 'cancelado')
+                           ->get();
+
+        $productosVendidos = [];
+
+        foreach ($pedidosMes as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'] ?? null;
+                $cantidad = $detalle['cantidad'] ?? 0;
+
+                if (!$productoId) continue;
+
+                if (!isset($productosVendidos[$productoId])) {
+                    $productosVendidos[$productoId] = [
+                        'producto_data' => $detalle['producto_data'] ?? [],
+                        'cantidad_vendida' => 0,
+                        'total_ventas' => 0
+                    ];
+                }
+
+                $productosVendidos[$productoId]['cantidad_vendida'] += $cantidad;
+                $productosVendidos[$productoId]['total_ventas'] += $detalle['subtotal'] ?? 0;
+            }
+        }
+
+        // Ordenar por cantidad vendida y tomar los top 5
+        uasort($productosVendidos, function($a, $b) {
+            return $b['cantidad_vendida'] <=> $a['cantidad_vendida'];
+        });
+
+        return collect(array_slice($productosVendidos, 0, 5, true))
+               ->map(function($data, $productoId) {
+                   return (object)[
+                       'id' => $productoId,
+                       'nombre' => $data['producto_data']['nombre'] ?? 'Producto sin nombre',
+                       'cantidad_vendida' => $data['cantidad_vendida'],
+                       'total_ventas' => $data['total_ventas'],
+                       'veces_vendido' => $data['cantidad_vendida'], // Para compatibilidad con la vista
+                       'categoria' => (object)[
+                           'nombre' => $data['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría'
+                       ]
+                   ];
+               });
     }
 
     private function obtenerVentasSemanales()
@@ -242,9 +383,9 @@ class DashboardController extends Controller
 
         for ($i = 6; $i >= 0; $i--) {
             $fecha = Carbon::now()->subDays($i);
-            $ventasDia = (float) Pedido::whereDate('created_at', $fecha)
+            $ventasDia = to_float(Pedido::whereDate('created_at', $fecha)
                               ->where('estado', '!=', 'cancelado')
-                              ->sum('total_final');
+                              ->sum('total_final'));
 
             $ventas[] = [
                 'fecha' => $fecha->format('d/m'),
@@ -264,10 +405,10 @@ class DashboardController extends Controller
                   ->where('activo', true)
                   ->get()
                   ->map(function ($vendedor) use ($inicioMes) {
-                      $ventasMes = (float) Pedido::where('vendedor_id', $vendedor->_id)
+                      $ventasMes = to_float(Pedido::where('vendedor_id', $vendedor->_id)
                                         ->whereBetween('created_at', [$inicioMes, Carbon::now()])
                                         ->where('estado', '!=', 'cancelado')
-                                        ->sum('total_final');
+                                        ->sum('total_final'));
 
                       $pedidosMes = Pedido::where('vendedor_id', $vendedor->_id)
                                          ->whereBetween('created_at', [$inicioMes, Carbon::now()])
@@ -286,14 +427,75 @@ class DashboardController extends Controller
                   ->values();
     }
 
-    private function generarResumenProductosEmbebido($pedido)
+    private function obtenerProductosFavoritosCliente($clienteId)
     {
-        // Implementación básica - ajusta según tu estructura
-        if (!isset($pedido->productos) || empty($pedido->productos)) {
-            return 'Sin productos';
+        // Obtener pedidos del cliente
+        $pedidosCliente = Pedido::where('user_id', $clienteId)
+                               ->where('estado', '!=', 'cancelado')
+                               ->get();
+
+        $productosComprados = [];
+
+        foreach ($pedidosCliente as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $productoId = $detalle['producto_id'] ?? null;
+                $cantidad = $detalle['cantidad'] ?? 0;
+
+                if (!$productoId) continue;
+
+                if (!isset($productosComprados[$productoId])) {
+                    $productosComprados[$productoId] = [
+                        'producto_data' => $detalle['producto_data'] ?? [],
+                        'cantidad_comprada' => 0,
+                        'veces_comprado' => 0
+                    ];
+                }
+
+                $productosComprados[$productoId]['cantidad_comprada'] += $cantidad;
+                $productosComprados[$productoId]['veces_comprado']++;
+            }
         }
 
-        $totalProductos = is_array($pedido->productos) ? count($pedido->productos) : 0;
-        return "{$totalProductos} producto(s)";
+        // Ordenar por cantidad comprada y tomar los top 4
+        uasort($productosComprados, function($a, $b) {
+            return $b['cantidad_comprada'] <=> $a['cantidad_comprada'];
+        });
+
+        $topProductos = collect(array_slice($productosComprados, 0, 4, true))
+                       ->map(function($data, $productoId) {
+                           return (object)[
+                               'id' => $productoId,
+                               'nombre' => $data['producto_data']['nombre'] ?? 'Producto sin nombre',
+                               'descripcion' => $data['producto_data']['descripcion'] ?? '',
+                               'precio' => $data['producto_data']['precio'] ?? 0,
+                               'imagen' => $data['producto_data']['imagen'] ?? null,
+                               'cantidad_comprada' => $data['cantidad_comprada'],
+                               'veces_comprado' => $data['veces_comprado'],
+                               'categoria' => $data['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría'
+                           ];
+                       });
+
+        // Si no hay suficientes productos favoritos, completar con productos populares
+        if ($topProductos->count() < 4) {
+            $productosPopulares = Producto::activos()
+                                        ->take(4 - $topProductos->count())
+                                        ->get()
+                                        ->map(function($producto) {
+                                            return (object)[
+                                                'id' => $producto->_id,
+                                                'nombre' => $producto->nombre,
+                                                'descripcion' => $producto->descripcion,
+                                                'precio' => $producto->precio,
+                                                'imagen' => $producto->imagen,
+                                                'cantidad_comprada' => 0,
+                                                'veces_comprado' => 0,
+                                                'categoria' => $producto->categoria_data['nombre'] ?? 'Sin categoría'
+                                            ];
+                                        });
+
+            $topProductos = $topProductos->merge($productosPopulares);
+        }
+
+        return $topProductos;
     }
 }

@@ -8,9 +8,6 @@ use App\Models\User;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use MongoDB\BSON\Decimal128;
-use App\helpers;
-
 
 class PedidoController extends Controller
 {
