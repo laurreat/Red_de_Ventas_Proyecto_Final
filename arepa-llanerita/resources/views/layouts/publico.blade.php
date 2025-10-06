@@ -35,39 +35,43 @@
         <!-- Sidebar Navigation -->
         <div class="sidebar-nav">
             <!-- Main Navigation -->
-            <div class="nav-section">Navegación</div>
+            <div class="nav-section">Catálogo</div>
 
             <div class="nav-item">
                 <a href="{{ url('/') }}"
                    class="nav-link {{ !request('categoria') ? 'active' : '' }}"
-                   data-category="all">
-                    <i class="bi bi-grid"></i>
+                   data-category="all"
+                   title="Todos los Productos">
+                    <i class="bi bi-grid-fill"></i>
                     <span class="nav-text">Todos los Productos</span>
+                    @if(isset($stats) && isset($stats['total_productos']))
+                        <span class="badge bg-primary ms-auto">{{ $stats['total_productos'] }}</span>
+                    @endif
                 </a>
             </div>
 
             <!-- Categories Dropdown -->
             @if(isset($categorias) && $categorias->count() > 0)
                 <div class="nav-item">
-                    <a href="#categoriesDropdown"
-                       class="nav-link dropdown-toggle has-dropdown"
-                       id="categoriesToggle"
-                       data-tooltip="Categorías ({{ $categorias->count() }})"
-                       aria-expanded="false">
-                        <i class="bi bi-tags"></i>
+                    <a href="#categoriesSubmenu"
+                       class="nav-link dropdown-toggle"
+                       data-bs-toggle="collapse"
+                       data-bs-target="#categoriesSubmenu"
+                       aria-expanded="false"
+                       title="Categorías">
+                        <i class="bi bi-tags-fill"></i>
                         <span class="nav-text">Categorías</span>
-                        <span class="total-categories-badge nav-text">{{ $categorias->count() }}</span>
+                        <span class="badge bg-success ms-auto">{{ $categorias->count() }}</span>
                     </a>
-
-                    <div class="dropdown-menu" id="categoriesDropdown">
+                    <div class="collapse" id="categoriesSubmenu">
                         @foreach($categorias as $categoria)
                             <a href="{{ url('/?categoria=' . $categoria->id) }}"
                                class="dropdown-item {{ request('categoria') == $categoria->id ? 'active' : '' }}"
                                data-category="{{ $categoria->id }}">
-                                <i class="bi bi-tag"></i>
+                                <i class="bi bi-tag-fill"></i>
                                 <span class="nav-text">{{ $categoria->nombre }}</span>
                                 @if($categoria->productos_count > 0)
-                                    <span class="category-counter">{{ $categoria->productos_count }}</span>
+                                    <span class="category-count">{{ $categoria->productos_count }}</span>
                                 @endif
                             </a>
                         @endforeach
@@ -76,27 +80,26 @@
             @endif
 
             <!-- Quick Actions -->
-            <div class="nav-section">Cuenta</div>
+            <div class="nav-section">Acceso</div>
 
             <div class="nav-item">
-                <a href="{{ route('login') }}" class="nav-link">
+                <a href="{{ route('login') }}"
+                   class="nav-link"
+                   title="Iniciar Sesión">
                     <i class="bi bi-box-arrow-in-right"></i>
                     <span class="nav-text">Iniciar Sesión</span>
                 </a>
             </div>
 
             <div class="nav-item">
-                <a href="{{ route('register') }}" class="nav-link">
-                    <i class="bi bi-person-plus"></i>
+                <a href="{{ route('register') }}"
+                   class="nav-link"
+                   title="Registrarse">
+                    <i class="bi bi-person-plus-fill"></i>
                     <span class="nav-text">Registrarse</span>
                 </a>
             </div>
         </div>
-
-        <!-- Sidebar Toggle Button -->
-        <button class="sidebar-toggle" id="sidebarToggle" title="Contraer/Expandir sidebar">
-            <i class="bi bi-chevron-left" id="toggleIcon"></i>
-        </button>
     </nav>
 
     <!-- Mobile Sidebar Overlay -->
@@ -107,10 +110,10 @@
         <!-- Top Navigation Bar -->
         <nav class="navbar navbar-expand-lg top-navbar">
             <div class="container-fluid">
-                <!-- Mobile Sidebar Toggle -->
-                <button class="btn btn-outline-primary d-lg-none me-3"
-                        id="mobileSidebarToggle"
-                        title="Abrir menú">
+                <!-- Desktop & Mobile Sidebar Toggle -->
+                <button class="sidebar-toggle-btn me-3"
+                        id="sidebarToggle"
+                        title="Alternar menú">
                     <i class="bi bi-list"></i>
                 </button>
 

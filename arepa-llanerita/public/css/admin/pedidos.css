@@ -1,14 +1,142 @@
 /* Estilos específicos para gestión de pedidos */
 
-/* Modales profesionales */
-.modal-content {
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+/* Modales profesionales - Z-INDEX MÁS ALTO QUE DROPDOWNS DEL LAYOUT */
+.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 10000 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 10001 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    outline: 0 !important;
+    pointer-events: auto !important;
+}
+
+.modal.show {
+    display: block !important;
+    pointer-events: auto !important;
+}
+
+.modal-dialog {
+    position: relative !important;
+    width: auto !important;
+    margin: 1.75rem auto !important;
+    max-width: 500px !important;
+    pointer-events: auto !important;
+}
+
+.modal-content {
+    max-height: calc(100vh - 3.5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    background-color: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    pointer-events: auto !important;
+}
+
+.modal-content *,
+.modal-content button,
+.modal-content a,
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+    pointer-events: auto !important;
+}
+
+.modal-content button,
+.modal-content a {
+    cursor: pointer !important;
+}
+
+/* Bajar z-index del header y sidebar cuando hay modal abierto */
+body.modal-open .admin-header {
+    padding-right: 0 !important;
+    z-index: 100 !important;
+}
+
+body.modal-open .admin-sidebar {
+    z-index: 100 !important;
+}
+
+/* Modal body con scroll si el contenido es muy largo */
+.modal-body {
+    position: relative !important;
+    flex: 1 1 auto !important;
+    padding: 1.5rem !important;
+    max-height: calc(100vh - 300px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Scrollbar personalizada para modal-body */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Estilos para form-control dentro de modales */
+.modal-content .form-control,
+.modal-content .form-select,
+.modal-content textarea,
+.modal-content input {
+    position: relative !important;
+}
+
+.modal-content textarea {
+    resize: vertical !important;
+    min-height: 80px !important;
+}
+
+/* Asegurar que el modal header esté visible e interactivo */
 .modal-header {
-    border-top-left-radius: 12px !important;
-    border-top-right-radius: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Asegurar que el modal footer esté visible e interactivo */
+.modal-footer {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0.75rem !important;
+    border-top: 1px solid #dee2e6 !important;
+}
+
+/* Ajustar el max-width para modales más grandes si es necesario */
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-dialog.modal-xl {
+    max-width: 1140px !important;
 }
 
 /* Estados de pedidos */
@@ -101,11 +229,30 @@
     }
 
     .modal-dialog {
-        margin: 1rem;
+        margin: 0.5rem !important;
+        max-width: calc(100% - 1rem) !important;
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 200px) !important;
+        padding: 1rem !important;
     }
 
     .stats-card .card-body {
         padding: 1.5rem;
+    }
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px !important;
+        margin: 1.75rem auto !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-dialog.modal-lg {
+        max-width: 800px !important;
     }
 }
 

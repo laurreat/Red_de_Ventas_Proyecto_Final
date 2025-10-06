@@ -69,12 +69,6 @@
                                    placeholder="Busca por nombre o descripción del producto..."
                                    value="{{ request('buscar') }}"
                                    autocomplete="off">
-                            <div class="form-text">
-                                <small class="text-muted">
-                                    <i class="bi bi-lightbulb me-1"></i>
-                                    Tip: Presiona "/" para enfocar la búsqueda rápidamente
-                                </small>
-                            </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="d-grid gap-2">

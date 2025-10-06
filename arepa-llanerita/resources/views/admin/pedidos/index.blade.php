@@ -4,7 +4,8 @@
 @section('page-title', 'Gestión de Pedidos')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}?v={{ time() }}">
+<link rel="stylesheet" href="{{ asset('css/admin/modals-pedidos.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')
@@ -366,8 +367,23 @@ window.pedidosFlashMessages = {
 </script>
 
 {{-- Módulos de funcionalidad de pedidos --}}
+<script>
+    // Verificar que Bootstrap esté cargado antes de cargar el script de pedidos
+    if (typeof bootstrap === 'undefined') {
+        console.error('⚠️ Bootstrap no está cargado. Esperando...');
+    } else {
+        console.log('✅ Bootstrap está disponible para pedidos');
+    }
+</script>
 <script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('js/admin/pedidos-init.js') }}"></script>
+<script src="{{ asset('js/admin/pedidos-init.js') }}?v={{ time() }}"></script>
+<script>
+    // Verificar que las funciones estén disponibles después de cargar el script
+    console.log('Verificando funciones de pedidos...');
+    console.log('confirmDeletePedido:', typeof window.confirmDeletePedido);
+    console.log('showStatusSelector:', typeof window.showStatusSelector);
+    console.log('confirmStatusChangePedido:', typeof window.confirmStatusChangePedido);
+</script>
 @endpush
 
 @endsection

@@ -11,3 +11,57 @@
     font-size: 14px;
     font-weight: 600;
 }
+
+/* Modales profesionales - SE SOBREPONE A TODO */
+.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 9998 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 9999 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    outline: 0 !important;
+}
+
+.modal.show {
+    display: block !important;
+}
+
+.modal-dialog {
+    position: relative !important;
+    width: auto !important;
+    margin: 1.75rem auto !important;
+    max-width: 500px !important;
+}
+
+.modal-content {
+    max-height: calc(100vh - 3.5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    background-color: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Bajar z-index del header y sidebar cuando hay modal abierto */
+body.modal-open .admin-header {
+    padding-right: 0 !important;
+    z-index: 100 !important;
+}
+
+body.modal-open .admin-sidebar {
+    z-index: 100 !important;
+}

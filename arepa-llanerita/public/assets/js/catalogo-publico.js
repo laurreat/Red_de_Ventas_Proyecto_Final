@@ -30,9 +30,7 @@ class CatalogoPublico {
         this.sidebar = document.getElementById('publicSidebar');
         this.mainWrapper = document.getElementById('mainWrapper');
         this.sidebarToggle = document.getElementById('sidebarToggle');
-        this.mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
         this.sidebarOverlay = document.getElementById('sidebarOverlay');
-        this.toggleIcon = document.getElementById('toggleIcon');
 
         if (!this.sidebar) {
             console.warn('Sidebar element not found');
@@ -43,17 +41,13 @@ class CatalogoPublico {
         this.setupCategoryNavigation();
         this.setupTooltips();
         this.loadUserPreferences();
+        this.initializeDropdowns();
     }
 
     bindEvents() {
-        // Toggle sidebar desktop
+        // Toggle sidebar - funciona para desktop y mobile
         if (this.sidebarToggle) {
             this.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
-        }
-
-        // Toggle sidebar mobile
-        if (this.mobileSidebarToggle) {
-            this.mobileSidebarToggle.addEventListener('click', () => this.showMobileSidebar());
         }
 
         // Cerrar sidebar mobile al hacer click en overlay
@@ -74,8 +68,19 @@ class CatalogoPublico {
     toggleSidebar() {
         if (!this.sidebar || !this.mainWrapper) return;
 
-        const isCollapsed = this.sidebar.classList.contains('collapsed');
+        // En mobile, simplemente mostrar/ocultar
+        if (window.innerWidth <= 768) {
+            const isVisible = this.sidebar.classList.contains('show');
+            if (isVisible) {
+                this.hideMobileSidebar();
+            } else {
+                this.showMobileSidebar();
+            }
+            return;
+        }
 
+        // En desktop, colapsar/expandir
+        const isCollapsed = this.sidebar.classList.contains('collapsed');
         if (isCollapsed) {
             this.expandSidebar();
         } else {
@@ -89,10 +94,6 @@ class CatalogoPublico {
         this.sidebar.classList.remove('collapsed');
         this.mainWrapper.classList.remove('sidebar-collapsed');
 
-        if (this.toggleIcon) {
-            this.toggleIcon.className = 'bi bi-chevron-left';
-        }
-
         // Trigger custom event
         this.dispatchEvent('sidebarExpanded');
     }
@@ -100,10 +101,6 @@ class CatalogoPublico {
     collapseSidebar() {
         this.sidebar.classList.add('collapsed');
         this.mainWrapper.classList.add('sidebar-collapsed');
-
-        if (this.toggleIcon) {
-            this.toggleIcon.className = 'bi bi-chevron-right';
-        }
 
         // Trigger custom event
         this.dispatchEvent('sidebarCollapsed');
@@ -129,6 +126,20 @@ class CatalogoPublico {
         this.dispatchEvent('mobileSidebarHidden');
     }
 
+    initializeDropdowns() {
+        // Expandir el dropdown de categorías si hay una categoría activa
+        const activeCategory = document.querySelector('.dropdown-item.active');
+        if (activeCategory) {
+            const categoriesSubmenu = document.getElementById('categoriesSubmenu');
+            const categoriesToggle = document.querySelector('[data-bs-target="#categoriesSubmenu"]');
+
+            if (categoriesSubmenu && categoriesToggle) {
+                categoriesSubmenu.classList.add('show');
+                categoriesToggle.setAttribute('aria-expanded', 'true');
+            }
+        }
+    }
+
     handleResize() {
         if (window.innerWidth > 768) {
             this.hideMobileSidebar();
@@ -152,7 +163,6 @@ class CatalogoPublico {
 
     setupCategoryNavigation() {
         const categoryLinks = document.querySelectorAll('.nav-link[data-category], .dropdown-item[data-category]');
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
 
         // Setup category links
         categoryLinks.forEach(link => {
@@ -161,109 +171,13 @@ class CatalogoPublico {
             });
         });
 
-        // Setup dropdown toggles
-        dropdownToggles.forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleDropdownToggle(e, toggle);
-            });
-        });
-
         // Highlight active category based on URL
         this.highlightActiveCategory();
-
-        // Initialize dropdown states
-        this.initializeDropdownStates();
-    }
-
-    handleDropdownToggle(e, toggle) {
-        const dropdownMenu = toggle.nextElementSibling;
-        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-
-        if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
-            return;
-        }
-
-        // Toggle dropdown
-        if (isExpanded) {
-            this.collapseDropdown(toggle, dropdownMenu);
-        } else {
-            this.expandDropdown(toggle, dropdownMenu);
-        }
-    }
-
-    expandDropdown(toggle, dropdownMenu) {
-        toggle.setAttribute('aria-expanded', 'true');
-        toggle.classList.add('expanded');
-        dropdownMenu.classList.add('show');
-
-        // Save state
-        this.saveDropdownState(toggle.id, true);
-
-        this.dispatchEvent('dropdownExpanded', {
-            toggleId: toggle.id,
-            dropdownMenu: dropdownMenu
-        });
-    }
-
-    collapseDropdown(toggle, dropdownMenu) {
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.classList.remove('expanded');
-        dropdownMenu.classList.remove('show');
-
-        // Save state
-        this.saveDropdownState(toggle.id, false);
-
-        this.dispatchEvent('dropdownCollapsed', {
-            toggleId: toggle.id,
-            dropdownMenu: dropdownMenu
-        });
-    }
-
-    initializeDropdownStates() {
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-
-        dropdownToggles.forEach(toggle => {
-            const savedState = this.getDropdownState(toggle.id);
-            const dropdownMenu = toggle.nextElementSibling;
-
-            if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                if (savedState === true) {
-                    this.expandDropdown(toggle, dropdownMenu);
-                } else if (savedState === false) {
-                    this.collapseDropdown(toggle, dropdownMenu);
-                } else {
-                    // Default: expand if there's an active category inside
-                    const hasActiveItem = dropdownMenu.querySelector('.dropdown-item.active');
-                    if (hasActiveItem) {
-                        this.expandDropdown(toggle, dropdownMenu);
-                    }
-                }
-            }
-        });
-    }
-
-    saveDropdownState(toggleId, isExpanded) {
-        try {
-            localStorage.setItem(`catalogoPublico.dropdown.${toggleId}`, isExpanded.toString());
-        } catch (e) {
-            console.warn('Unable to save dropdown state:', e);
-        }
-    }
-
-    getDropdownState(toggleId) {
-        try {
-            const state = localStorage.getItem(`catalogoPublico.dropdown.${toggleId}`);
-            return state === null ? null : state === 'true';
-        } catch (e) {
-            console.warn('Unable to get dropdown state:', e);
-            return null;
-        }
     }
 
     handleCategoryClick(e, link) {
         // Remove active class from all category links
-        document.querySelectorAll('.nav-link').forEach(el => {
+        document.querySelectorAll('.nav-link, .dropdown-item').forEach(el => {
             el.classList.remove('active');
         });
 
@@ -286,26 +200,16 @@ class CatalogoPublico {
         const urlParams = new URLSearchParams(currentUrl);
         const categoryId = urlParams.get('categoria');
 
-        // Remove active class from all links and dropdown items
+        // Remove active class from all links
         document.querySelectorAll('.nav-link, .dropdown-item').forEach(el => {
             el.classList.remove('active');
         });
 
         if (categoryId) {
-            // Highlight specific category (check both nav-links and dropdown-items)
-            const categoryLink = document.querySelector(`.nav-link[data-category="${categoryId}"], .dropdown-item[data-category="${categoryId}"]`);
+            // Highlight specific category in dropdown
+            const categoryLink = document.querySelector(`.dropdown-item[data-category="${categoryId}"]`);
             if (categoryLink) {
                 categoryLink.classList.add('active');
-
-                // If it's a dropdown item, ensure the parent dropdown is expanded
-                if (categoryLink.classList.contains('dropdown-item')) {
-                    const dropdown = categoryLink.closest('.dropdown-menu');
-                    const toggle = dropdown ? dropdown.previousElementSibling : null;
-
-                    if (toggle && toggle.classList.contains('dropdown-toggle')) {
-                        this.expandDropdown(toggle, dropdown);
-                    }
-                }
             }
         } else {
             // Highlight "All Products" link

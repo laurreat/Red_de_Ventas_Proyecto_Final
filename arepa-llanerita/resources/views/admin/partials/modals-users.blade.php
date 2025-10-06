@@ -121,5 +121,63 @@
     </div>
 </div>
 
+{{-- Modal de confirmación para eliminar usuario --}}
+<div class="modal fade" id="userDeleteConfirmModal" tabindex="-1" aria-labelledby="userDeleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0" id="userDeleteModalHeader" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                <div class="d-flex align-items-center text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                    <h5 class="modal-title mb-0 text-white" id="userDeleteConfirmModalLabel">Eliminar Usuario</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                         style="width: 80px; height: 80px;" id="userDeleteIconContainer">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-1" id="userDeleteIcon"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2" id="userDeleteTitle">¿Estás seguro de eliminar este usuario?</h6>
+                    <p class="text-muted mb-0 small" id="userDeleteMessage">Esta acción <strong>no se puede deshacer</strong>. El usuario será eliminado permanentemente del sistema.</p>
+                </div>
+
+                <div id="userDeleteInfo" class="bg-light rounded p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-3">
+                            <div class="avatar-title rounded-circle d-flex align-items-center justify-content-center"
+                                 style="background: var(--primary-color); color: white;" id="userDeleteAvatar">
+                                U
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1" id="userDeleteName">Usuario</h6>
+                            <small class="text-muted" id="userDeleteEmail">usuario@email.com</small><br>
+                            <small class="text-muted">Rol: <span id="userDeleteRole">Usuario</span></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-flex align-items-center mb-0">
+                    <i class="bi bi-shield-exclamation me-2 fs-5"></i>
+                    <div>
+                        <strong>Advertencia:</strong> Esta acción eliminará todos los datos relacionados con este usuario.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmUserDeleteBtn">
+                    <i class="bi bi-trash me-1" id="userDeleteBtnIcon"></i>
+                    <span id="userDeleteBtnText">Eliminar Usuario</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Container para toasts específicos de usuarios --}}
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;" id="userToastContainer"></div>

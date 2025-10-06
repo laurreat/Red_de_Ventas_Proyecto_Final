@@ -260,13 +260,27 @@
                                                             onclick="event.preventDefault(); toggleUserStatus('{{ $usuario->_id }}'); return false;">
                                                         <i class="bi bi-{{ $usuario->activo ? 'pause' : 'play' }}"></i>
                                                     </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-danger"
+                                                            title="Eliminar usuario"
+                                                            onclick="event.preventDefault(); deleteUser('{{ $usuario->_id }}', '{{ $usuario->name }}'); return false;">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
 
-                                                    <!-- Formulario oculto -->
+                                                    <!-- Formulario toggle status -->
                                                     <form id="user-toggle-form-{{ $usuario->_id }}"
                                                           action="{{ route('admin.users.toggle-active', $usuario) }}"
                                                           method="POST" class="d-none">
                                                         @csrf
                                                         @method('PATCH')
+                                                    </form>
+
+                                                    <!-- Formulario eliminar -->
+                                                    <form id="user-delete-form-{{ $usuario->_id }}"
+                                                          action="{{ route('admin.users.destroy', $usuario) }}"
+                                                          method="POST" class="d-none">
+                                                        @csrf
+                                                        @method('DELETE')
                                                     </form>
                                                 </div>
                                             </td>
@@ -305,5 +319,20 @@
 @include('admin.partials.modals-users')
 
 @push('scripts')
-<script src="{{ asset('js/admin/users-management.js') }}"></script>
+<script>
+    // Verificar que Bootstrap esté cargado antes de cargar el script de usuarios
+    if (typeof bootstrap === 'undefined') {
+        console.error('⚠️ Bootstrap no está cargado. Esperando...');
+    } else {
+        console.log('✅ Bootstrap está disponible');
+    }
+</script>
+<script src="{{ asset('js/admin/users-management.js') }}?v={{ time() }}"></script>
+<script>
+    // Verificar que las funciones estén disponibles después de cargar el script
+    console.log('Verificando funciones de usuarios...');
+    console.log('deleteUser:', typeof window.deleteUser);
+    console.log('toggleUserStatus:', typeof window.toggleUserStatus);
+    console.log('confirmUserSave:', typeof window.confirmUserSave);
+</script>
 @endpush

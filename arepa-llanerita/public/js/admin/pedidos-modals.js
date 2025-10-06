@@ -1,6 +1,45 @@
 // Modal simple para eliminación de pedidos
 console.log('🚀 Modal de eliminación de pedidos cargado...');
 
+// ==================== FUNCIONES HELPER PARA MODALES ====================
+
+// Mostrar modal usando Bootstrap nativo
+function showModalManually(modalElement) {
+    if (!modalElement) return;
+
+    // Verificar que Bootstrap esté disponible
+    if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+        console.error('❌ Bootstrap no está cargado');
+        return;
+    }
+
+    // Usar Bootstrap Modal API
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
+    modal.show();
+}
+
+// Ocultar modal usando Bootstrap nativo
+function hideModalManually(modalElement) {
+    if (!modalElement) return;
+
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide();
+    }
+}
+
+// Eliminar todos los backdrops
+function removeAllBackdrops() {
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+}
+
+// ==================== FIN FUNCIONES HELPER ====================
+
 // Función simple para confirmar eliminación de pedido
 function confirmDeletePedido(pedidoId, numeroPedido, cliente, total, estado) {
     console.log('🗑️ confirmDeletePedido llamada con:', { pedidoId, numeroPedido, cliente, total, estado });
@@ -52,21 +91,9 @@ function confirmDeletePedido(pedidoId, numeroPedido, cliente, total, estado) {
         });
     }
 
-    // Mostrar el modal usando Bootstrap
-    try {
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            const modal = new bootstrap.Modal(deleteModal);
-            modal.show();
-        } else {
-            // Fallback manual si Bootstrap no está disponible
-            deleteModal.style.display = 'block';
-            deleteModal.classList.add('show');
-            document.body.classList.add('modal-open');
-        }
-        console.log('✅ Modal de eliminación mostrado');
-    } catch (error) {
-        console.error('❌ Error mostrando modal:', error);
-    }
+    // Mostrar el modal SIEMPRE manualmente (Bootstrap causa problemas con pointer-events)
+    showModalManually(deleteModal);
+    console.log('✅ Modal de eliminación mostrado');
 }
 
 // Función para ocultar el modal
@@ -79,23 +106,14 @@ function hideDeleteModal() {
                 if (modal) {
                     modal.hide();
                 } else {
-                    // Ocultar manualmente
-                    deleteModal.style.display = 'none';
-                    deleteModal.classList.remove('show');
-                    document.body.classList.remove('modal-open');
+                    hideModalManually(deleteModal);
                 }
             } else {
-                // Ocultar manualmente
-                deleteModal.style.display = 'none';
-                deleteModal.classList.remove('show');
-                document.body.classList.remove('modal-open');
+                hideModalManually(deleteModal);
             }
         } catch (error) {
             console.error('❌ Error ocultando modal:', error);
-            // Forzar ocultado manual
-            deleteModal.style.display = 'none';
-            deleteModal.classList.remove('show');
-            document.body.classList.remove('modal-open');
+            hideModalManually(deleteModal);
         }
     }
 }
@@ -204,20 +222,9 @@ function showStatusSelector(pedidoId, numeroPedido, cliente, currentStatus, esta
         });
     }
 
-    // Mostrar el modal
-    try {
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            const modal = new bootstrap.Modal(selectorModal);
-            modal.show();
-        } else {
-            selectorModal.style.display = 'block';
-            selectorModal.classList.add('show');
-            document.body.classList.add('modal-open');
-        }
-        console.log('✅ Modal selector mostrado');
-    } catch (error) {
-        console.error('❌ Error mostrando modal selector:', error);
-    }
+    // Mostrar el modal SIEMPRE manualmente
+    showModalManually(selectorModal);
+    console.log('✅ Modal selector mostrado');
 }
 
 // Función para ocultar el modal selector
@@ -230,20 +237,14 @@ function hideStatusSelector() {
                 if (modal) {
                     modal.hide();
                 } else {
-                    selectorModal.style.display = 'none';
-                    selectorModal.classList.remove('show');
-                    document.body.classList.remove('modal-open');
+                    hideModalManually(selectorModal);
                 }
             } else {
-                selectorModal.style.display = 'none';
-                selectorModal.classList.remove('show');
-                document.body.classList.remove('modal-open');
+                hideModalManually(selectorModal);
             }
         } catch (error) {
             console.error('❌ Error ocultando modal selector:', error);
-            selectorModal.style.display = 'none';
-            selectorModal.classList.remove('show');
-            document.body.classList.remove('modal-open');
+            hideModalManually(selectorModal);
         }
     }
 }
@@ -320,19 +321,13 @@ function confirmStatusChangePedido(pedidoId, newStatus, numeroPedido, cliente, c
             });
         }
 
-        // Mostrar modal
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            const modal = new bootstrap.Modal(statusModal);
-            modal.show();
-        } else {
-            statusModal.style.display = 'block';
-            statusModal.classList.add('show');
-            document.body.classList.add('modal-open');
-        }
+        // Mostrar modal SIEMPRE manualmente
+        showModalManually(statusModal);
         console.log('✅ Modal de confirmación de estado mostrado');
 
     } catch (error) {
         console.error('❌ Error creando modal de estado:', error);
+        showModalManually(statusModal);
     }
 }
 
@@ -346,20 +341,14 @@ function hideStatusConfirmModal() {
                 if (modal) {
                     modal.hide();
                 } else {
-                    statusModal.style.display = 'none';
-                    statusModal.classList.remove('show');
-                    document.body.classList.remove('modal-open');
+                    hideModalManually(statusModal);
                 }
             } else {
-                statusModal.style.display = 'none';
-                statusModal.classList.remove('show');
-                document.body.classList.remove('modal-open');
+                hideModalManually(statusModal);
             }
         } catch (error) {
             console.error('❌ Error ocultando modal de estado:', error);
-            statusModal.style.display = 'none';
-            statusModal.classList.remove('show');
-            document.body.classList.remove('modal-open');
+            hideModalManually(statusModal);
         }
     }
 }
@@ -472,6 +461,13 @@ window.hideStatusSelector = hideStatusSelector;
 window.confirmStatusChangePedido = confirmStatusChangePedido;
 window.hideStatusConfirmModal = hideStatusConfirmModal;
 
+console.log('✅ Funciones de estado de pedidos disponibles:', {
+    showStatusSelector: typeof window.showStatusSelector,
+    hideStatusSelector: typeof window.hideStatusSelector,
+    confirmStatusChangePedido: typeof window.confirmStatusChangePedido,
+    hideStatusConfirmModal: typeof window.hideStatusConfirmModal
+});
+
 // Event listener para cerrar modal con tecla Escape
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -487,4 +483,37 @@ document.addEventListener('keydown', function(e) {
             hideStatusConfirmModal();
         }
     }
+});
+
+// Event listeners para botones de cerrar (data-bs-dismiss="modal")
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar event listeners a todos los botones con data-bs-dismiss="modal"
+    const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Encontrar el modal padre más cercano
+            const modal = this.closest('.modal');
+
+            if (modal) {
+                const modalId = modal.id;
+
+                // Cerrar el modal correspondiente
+                if (modalId === 'deletePedidoConfirmModal') {
+                    hideDeleteModal();
+                } else if (modalId === 'statusSelectorPedidoModal') {
+                    hideStatusSelector();
+                } else if (modalId === 'statusPedidoConfirmModal') {
+                    hideStatusConfirmModal();
+                } else {
+                    // Cerrar manualmente cualquier otro modal
+                    hideModalManually(modal);
+                }
+            }
+        });
+    });
+
+    console.log('✅ Event listeners para cerrar modales configurados');
 });
