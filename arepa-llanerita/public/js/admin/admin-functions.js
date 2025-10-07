@@ -189,9 +189,25 @@ class AdminAlerts {
 
     // Función general para mostrar alertas
     showAlert(type, title, message) {
-        // Remover alertas existentes
-        const existingAlerts = document.querySelectorAll('#messagesArea .alert');
-        existingAlerts.forEach(alert => alert.remove());
+        // Remover TODAS las alertas existentes en toda la página (incluidas las del DOM y las dinámicas)
+        const existingAlerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+        existingAlerts.forEach(alert => {
+            // Cerrar con Bootstrap si es posible
+            if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                try {
+                    const bsAlert = bootstrap.Alert.getInstance(alert);
+                    if (bsAlert) bsAlert.dispose();
+                } catch (e) {}
+            }
+            // Eliminar del DOM
+            alert.remove();
+        });
+
+        // Limpiar el messagesArea completamente si existe
+        const existingMessagesArea = document.getElementById('messagesArea');
+        if (existingMessagesArea) {
+            existingMessagesArea.innerHTML = '';
+        }
 
         let alertClass, iconClass, borderColor;
         switch(type) {

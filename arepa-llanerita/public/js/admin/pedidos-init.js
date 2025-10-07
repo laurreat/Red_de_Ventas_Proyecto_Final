@@ -37,27 +37,10 @@ function initializePedidosModals() {
 }
 
 /**
- * Función para mostrar mensajes flash usando AdminAlerts
- */
-function showFlashMessages() {
-    const successMessage = window.pedidosFlashMessages?.success;
-    const errorMessage = window.pedidosFlashMessages?.error;
-
-    if (successMessage && window.adminAlerts) {
-        window.adminAlerts.showSuccess('¡Éxito!', successMessage);
-    }
-
-    if (errorMessage && window.adminAlerts) {
-        window.adminAlerts.showError('Error', errorMessage);
-    }
-}
-
-/**
  * Inicializar el módulo de pedidos
  */
 function initializePedidosModule() {
     initializePedidosModals();
-    showFlashMessages();
     console.log('✅ Módulo de inicialización de pedidos cargado');
 }
 

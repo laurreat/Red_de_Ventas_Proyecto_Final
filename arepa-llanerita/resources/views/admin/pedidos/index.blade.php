@@ -356,34 +356,11 @@ window.pedidosRoutes = {
     updateStatus: '{{ route("admin.pedidos.update-status", ":id") }}',
     destroy: '{{ route("admin.pedidos.destroy", ":id") }}'
 };
-window.pedidosFlashMessages = {
-    @if(session('success'))
-    success: '{{ session('success') }}',
-    @endif
-    @if(session('error'))
-    error: '{{ session('error') }}',
-    @endif
-};
 </script>
 
 {{-- Módulos de funcionalidad de pedidos --}}
-<script>
-    // Verificar que Bootstrap esté cargado antes de cargar el script de pedidos
-    if (typeof bootstrap === 'undefined') {
-        console.error('⚠️ Bootstrap no está cargado. Esperando...');
-    } else {
-        console.log('✅ Bootstrap está disponible para pedidos');
-    }
-</script>
 <script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('js/admin/pedidos-init.js') }}?v={{ time() }}"></script>
-<script>
-    // Verificar que las funciones estén disponibles después de cargar el script
-    console.log('Verificando funciones de pedidos...');
-    console.log('confirmDeletePedido:', typeof window.confirmDeletePedido);
-    console.log('showStatusSelector:', typeof window.showStatusSelector);
-    console.log('confirmStatusChangePedido:', typeof window.confirmStatusChangePedido);
-</script>
 @endpush
 
 @endsection

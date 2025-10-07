@@ -1027,6 +1027,32 @@
     {{-- Incluir funciones JavaScript para alertas --}}
     <script src="{{ asset('js/admin/admin-functions.js') }}"></script>
 
+    {{-- Pasar mensajes flash a JavaScript --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                if (window.adminAlerts) {
+                    window.adminAlerts.showSuccess('¡Éxito!', '{{ session('success') }}');
+                }
+            @endif
+            @if(session('error'))
+                if (window.adminAlerts) {
+                    window.adminAlerts.showError('Error', '{{ session('error') }}');
+                }
+            @endif
+            @if(session('warning'))
+                if (window.adminAlerts) {
+                    window.adminAlerts.showWarning('Advertencia', '{{ session('warning') }}');
+                }
+            @endif
+            @if(session('info'))
+                if (window.adminAlerts) {
+                    window.adminAlerts.showInfo('Información', '{{ session('info') }}');
+                }
+            @endif
+        });
+    </script>
+
     {{-- Incluir funciones JavaScript para pedidos --}}
     {{-- <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script> --}}
 

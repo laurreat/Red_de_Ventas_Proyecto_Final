@@ -45,62 +45,7 @@
         </div>
     </div>
 
-    <!-- Mensajes de Estado -->
-    @if(session('success') || session('warning') || session('error') || session('info'))
-    <div class="row mb-4">
-        <div class="col-12">
-            @if(session('success'))
-            <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-check-circle-fill me-3 fs-4"></i>
-                    <div>
-                        <strong>Éxito:</strong> {{ session('success') }}
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('warning'))
-            <div class="alert alert-warning border-0 shadow-sm alert-dismissible fade show" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
-                    <div>
-                        <strong>Atención:</strong> {{ session('warning') }}
-                        <br><small class="text-muted">Verifique que la cédula sea correcta o que el usuario tenga rol de vendedor/líder.</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('error'))
-            <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-x-circle-fill me-3 fs-4"></i>
-                    <div>
-                        <strong>Error:</strong> {{ session('error') }}
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-
-            @if(session('info'))
-            <div class="alert alert-info border-0 shadow-sm alert-dismissible fade show" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-info-circle-fill me-3 fs-4"></i>
-                    <div>
-                        <strong>Información:</strong> {{ session('info') }}
-                        <br><small class="text-muted">Este usuario puede no tener referidos o puede estar en un nivel sin descendencia.</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-        </div>
-    </div>
-    @endif
+    {{-- Mensajes flash manejados por AdminAlerts en admin-functions.js --}}
 
     <!-- Buscador Profesional -->
     <div class="row mb-4">

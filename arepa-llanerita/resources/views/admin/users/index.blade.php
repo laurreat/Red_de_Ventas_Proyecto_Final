@@ -30,19 +30,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    {{-- Mensajes flash manejados por AdminAlerts en admin-functions.js --}}
 
     <!-- Estadísticas -->
     <div class="row mb-4">
@@ -319,20 +307,5 @@
 @include('admin.partials.modals-users')
 
 @push('scripts')
-<script>
-    // Verificar que Bootstrap esté cargado antes de cargar el script de usuarios
-    if (typeof bootstrap === 'undefined') {
-        console.error('⚠️ Bootstrap no está cargado. Esperando...');
-    } else {
-        console.log('✅ Bootstrap está disponible');
-    }
-</script>
 <script src="{{ asset('js/admin/users-management.js') }}?v={{ time() }}"></script>
-<script>
-    // Verificar que las funciones estén disponibles después de cargar el script
-    console.log('Verificando funciones de usuarios...');
-    console.log('deleteUser:', typeof window.deleteUser);
-    console.log('toggleUserStatus:', typeof window.toggleUserStatus);
-    console.log('confirmUserSave:', typeof window.confirmUserSave);
-</script>
 @endpush
