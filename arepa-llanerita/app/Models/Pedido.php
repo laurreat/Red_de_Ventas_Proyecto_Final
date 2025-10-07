@@ -41,7 +41,7 @@ class Pedido extends Model
         'descuento' => 'decimal:2',
         'total_final' => 'decimal:2',
         'fecha_entrega_estimada' => 'datetime',
-        'detalles' => 'array',
+        // 'detalles' => 'array', // Comentado: ya se maneja con getter/setter personalizado
         'historial_estados' => 'array',
         'cliente_data' => 'array',
         'vendedor_data' => 'array',
@@ -72,12 +72,6 @@ class Pedido extends Model
         return $this->hasMany(DetallePedido::class, 'pedido_id');
     }
 
-    // Métodos para manejar detalles embebidos
-    public function getDetallesEmbebidosAttribute()
-    {
-        return $this->getAttributeFromArray('detalles') ?? [];
-    }
-
     // Override para manejar tanto embebidos como relación
     public function getDetallesAttribute($value)
     {
@@ -91,16 +85,38 @@ class Pedido extends Model
             return $value;
         }
 
-        // Intentar obtener de los attributes
+        // Para MongoDB, intentar obtener directamente del array de attributes
         if (isset($this->attributes['detalles'])) {
-            $detalles = $this->attributes['detalles'];
-            if (is_array($detalles)) {
-                return $detalles;
+            $rawDetalles = $this->attributes['detalles'];
+            if (is_array($rawDetalles)) {
+                return $rawDetalles;
             }
         }
 
         // Si no hay nada, devolver array vacío
         return [];
+    }
+
+    /**
+     * Obtener detalles directamente desde los atributos (sin pasar por getter)
+     */
+    public function getRawDetalles()
+    {
+        if (!isset($this->attributes) || !is_array($this->attributes)) {
+            return [];
+        }
+
+        $detalles = $this->attributes['detalles'] ?? [];
+
+        return is_array($detalles) ? $detalles : [];
+    }
+
+    /**
+     * Alias para compatibilidad con vistas antiguas
+     */
+    public function getDetallesEmbebidosAttribute()
+    {
+        return $this->getRawDetalles();
     }
 
     public function setDetallesAttribute($detalles)

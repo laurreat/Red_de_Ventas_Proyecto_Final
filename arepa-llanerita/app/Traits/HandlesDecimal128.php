@@ -31,6 +31,25 @@ trait HandlesDecimal128
         foreach ($array as $key => $value) {
             if ($value instanceof Decimal128) {
                 $array[$key] = (float) $value->__toString();
+            } elseif (is_array($value)) {
+                // Recursivamente convertir Decimal128 en arrays anidados
+                $array[$key] = $this->convertDecimal128InArray($value);
+            }
+        }
+
+        return $array;
+    }
+
+    /**
+     * Recursively convert Decimal128 values in nested arrays
+     */
+    protected function convertDecimal128InArray($array)
+    {
+        foreach ($array as $key => $value) {
+            if ($value instanceof Decimal128) {
+                $array[$key] = (float) $value->__toString();
+            } elseif (is_array($value)) {
+                $array[$key] = $this->convertDecimal128InArray($value);
             }
         }
 

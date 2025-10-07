@@ -127,11 +127,12 @@ class PedidoController extends Controller
         }
 
         // Si no es AJAX, devolver la vista normal
-        // Pre-cargar productos para los detalles embebidos
+        // Pre-cargar productos para los detalles
         $productosDetalles = [];
-        if (!empty($pedido->detalles_embebidos)) {
-            $productosIds = array_column($pedido->detalles_embebidos, 'producto_id');
-            $productos = \App\Models\Producto::whereIn('_id', $productosIds)->with('categoria')->get();
+        $detalles = $pedido->getRawDetalles();
+        if (!empty($detalles)) {
+            $productosIds = array_column($detalles, 'producto_id');
+            $productos = \App\Models\Producto::whereIn('_id', $productosIds)->get();
             $productosDetalles = $productos->keyBy('_id');
         }
 
@@ -245,28 +246,39 @@ class PedidoController extends Controller
             $producto->update(['stock' => $nuevoStock]);
         }
 
-        $pedido->detalles = $detalles;
-        $pedido->total = $total;
-        $pedido->total_final = $total - $pedido->descuento;
-
         \Log::info('Antes de guardar pedido', [
             'cantidad_detalles' => count($detalles),
             'detalles' => $detalles,
             'total' => $total
         ]);
 
+        // Asignar valores directamente
+        $pedido->total = $total;
+        $pedido->total_final = $total - $pedido->descuento;
+
+        // Asignar detalles directamente al array de attributes
+        $pedido->setAttribute('detalles', $detalles);
+
         // Guardar pedido
         if (!$pedido->save()) {
             throw new \Exception('No se pudo guardar el pedido en la base de datos.');
         }
 
-        // Verificar que los detalles se guardaron
+        // Recargar el pedido desde la base de datos para verificar
         $pedidoGuardado = Pedido::find($pedido->_id);
+
+        // Verificar que los detalles se guardaron
+        $detallesGuardados = [];
+        if ($pedidoGuardado) {
+            $detallesGuardados = $pedidoGuardado->getRawDetalles();
+        }
+
         \Log::info('Pedido creado exitosamente', [
             'pedido_id' => $pedido->_id,
             'numero_pedido' => $pedido->numero_pedido,
             'total' => $pedido->total_final,
-            'detalles_guardados' => count($pedidoGuardado->detalles ?? [])
+            'detalles_guardados' => is_array($detallesGuardados) ? count($detallesGuardados) : 0,
+            'primer_detalle' => (is_array($detallesGuardados) && count($detallesGuardados) > 0) ? $detallesGuardados[0] : null
         ]);
 
         return redirect()->route('admin.pedidos.index')
@@ -340,20 +352,26 @@ class PedidoController extends Controller
 
         $estadoAnterior = $pedido->estado;
 
+        // Para pedidos antiguos sin el campo stock_devuelto, asumimos false si el estado no es 'cancelado'
+        $stockDevuelto = $pedido->stock_devuelto ?? ($estadoAnterior === 'cancelado');
+
+        // Leer detalles directamente de MongoDB
+        $detalles = $pedido->getRawDetalles() ?? [];
+
         \Log::info('=== INICIO updateStatus ===', [
             'pedido_id' => $pedido->_id,
             'numero_pedido' => $pedido->numero_pedido,
             'estado_anterior' => $estadoAnterior,
             'estado_nuevo' => $request->estado,
-            'stock_devuelto_actual' => $pedido->stock_devuelto ?? 'no definido',
-            'cantidad_detalles' => count($pedido->detalles ?? [])
+            'stock_devuelto_actual' => $stockDevuelto,
+            'cantidad_detalles' => count($detalles)
         ]);
 
-        // Si se cancela el pedido, devolver stock ANTES de actualizar el estado
-        if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado') {
+        // Si se cancela el pedido y NO se ha devuelto el stock anteriormente
+        if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado' && !$stockDevuelto) {
             \Log::info('>>> Iniciando devolución de stock por cancelación');
 
-            foreach ($pedido->detalles ?? [] as $detalle) {
+            foreach ($detalles as $detalle) {
                 \Log::info('Procesando detalle', [
                     'producto_id' => $detalle['producto_id'] ?? 'no definido',
                     'cantidad' => $detalle['cantidad'] ?? 'no definido'
@@ -383,10 +401,10 @@ class PedidoController extends Controller
         }
 
         // Si se reactiva un pedido que estaba cancelado, restar stock
-        if ($estadoAnterior === 'cancelado' && $request->estado !== 'cancelado') {
+        if ($estadoAnterior === 'cancelado' && $request->estado !== 'cancelado' && $stockDevuelto) {
             \Log::info('>>> Iniciando resta de stock por reactivación');
 
-            foreach ($pedido->detalles ?? [] as $detalle) {
+            foreach ($detalles as $detalle) {
                 $producto = Producto::find($detalle['producto_id']);
                 if ($producto) {
                     // Convertir stock a número si es string
@@ -409,7 +427,10 @@ class PedidoController extends Controller
         }
 
         // Actualizar el estado del pedido
-        $pedido->update(['estado' => $request->estado]);
+        $pedido->update([
+            'estado' => $request->estado,
+            'stock_devuelto' => $pedido->stock_devuelto ?? false
+        ]);
 
         \Log::info('=== FIN updateStatus ===');
 
@@ -419,12 +440,18 @@ class PedidoController extends Controller
 
     public function destroy(Pedido $pedido)
     {
+        // Para pedidos antiguos sin el campo stock_devuelto, asumimos false si el estado no es 'cancelado'
+        $stockDevuelto = $pedido->stock_devuelto ?? ($pedido->estado === 'cancelado');
+
+        // Leer detalles directamente de MongoDB
+        $detalles = $pedido->getRawDetalles() ?? [];
+
         \Log::info('=== INICIO destroy ===', [
             'pedido_id' => $pedido->_id,
             'numero_pedido' => $pedido->numero_pedido,
             'estado' => $pedido->estado,
-            'stock_devuelto' => $pedido->stock_devuelto ?? 'no definido',
-            'cantidad_detalles' => count($pedido->detalles ?? [])
+            'stock_devuelto' => $stockDevuelto,
+            'cantidad_detalles' => count($detalles)
         ]);
 
         if (in_array($pedido->estado, ['entregado'])) {
@@ -434,13 +461,12 @@ class PedidoController extends Controller
         }
 
         // Devolver stock solo si NO se devolvió anteriormente (por cancelación)
-        $stockDevuelto = $pedido->stock_devuelto ?? false;
         \Log::info('Verificando si devolver stock', ['stock_devuelto' => $stockDevuelto]);
 
         if (!$stockDevuelto) {
             \Log::info('>>> Iniciando devolución de stock por eliminación');
 
-            foreach ($pedido->detalles ?? [] as $detalle) {
+            foreach ($detalles as $detalle) {
                 \Log::info('Procesando detalle para devolución', [
                     'producto_id' => $detalle['producto_id'] ?? 'no definido',
                     'cantidad' => $detalle['cantidad'] ?? 'no definido'

@@ -91,6 +91,13 @@ class PedidoController extends Controller
             foreach ($request->productos as $productoData) {
                 $producto = Producto::findOrFail($productoData['id']);
                 $cantidad = $productoData['cantidad'];
+
+                // Verificar stock disponible
+                $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                if ($stockActual < $cantidad) {
+                    throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Stock disponible: {$stockActual}");
+                }
+
                 $precio = $producto->precio;
                 $total = $precio * $cantidad;
 
@@ -102,6 +109,10 @@ class PedidoController extends Controller
                     'precio_unitario' => $precio,
                     'total' => $total
                 ];
+
+                // Descontar stock
+                $nuevoStock = $stockActual - $cantidad;
+                $producto->update(['stock' => $nuevoStock]);
             }
 
             $iva = $subtotal * 0.19; // Asumiendo IVA del 19%
@@ -116,7 +127,8 @@ class PedidoController extends Controller
                 'iva' => $iva,
                 'total_final' => $totalFinal,
                 'estado' => 'pendiente',
-                'notas' => $request->notas
+                'notas' => $request->notas,
+                'stock_devuelto' => false
             ]);
 
             // Asociar productos al pedido
@@ -241,9 +253,39 @@ class PedidoController extends Controller
                        ->where('id', $id)
                        ->firstOrFail();
 
+        $estadoAnterior = $pedido->estado;
+        $stockDevuelto = $pedido->stock_devuelto ?? ($estadoAnterior === 'cancelado');
+
+        // Si se cancela el pedido y NO se ha devuelto el stock anteriormente
+        if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado' && !$stockDevuelto) {
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                $producto = Producto::find($detalle['producto_id']);
+                if ($producto) {
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+                    $producto->update(['stock' => $nuevoStock]);
+                }
+            }
+            $pedido->stock_devuelto = true;
+        }
+
+        // Si se reactiva un pedido que estaba cancelado, restar stock
+        if ($estadoAnterior === 'cancelado' && $request->estado !== 'cancelado' && $stockDevuelto) {
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                $producto = Producto::find($detalle['producto_id']);
+                if ($producto) {
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual - (int)$detalle['cantidad'];
+                    $producto->update(['stock' => max(0, $nuevoStock)]);
+                }
+            }
+            $pedido->stock_devuelto = false;
+        }
+
         $pedido->update([
             'estado' => $request->estado,
-            'motivo_cancelacion' => $request->motivo_cancelacion
+            'motivo_cancelacion' => $request->motivo_cancelacion,
+            'stock_devuelto' => $pedido->stock_devuelto ?? false
         ]);
 
         return redirect()->back()->with('success', 'Estado del pedido actualizado.');
@@ -258,6 +300,21 @@ class PedidoController extends Controller
                        ->firstOrFail();
 
         try {
+            // Para pedidos antiguos sin el campo stock_devuelto, asumimos false si el estado no es 'cancelado'
+            $stockDevuelto = $pedido->stock_devuelto ?? ($pedido->estado === 'cancelado');
+
+            // Devolver stock solo si NO se devolvió anteriormente (por cancelación)
+            if (!$stockDevuelto) {
+                foreach ($pedido->detalles ?? [] as $detalle) {
+                    $producto = Producto::find($detalle['producto_id']);
+                    if ($producto) {
+                        $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                        $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+                        $producto->update(['stock' => $nuevoStock]);
+                    }
+                }
+            }
+
             // MongoDB: usar arrays embebidos
             // $pedido->productos()->detach();
             $pedido->delete();

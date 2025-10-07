@@ -248,11 +248,16 @@ function cambiarCantidad(index, nuevaCantidad) {
 
 function actualizarListaProductos() {
     const container = document.getElementById('productos-container');
-    const sinProductos = document.getElementById('sin-productos');
 
     if (productosSeleccionados.length === 0) {
-        sinProductos.style.display = 'block';
-        container.innerHTML = sinProductos.outerHTML;
+        // Mostrar mensaje de "sin productos"
+        container.innerHTML = `
+            <div class="text-center py-4 text-muted" id="sin-productos">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No hay productos agregados</p>
+                <p class="small">Busca y agrega productos usando el buscador</p>
+            </div>
+        `;
         return;
     }
 
