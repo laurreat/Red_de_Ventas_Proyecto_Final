@@ -47,7 +47,9 @@
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
       "Bash(awk:*)",
-      "Bash(do grep -l \"app-theme.css\" \"$file\")"
+      "Bash(do grep -l \"app-theme.css\" \"$file\")",
+      "Bash(git push:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
