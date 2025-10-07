@@ -32,7 +32,8 @@ class Pedido extends Model
         'historial_estados',
         'metodo_pago',
         'datos_entrega',
-        'comisiones_calculadas'
+        'comisiones_calculadas',
+        'stock_devuelto' // Bandera para evitar devolución duplicada
     ];
 
     protected $casts = [
@@ -46,7 +47,8 @@ class Pedido extends Model
         'vendedor_data' => 'array',
         'zona_entrega_data' => 'array',
         'datos_entrega' => 'array',
-        'comisiones_calculadas' => 'array'
+        'comisiones_calculadas' => 'array',
+        'stock_devuelto' => 'boolean'
     ];
 
     // Relaciones de referencia para datos que cambian frecuentemente
@@ -79,15 +81,22 @@ class Pedido extends Model
     // Override para manejar tanto embebidos como relación
     public function getDetallesAttribute($value)
     {
-        // Priorizar datos embebidos si existen
-        $embebidos = $this->getAttributeFromArray('detalles');
-        if (!empty($embebidos)) {
-            return $embebidos;
+        // Si value ya es un array, devolverlo directamente
+        if (is_array($value)) {
+            return $value;
         }
 
-        // Si no hay embebidos y value es una relación, devolverla
+        // Si es una colección, devolverla
         if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
             return $value;
+        }
+
+        // Intentar obtener de los attributes
+        if (isset($this->attributes['detalles'])) {
+            $detalles = $this->attributes['detalles'];
+            if (is_array($detalles)) {
+                return $detalles;
+            }
         }
 
         // Si no hay nada, devolver array vacío

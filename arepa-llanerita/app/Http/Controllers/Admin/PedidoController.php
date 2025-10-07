@@ -26,6 +26,13 @@ class PedidoController extends Controller
     {
         $query = Pedido::query();
 
+        // Log temporal para debug
+        $totalPedidos = Pedido::count();
+        \Log::info('Cargando índice de pedidos', [
+            'total_pedidos_db' => $totalPedidos,
+            'filtros_aplicados' => $request->all()
+        ]);
+
         // Filtros
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
@@ -165,10 +172,11 @@ class PedidoController extends Controller
             'user_id' => $request->cliente_id,
             'vendedor_id' => $request->vendedor_id,
             'estado' => 'pendiente',
-            'subtotal' => 0, // Se calculará después
+            'total' => 0, // Se calculará después (cambié de 'subtotal' a 'total')
             'descuento' => $request->descuento ?? 0.00,
             'total_final' => 0, // Se calculará después
-            'observaciones' => $request->observaciones,
+            'notas' => $request->observaciones,
+            'stock_devuelto' => false, // Inicializar en false
             'cliente_data' => [
                 '_id' => $cliente->_id,
                 'name' => $cliente->name,
@@ -204,9 +212,12 @@ class PedidoController extends Controller
 
             $cantidad = $productoData['cantidad'];
 
+            // Convertir stock a número si es string
+            $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+
             // Verificar stock disponible
-            if ($producto->stock < $cantidad) {
-                throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Stock disponible: {$producto->stock}");
+            if ($stockActual < $cantidad) {
+                throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Stock disponible: {$stockActual}");
             }
 
             $precioUnitario = $producto->precio;
@@ -229,18 +240,37 @@ class PedidoController extends Controller
 
             $total += $subtotal;
 
-            // Actualizar stock del producto
-            $producto->decrement('stock', $cantidad);
+            // Actualizar stock del producto (convertir a número y guardar)
+            $nuevoStock = $stockActual - $cantidad;
+            $producto->update(['stock' => $nuevoStock]);
         }
 
         $pedido->detalles = $detalles;
-        $pedido->subtotal = $total;
+        $pedido->total = $total;
         $pedido->total_final = $total - $pedido->descuento;
 
-            $pedido->save();
+        \Log::info('Antes de guardar pedido', [
+            'cantidad_detalles' => count($detalles),
+            'detalles' => $detalles,
+            'total' => $total
+        ]);
 
-            return redirect()->route('admin.pedidos.index')
-                ->with('success', 'Pedido creado exitosamente.');
+        // Guardar pedido
+        if (!$pedido->save()) {
+            throw new \Exception('No se pudo guardar el pedido en la base de datos.');
+        }
+
+        // Verificar que los detalles se guardaron
+        $pedidoGuardado = Pedido::find($pedido->_id);
+        \Log::info('Pedido creado exitosamente', [
+            'pedido_id' => $pedido->_id,
+            'numero_pedido' => $pedido->numero_pedido,
+            'total' => $pedido->total_final,
+            'detalles_guardados' => count($pedidoGuardado->detalles ?? [])
+        ]);
+
+        return redirect()->route('admin.pedidos.index')
+            ->with('success', 'Pedido creado exitosamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
@@ -249,7 +279,7 @@ class PedidoController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error al crear pedido: ' . $e->getMessage());
             return redirect()->back()
-                           ->with('error', 'Error al crear el pedido: ' . $e->getMessage())
+                           ->with('error', $e->getMessage())
                            ->withInput();
         }
     }
@@ -309,14 +339,79 @@ class PedidoController extends Controller
         ]);
 
         $estadoAnterior = $pedido->estado;
+
+        \Log::info('=== INICIO updateStatus ===', [
+            'pedido_id' => $pedido->_id,
+            'numero_pedido' => $pedido->numero_pedido,
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $request->estado,
+            'stock_devuelto_actual' => $pedido->stock_devuelto ?? 'no definido',
+            'cantidad_detalles' => count($pedido->detalles ?? [])
+        ]);
+
+        // Si se cancela el pedido, devolver stock ANTES de actualizar el estado
+        if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado') {
+            \Log::info('>>> Iniciando devolución de stock por cancelación');
+
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                \Log::info('Procesando detalle', [
+                    'producto_id' => $detalle['producto_id'] ?? 'no definido',
+                    'cantidad' => $detalle['cantidad'] ?? 'no definido'
+                ]);
+
+                $producto = Producto::find($detalle['producto_id']);
+                if ($producto) {
+                    // Convertir stock a número si es string
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+
+                    \Log::info('Devolviendo stock', [
+                        'producto' => $producto->nombre,
+                        'stock_antes' => $stockActual,
+                        'cantidad_devuelta' => $detalle['cantidad'],
+                        'stock_despues' => $nuevoStock
+                    ]);
+
+                    $producto->update(['stock' => $nuevoStock]);
+                } else {
+                    \Log::warning('Producto no encontrado', ['producto_id' => $detalle['producto_id']]);
+                }
+            }
+            // Marcar que el stock fue devuelto
+            $pedido->stock_devuelto = true;
+            \Log::info('Stock devuelto, marcando bandera stock_devuelto = true');
+        }
+
+        // Si se reactiva un pedido que estaba cancelado, restar stock
+        if ($estadoAnterior === 'cancelado' && $request->estado !== 'cancelado') {
+            \Log::info('>>> Iniciando resta de stock por reactivación');
+
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                $producto = Producto::find($detalle['producto_id']);
+                if ($producto) {
+                    // Convertir stock a número si es string
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual - (int)$detalle['cantidad'];
+
+                    \Log::info('Restando stock por reactivación', [
+                        'producto' => $producto->nombre,
+                        'stock_antes' => $stockActual,
+                        'cantidad_restada' => $detalle['cantidad'],
+                        'stock_despues' => $nuevoStock
+                    ]);
+
+                    $producto->update(['stock' => max(0, $nuevoStock)]); // No permitir stock negativo
+                }
+            }
+            // Marcar que el stock fue restado nuevamente
+            $pedido->stock_devuelto = false;
+            \Log::info('Stock restado, marcando bandera stock_devuelto = false');
+        }
+
+        // Actualizar el estado del pedido
         $pedido->update(['estado' => $request->estado]);
 
-        // Si se cancela el pedido, devolver stock
-        if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado') {
-            foreach ($pedido->detalles as $detalle) {
-                $detalle->producto->increment('stock', $detalle->cantidad);
-            }
-        }
+        \Log::info('=== FIN updateStatus ===');
 
         return redirect()->back()
             ->with('success', 'Estado del pedido actualizado exitosamente.');
@@ -324,19 +419,58 @@ class PedidoController extends Controller
 
     public function destroy(Pedido $pedido)
     {
+        \Log::info('=== INICIO destroy ===', [
+            'pedido_id' => $pedido->_id,
+            'numero_pedido' => $pedido->numero_pedido,
+            'estado' => $pedido->estado,
+            'stock_devuelto' => $pedido->stock_devuelto ?? 'no definido',
+            'cantidad_detalles' => count($pedido->detalles ?? [])
+        ]);
+
         if (in_array($pedido->estado, ['entregado'])) {
+            \Log::warning('No se puede eliminar: pedido entregado');
             return redirect()->back()
                 ->with('error', 'No se pueden eliminar pedidos entregados.');
         }
 
-        // Devolver stock si el pedido no estaba cancelado
-        if ($pedido->estado !== 'cancelado') {
-            foreach ($pedido->detalles as $detalle) {
-                $detalle->producto->increment('stock', $detalle->cantidad);
+        // Devolver stock solo si NO se devolvió anteriormente (por cancelación)
+        $stockDevuelto = $pedido->stock_devuelto ?? false;
+        \Log::info('Verificando si devolver stock', ['stock_devuelto' => $stockDevuelto]);
+
+        if (!$stockDevuelto) {
+            \Log::info('>>> Iniciando devolución de stock por eliminación');
+
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                \Log::info('Procesando detalle para devolución', [
+                    'producto_id' => $detalle['producto_id'] ?? 'no definido',
+                    'cantidad' => $detalle['cantidad'] ?? 'no definido'
+                ]);
+
+                $producto = Producto::find($detalle['producto_id']);
+                if ($producto) {
+                    // Convertir stock a número si es string
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+
+                    \Log::info('Devolviendo stock por eliminación', [
+                        'producto' => $producto->nombre,
+                        'stock_antes' => $stockActual,
+                        'cantidad_devuelta' => $detalle['cantidad'],
+                        'stock_despues' => $nuevoStock
+                    ]);
+
+                    $producto->update(['stock' => $nuevoStock]);
+                } else {
+                    \Log::warning('Producto no encontrado al eliminar', ['producto_id' => $detalle['producto_id']]);
+                }
             }
+        } else {
+            \Log::info('No se devuelve stock porque ya fue devuelto anteriormente (stock_devuelto = true)');
         }
 
         $pedido->delete();
+        \Log::info('Pedido eliminado exitosamente');
+        \Log::info('=== FIN destroy ===');
 
         return redirect()->route('admin.pedidos.index')
             ->with('success', 'Pedido eliminado exitosamente.');
@@ -396,9 +530,9 @@ class PedidoController extends Controller
         try {
             $cedula = $request->cedula;
 
-            // Buscar usuario con rol vendedor por cédula
+            // Buscar usuario con rol vendedor, líder o administrador por cédula
             $vendedor = User::where('cedula', $cedula)
-                           ->where('rol', 'vendedor')
+                           ->whereIn('rol', ['vendedor', 'lider', 'administrador'])
                            ->first();
 
             if ($vendedor) {
@@ -408,14 +542,15 @@ class PedidoController extends Controller
                         'id' => $vendedor->id,
                         'name' => $vendedor->name,
                         'email' => $vendedor->email,
-                        'cedula' => $vendedor->cedula
+                        'cedula' => $vendedor->cedula,
+                        'rol' => $vendedor->rol
                     ],
-                    'message' => 'Vendedor encontrado correctamente'
+                    'message' => 'Usuario encontrado correctamente'
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se encontró ningún vendedor con la cédula: ' . $cedula
+                    'message' => 'No se encontró ningún usuario (vendedor, líder o administrador) con la cédula: ' . $cedula
                 ]);
             }
         } catch (\Exception $e) {

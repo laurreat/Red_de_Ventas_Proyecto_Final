@@ -523,7 +523,7 @@ class PedidosManager {
         // Crear y enviar formulario de actualización
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/admin/pedidos/${this.currentPedidoId}/update-status`;
+        form.action = `/admin/pedidos/${this.currentPedidoId}/status`;
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (csrfToken) {
