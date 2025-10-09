@@ -3,7 +3,10 @@
 @section('title', '- Registro')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/register.css') }}">
+<!-- Preload critical resources -->
+<link rel="preload" href="{{ asset('css/pages/register.css') }}?v={{ filemtime(public_path('css/pages/register.css')) }}" as="style">
+<!-- Register styles with automatic cache busting -->
+<link rel="stylesheet" href="{{ asset('css/pages/register.css') }}?v={{ filemtime(public_path('css/pages/register.css')) }}">
 @endpush
 
 @section('content')
@@ -346,7 +349,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/auth/register.js') }}"></script>
+<script src="{{ asset('js/auth/register.js') }}?v={{ filemtime(public_path('js/auth/register.js')) }}" defer></script>
 @endpush
 
 {{-- Incluir modales de confirmación para registro --}}

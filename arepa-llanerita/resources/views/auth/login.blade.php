@@ -3,7 +3,10 @@
 @section('title', '- Iniciar Sesión')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/login.css') }}">
+<!-- Preload critical resources -->
+<link rel="preload" href="{{ asset('css/pages/login.css') }}?v={{ filemtime(public_path('css/pages/login.css')) }}" as="style">
+<!-- Login styles with automatic cache busting -->
+<link rel="stylesheet" href="{{ asset('css/pages/login.css') }}?v={{ filemtime(public_path('css/pages/login.css')) }}">
 @endpush
 
 @section('content')
@@ -148,5 +151,5 @@
     // Configurar variables antes de cargar el módulo
     window.setLoginErrors && window.setLoginErrors(@json($errors->any()));
 </script>
-<script src="{{ asset('js/auth/login.js') }}"></script>
+<script src="{{ asset('js/auth/login.js') }}?v={{ filemtime(public_path('js/auth/login.js')) }}" defer></script>
 @endpush

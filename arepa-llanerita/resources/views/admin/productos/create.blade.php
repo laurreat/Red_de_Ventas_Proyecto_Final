@@ -3,69 +3,66 @@
 @section('title', '- Crear Producto')
 @section('page-title', 'Crear Nuevo Producto')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/productos-modern.css') }}?v={{ filemtime(public_path('css/admin/productos-modern.css')) }}">
+@endpush
+
 @section('content')
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
-                <div class="card-body text-white p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="text-white mb-1">Agregar nuevo producto al catálogo</h5>
-                        </div>
-
-                        <div>
-                            <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-light" >
-                                <i class="bi bi-arrow-left me-1"></i>
-                                Volver a Productos
-                            </a>
-                        </div>
-                    </div>
-                </div>
+    {{-- Header Hero --}}
+    <div class="products-header fade-in-up">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="products-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crear Nuevo Producto
+                </h1>
+                <p class="products-subtitle">Agregar producto al catálogo</p>
+            </div>
+            <div class="products-header-actions">
+                <a href="{{ route('admin.productos.index') }}" class="products-btn products-btn-white">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver
+                </a>
             </div>
         </div>
     </div>
 
-    <form action="{{ route('admin.productos.store') }}" method="POST" enctype="multipart/form-data"
-          class="needs-confirmation"
-          data-confirm-message="¿Estás seguro de crear este nuevo producto? Se agregará al catálogo de productos."
-          id="createProductForm">
+    <form action="{{ route('admin.productos.store') }}" method="POST" enctype="multipart/form-data" id="createProductForm">
         @csrf
-
         <div class="row">
-            <!-- Información Básica -->
+            {{-- Columna Principal - Información --}}
             <div class="col-lg-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Información del Producto
-                        </h5>
+                <div class="role-info-card fade-in-up">
+                    <div class="role-info-card-header">
+                        <i class="bi bi-info-circle"></i>
+                        <h3 class="role-info-card-title">Información del Producto</h3>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="row">
-                            <div class="col-md-8 mb-3">
-                                <label for="nombre" class="form-label">Nombre del Producto *</label>
+                    <div class="role-info-card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label">
+                                    Nombre del Producto <span class="text-danger">*</span>
+                                </label>
                                 <input type="text"
                                        class="form-control @error('nombre') is-invalid @enderror"
-                                       id="nombre"
                                        name="nombre"
                                        value="{{ old('nombre') }}"
-                                       placeholder="Ej: Arepa Reina Pepiada"
-                                       required>
+                                       required
+                                       placeholder="Ej: Arepa Reina Pepiada">
                                 @error('nombre')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label for="categoria_id" class="form-label">Categoría *</label>
-                                <select class="form-select @error('categoria_id') is-invalid @enderror"
-                                        id="categoria_id"
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    Categoría <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select product-category-select @error('categoria_id') is-invalid @enderror"
                                         name="categoria_id"
                                         required>
-                                    <option value="">Seleccionar categoría</option>
+                                    <option value="">Seleccionar...</option>
                                     @foreach($categorias as $categoria)
                                         <option value="{{ $categoria->_id }}"
                                                 {{ old('categoria_id') == $categoria->_id ? 'selected' : '' }}>
@@ -78,47 +75,48 @@
                                 @enderror
                             </div>
 
-                            <div class="col-12 mb-3">
-                                <label for="descripcion" class="form-label">Descripción</label>
+                            <div class="col-12">
+                                <label class="form-label">Descripción</label>
                                 <textarea class="form-control @error('descripcion') is-invalid @enderror"
-                                          id="descripcion"
                                           name="descripcion"
                                           rows="4"
-                                          placeholder="Describe las características y beneficios del producto...">{{ old('descripcion') }}</textarea>
+                                          placeholder="Describe el producto, sus características, ingredientes...">{{ old('descripcion') }}</textarea>
                                 @error('descripcion')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="precio" class="form-label">Precio (COP) *</label>
-                                <div class="input-group">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Precio <span class="text-danger">*</span>
+                                </label>
+                                <div class="product-input-group input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number"
                                            class="form-control @error('precio') is-invalid @enderror"
-                                           id="precio"
                                            name="precio"
                                            value="{{ old('precio') }}"
                                            min="0"
                                            step="100"
-                                           placeholder="15000"
-                                           required>
+                                           required
+                                           placeholder="15000">
                                 </div>
                                 @error('precio')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="stock" class="form-label">Stock Inicial *</label>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Stock Inicial <span class="text-danger">*</span>
+                                </label>
                                 <input type="number"
                                        class="form-control @error('stock') is-invalid @enderror"
-                                       id="stock"
                                        name="stock"
                                        value="{{ old('stock', 0) }}"
                                        min="0"
-                                       placeholder="100"
-                                       required>
+                                       required
+                                       placeholder="100">
                                 @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -128,95 +126,85 @@
                 </div>
             </div>
 
-            <!-- Imagen y Configuración -->
+            {{-- Columna Lateral - Imagen y Configuración --}}
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                            <i class="bi bi-image me-2"></i>
-                            Imagen del Producto
-                        </h5>
+                {{-- Card de Imagen --}}
+                <div class="role-info-card fade-in-up animate-delay-1">
+                    <div class="role-info-card-header">
+                        <i class="bi bi-image"></i>
+                        <h3 class="role-info-card-title">Imagen del Producto</h3>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="mb-3">
-                            <label for="imagen" class="form-label">Subir Imagen</label>
-                            <input type="file"
-                                   class="form-control @error('imagen') is-invalid @enderror"
-                                   id="imagen"
-                                   name="imagen"
-                                   accept="image/*"
-                                   onchange="previewImage(this)">
-                            <small class="text-muted">Formatos: JPG, PNG, GIF. Máximo: 2MB</small>
-                            @error('imagen')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="role-info-card-body">
+                        <label class="form-label">Subir Imagen</label>
+                        <input type="file"
+                               class="form-control @error('imagen') is-invalid @enderror"
+                               name="imagen"
+                               accept="image/*">
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> JPG, PNG o WebP. Máx: 2MB
+                        </small>
+                        @error('imagen')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+
+                        {{-- Preview de Imagen --}}
+                        <div id="imagePreview" class="product-preview-wrapper mt-3" style="display:none;">
+                            <img id="preview" src="" class="product-preview-image" alt="Preview">
                         </div>
 
-                        <!-- Preview de imagen -->
-                        <div id="imagePreview" class="text-center" style="display: none;">
-                            <img id="preview" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
-                        </div>
-
-                        <div class="text-center" id="placeholderImage">
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <div class="text-muted">
-                                    <i class="bi bi-image fs-1"></i>
-                                    <p class="mb-0 mt-2">Vista previa de imagen</p>
-                                </div>
+                        {{-- Placeholder --}}
+                        <div id="placeholderImage" class="mt-3">
+                            <div class="product-preview-placeholder">
+                                <i class="bi bi-cloud-upload"></i>
+                                <p class="mb-0">Vista previa de la imagen</p>
+                                <small class="text-muted">Arrastra o selecciona una imagen</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Estado del Producto -->
-                <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                            <i class="bi bi-gear me-2"></i>
-                            Configuración
-                        </h5>
+                {{-- Card de Configuración --}}
+                <div class="role-info-card fade-in-up animate-delay-2">
+                    <div class="role-info-card-header">
+                        <i class="bi bi-gear"></i>
+                        <h3 class="role-info-card-title">Configuración</h3>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="role-info-card-body">
                         <div class="form-check">
                             <input class="form-check-input"
                                    type="checkbox"
-                                   id="activo"
                                    name="activo"
+                                   id="activo"
                                    {{ old('activo', true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="activo">
                                 Producto Activo
                             </label>
-                            <small class="d-block text-muted">Los productos activos aparecen en el catálogo</small>
                         </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> Los productos activos aparecen en el catálogo
+                        </small>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Botones de Acción -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i>
-                                Cancelar
-                            </a>
-                            <div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    Crear Producto
-                                </button>
-                            </div>
-                        </div>
+                {{-- Card de Acciones --}}
+                <div class="role-info-card fade-in-up animate-delay-3">
+                    <div class="role-info-card-body">
+                        <button type="submit" class="btn btn-primary w-100 mb-2 product-btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            Crear Producto
+                        </button>
+                        <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i>
+                            Cancelar
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
-
-{{-- JavaScript movido a: public/js/admin/productos-create.js --}}
-<script src="{{ asset('js/admin/productos-create.js') }}"></script>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/admin/productos-modern.js') }}?v={{ filemtime(public_path('js/admin/productos-modern.js')) }}"></script>
+@endpush

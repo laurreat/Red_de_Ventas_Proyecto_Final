@@ -4,308 +4,304 @@
 @section('page-title', 'Gestión de Usuarios')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/users.css') }}">
+<link rel="stylesheet" href="{{ asset('css/modules/users.css') }}?v={{ filemtime(public_path('css/modules/users.css')) }}">
 @endpush
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
-                <div class="card-body text-white p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 fw-bold text-white">Administra todos los usuarios del sistema</h2>
-                        </div>
-                        <div>
-                            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                                <i class="bi bi-person-plus me-1"></i>
-                                Nuevo Usuario
-                            </a>
-                        </div>
-                    </div>
-                </div>
+    {{-- Header Hero --}}
+    <div class="users-header fade-in-up">
+        <div class="users-header-content">
+            <div>
+                <h1 class="users-header-title">Gestión de Usuarios</h1>
+                <p class="users-header-subtitle">Administra todos los usuarios del sistema de manera eficiente</p>
+            </div>
+            <div>
+                <a href="{{ route('admin.users.create') }}" class="btn-user-primary">
+                    <i class="bi bi-person-plus"></i>
+                    Nuevo Usuario
+                </a>
             </div>
         </div>
     </div>
 
-    {{-- Mensajes flash manejados por AdminAlerts en admin-functions.js --}}
+    {{-- Stats Cards --}}
+    <div class="users-stats">
+        <div class="user-stat-card fade-in-up">
+            <div class="user-stat-icon" style="background: rgba(114, 47, 55, 0.1); color: var(--user-wine);">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="user-stat-value">{{ number_format($stats['total']) }}</div>
+            <div class="user-stat-label">Total Usuarios</div>
+        </div>
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-people fs-2" style="color: var(--primary-color);"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['total'] }}</h3>
-                    <p class="text-muted mb-0 small">Total Usuarios</p>
-                </div>
+        <div class="user-stat-card fade-in-up animate-delay-1">
+            <div class="user-stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--user-success);">
+                <i class="bi bi-shield-check"></i>
             </div>
+            <div class="user-stat-value">{{ number_format($stats['administradores']) }}</div>
+            <div class="user-stat-label">Administradores</div>
         </div>
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
-                        <i class="bi bi-shield-check fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">{{ $stats['administradores'] }}</h3>
-                    <p class="text-muted mb-0 small">Administradores</p>
-                </div>
+
+        <div class="user-stat-card fade-in-up animate-delay-2">
+            <div class="user-stat-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--user-info);">
+                <i class="bi bi-person-badge"></i>
             </div>
+            <div class="user-stat-value">{{ number_format($stats['lideres']) }}</div>
+            <div class="user-stat-label">Líderes</div>
         </div>
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(13, 202, 240, 0.1);">
-                        <i class="bi bi-person-badge fs-2 text-info"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-info">{{ $stats['lideres'] }}</h3>
-                    <p class="text-muted mb-0 small">Líderes</p>
-                </div>
+
+        <div class="user-stat-card fade-in-up animate-delay-3">
+            <div class="user-stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--user-warning);">
+                <i class="bi bi-person-workspace"></i>
             </div>
+            <div class="user-stat-value">{{ number_format($stats['vendedores']) }}</div>
+            <div class="user-stat-label">Vendedores</div>
         </div>
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
-                        <i class="bi bi-person-workspace fs-2 text-warning"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-warning">{{ $stats['vendedores'] }}</h3>
-                    <p class="text-muted mb-0 small">Vendedores</p>
-                </div>
+
+        <div class="user-stat-card fade-in-up animate-delay-1">
+            <div class="user-stat-icon" style="background: rgba(107, 114, 128, 0.1); color: var(--user-gray-500);">
+                <i class="bi bi-person"></i>
             </div>
+            <div class="user-stat-value">{{ number_format($stats['clientes']) }}</div>
+            <div class="user-stat-label">Clientes</div>
         </div>
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(108, 117, 125, 0.1);">
-                        <i class="bi bi-person fs-2 text-secondary"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-secondary">{{ $stats['clientes'] }}</h3>
-                    <p class="text-muted mb-0 small">Clientes</p>
-                </div>
+
+        <div class="user-stat-card fade-in-up animate-delay-2">
+            <div class="user-stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--user-success);">
+                <i class="bi bi-check-circle"></i>
             </div>
-        </div>
-        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
-                        <i class="bi bi-check-circle fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">{{ $stats['activos'] }}</h3>
-                    <p class="text-muted mb-0 small">Activos</p>
-                </div>
-            </div>
+            <div class="user-stat-value">{{ number_format($stats['activos']) }}</div>
+            <div class="user-stat-label">Activos</div>
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('admin.users.index') }}">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Buscar</label>
-                                <input type="text" name="search" class="form-control"
-                                       placeholder="Nombre, email, cédula..." value="{{ request('search') }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Rol</label>
-                                <select name="rol" class="form-select">
-                                    <option value="">Todos</option>
-                                    <option value="administrador" {{ request('rol') == 'administrador' ? 'selected' : '' }}>Administrador</option>
-                                    <option value="lider" {{ request('rol') == 'lider' ? 'selected' : '' }}>Líder</option>
-                                    <option value="vendedor" {{ request('rol') == 'vendedor' ? 'selected' : '' }}>Vendedor</option>
-                                    <option value="cliente" {{ request('rol') == 'cliente' ? 'selected' : '' }}>Cliente</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Estado</label>
-                                <select name="activo" class="form-select">
-                                    <option value="">Todos</option>
-                                    <option value="1" {{ request('activo') == '1' ? 'selected' : '' }}>Activos</option>
-                                    <option value="0" {{ request('activo') == '0' ? 'selected' : '' }}>Inactivos</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-search me-1"></i>
-                                        Buscar
-                                    </button>
-                                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle me-1"></i>
-                                        Limpiar
-                                    </a>
+    {{-- Filters --}}
+    <div class="users-filters fade-in-up">
+        <form method="GET" action="{{ route('admin.users.index') }}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="filter-group">
+                        <label class="filter-label">Buscar</label>
+                        <input type="text"
+                               name="search"
+                               class="form-control filter-input"
+                               placeholder="Nombre, email, cédula..."
+                               value="{{ request('search') }}"
+                               autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="filter-group">
+                        <label class="filter-label">Rol</label>
+                        <select name="rol" class="form-select filter-input">
+                            <option value="">Todos</option>
+                            <option value="administrador" {{ request('rol') == 'administrador' ? 'selected' : '' }}>Administrador</option>
+                            <option value="lider" {{ request('rol') == 'lider' ? 'selected' : '' }}>Líder</option>
+                            <option value="vendedor" {{ request('rol') == 'vendedor' ? 'selected' : '' }}>Vendedor</option>
+                            <option value="cliente" {{ request('rol') == 'cliente' ? 'selected' : '' }}>Cliente</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="filter-group">
+                        <label class="filter-label">Estado</label>
+                        <select name="activo" class="form-select filter-input">
+                            <option value="">Todos</option>
+                            <option value="1" {{ request('activo') == '1' ? 'selected' : '' }}>Activos</option>
+                            <option value="0" {{ request('activo') == '0' ? 'selected' : '' }}>Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="filter-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-user-primary">
+                            <i class="bi bi-search"></i>
+                            Buscar
+                        </button>
+                        <a href="{{ route('admin.users.index') }}" class="btn-user-secondary">
+                            <i class="bi bi-x-circle"></i>
+                            Limpiar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- Users Table --}}
+    <div class="users-table-card fade-in-up">
+        <div class="users-table-header">
+            <h3 class="users-table-title">
+                <i class="bi bi-people"></i>
+                Lista de Usuarios <span style="color: var(--user-gray-500); font-weight: 400;">({{ $usuarios->total() }})</span>
+            </h3>
+        </div>
+
+        @if($usuarios->count() > 0)
+            <div class="table-responsive">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Contacto</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Referidos</th>
+                            <th>Registro</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($usuarios as $usuario)
+                        <tr data-user-id="{{ $usuario->_id }}">
+                            <td data-label="Usuario">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {{ strtoupper(substr($usuario->name, 0, 1)) }}
+                                    </div>
+                                    <div class="user-details">
+                                        <h6 class="user-name">{{ $usuario->name }} {{ $usuario->apellidos ?? '' }}</h6>
+                                        <small>C.I: {{ $usuario->cedula }}</small>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                            </td>
+                            <td data-label="Contacto">
+                                <div class="user-contact">
+                                    <span class="user-email">{{ $usuario->email }}</span>
+                                    <small class="user-phone">{{ $usuario->telefono }}</small>
+                                </div>
+                            </td>
+                            <td data-label="Rol">
+                                @php
+                                    $roleClasses = [
+                                        'administrador' => 'role-admin',
+                                        'lider' => 'role-leader',
+                                        'vendedor' => 'role-seller',
+                                        'cliente' => 'role-client'
+                                    ];
+                                @endphp
+                                <span class="user-badge {{ $roleClasses[$usuario->rol] ?? 'role-client' }}">
+                                    {{ ucfirst($usuario->rol) }}
+                                </span>
+                            </td>
+                            <td data-label="Estado">
+                                <span class="user-badge {{ $usuario->activo ? 'status-active' : 'status-inactive' }}">
+                                    {{ $usuario->activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td data-label="Referidos">
+                                <span class="user-badge" style="background: rgba(114, 47, 55, 0.1); color: var(--user-wine);">
+                                    {{ $usuario->total_referidos ?? 0 }}
+                                </span>
+                            </td>
+                            <td data-label="Registro">
+                                <small style="color: var(--user-gray-500);">
+                                    {{ $usuario->created_at->format('d/m/Y') }}
+                                </small>
+                            </td>
+                            <td data-label="Acciones">
+                                <div class="user-actions">
+                                    <a href="{{ route('admin.users.show', $usuario) }}"
+                                       class="user-action-btn btn-view"
+                                       title="Ver detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.users.edit', $usuario) }}"
+                                       class="user-action-btn btn-edit"
+                                       title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="user-action-btn btn-toggle"
+                                            title="{{ $usuario->activo ? 'Desactivar' : 'Activar' }}"
+                                            data-user-id="{{ $usuario->_id }}"
+                                            data-action="toggle">
+                                        <i class="bi bi-{{ $usuario->activo ? 'pause-circle' : 'play-circle' }}"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="user-action-btn btn-delete"
+                                            title="Eliminar"
+                                            data-user-id="{{ $usuario->_id }}"
+                                            data-user-name="{{ $usuario->name }}"
+                                            data-action="delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                    {{-- Forms ocultos --}}
+                                    <form class="user-toggle-form"
+                                          data-user-id="{{ $usuario->_id }}"
+                                          action="{{ route('admin.users.toggle-active', $usuario) }}"
+                                          method="POST"
+                                          style="display: none;">
+                                        @csrf
+                                        @method('PATCH')
+                                    </form>
+
+                                    <form class="user-delete-form"
+                                          data-user-id="{{ $usuario->_id }}"
+                                          action="{{ route('admin.users.destroy', $usuario) }}"
+                                          method="POST"
+                                          style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
 
-    <!-- Lista de Usuarios -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-people me-2"></i>
-                        Lista de Usuarios ({{ $usuarios->total() }})
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    @if($usuarios->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Contacto</th>
-                                        <th>Rol</th>
-                                        <th>Estado</th>
-                                        <th>Referidos</th>
-                                        <th>Registro</th>
-                                        <th class="text-center">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($usuarios as $usuario)
-                                        <tr data-user-id="{{ $usuario->_id }}" class="user-row">
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm me-3">
-                                                        <div class="avatar-title rounded-circle d-flex align-items-center justify-content-center"
-                                                             style="background: var(--primary-color); color: white;">
-                                                            {{ strtoupper(substr($usuario->name, 0, 1)) }}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="mb-0 user-name">{{ $usuario->name }} {{ $usuario->apellidos }}</h6>
-                                                        <small class="text-muted user-cedula">{{ $usuario->cedula }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <div class="user-email">{{ $usuario->email }}</div>
-                                                    <small class="text-muted user-telefono">{{ $usuario->telefono }}</small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                @php
-                                                    $roleColors = [
-                                                        'administrador' => 'success',
-                                                        'lider' => 'info',
-                                                        'vendedor' => 'warning',
-                                                        'cliente' => 'secondary'
-                                                    ];
-                                                @endphp
-                                                <span class="badge bg-{{ $roleColors[$usuario->rol] ?? 'secondary' }} user-role-badge">
-                                                    {{ ucfirst($usuario->rol) }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{{ $usuario->activo ? 'success' : 'danger' }} user-status-badge">
-                                                    {{ $usuario->activo ? 'Activo' : 'Inactivo' }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-primary">{{ $usuario->total_referidos ?? 0 }}</span>
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">
-                                                    {{ $usuario->created_at->format('d/m/Y') }}
-                                                </small>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="{{ route('admin.users.show', $usuario) }}"
-                                                       class="btn btn-outline-info" title="Ver detalles">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                    <a href="{{ route('admin.users.edit', $usuario) }}"
-                                                       class="btn btn-outline-primary" title="Editar">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <button type="button"
-                                                            class="btn btn-outline-{{ $usuario->activo ? 'warning' : 'success' }}"
-                                                            title="{{ $usuario->activo ? 'Desactivar' : 'Activar' }}"
-                                                            onclick="event.preventDefault(); toggleUserStatus('{{ $usuario->_id }}'); return false;">
-                                                        <i class="bi bi-{{ $usuario->activo ? 'pause' : 'play' }}"></i>
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-outline-danger"
-                                                            title="Eliminar usuario"
-                                                            onclick="event.preventDefault(); deleteUser('{{ $usuario->_id }}', '{{ $usuario->name }}'); return false;">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-
-                                                    <!-- Formulario toggle status -->
-                                                    <form id="user-toggle-form-{{ $usuario->_id }}"
-                                                          action="{{ route('admin.users.toggle-active', $usuario) }}"
-                                                          method="POST" class="d-none">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                    </form>
-
-                                                    <!-- Formulario eliminar -->
-                                                    <form id="user-delete-form-{{ $usuario->_id }}"
-                                                          action="{{ route('admin.users.destroy', $usuario) }}"
-                                                          method="POST" class="d-none">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Paginación -->
-                        @if($usuarios->hasPages())
-                            <div class="d-flex justify-content-center mt-4 mb-3">
-                                {{ $usuarios->appends(request()->query())->links() }}
-                            </div>
-                        @endif
-                    @else
-                        <div class="text-center py-5">
-                            <i class="bi bi-people fs-1 text-muted"></i>
-                            <h4 class="mt-3 text-muted">No hay usuarios</h4>
-                            <p class="text-muted">No se encontraron usuarios con los criterios especificados.</p>
-                            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                                <i class="bi bi-person-plus me-1"></i>
-                                Crear primer usuario
-                            </a>
-                        </div>
-                    @endif
-                </div>
+            {{-- Pagination --}}
+            @if($usuarios->hasPages())
+            <div class="users-pagination">
+                {{ $usuarios->appends(request()->query())->links() }}
             </div>
-        </div>
+            @endif
+        @else
+            <div class="users-empty">
+                <div class="users-empty-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h4 class="users-empty-title">No hay usuarios</h4>
+                <p class="users-empty-text">No se encontraron usuarios con los criterios especificados.</p>
+                <a href="{{ route('admin.users.create') }}" class="btn-user-primary">
+                    <i class="bi bi-person-plus"></i>
+                    Crear primer usuario
+                </a>
+            </div>
+        @endif
     </div>
 </div>
-
 @endsection
 
-{{-- Incluir modales de confirmación para usuarios --}}
-@include('admin.partials.modals-users')
-
 @push('scripts')
-<script src="{{ asset('js/admin/users-management.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/modules/users-management.js') }}?v={{ filemtime(public_path('js/modules/users-management.js')) }}"></script>
+<script>
+    // Performance monitoring
+    if (window.performance && window.performance.timing) {
+        window.addEventListener('load', () => {
+            const perfData = window.performance.timing;
+            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+            console.log(`⚡ Módulo Usuarios cargado en: ${(pageLoadTime / 1000).toFixed(2)}s`);
+
+            if (pageLoadTime > 3000) {
+                console.warn('⚠️ El módulo tardó más de 3 segundos en cargar');
+            }
+        });
+    }
+
+    // PWA Detection
+    if ('serviceWorker' in navigator) {
+        console.log('✅ PWA Compatible - Service Worker supported');
+    }
+
+    // Detectar modo standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('✅ Running as PWA');
+    }
+</script>
 @endpush

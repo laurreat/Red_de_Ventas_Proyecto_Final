@@ -1,13 +1,30 @@
-/* 
- * Arepa la Llanerita - Estilos de la página de Registro
- */
+/* ============================================
+   REGISTER - DISEÑO PROFESIONAL CON ANIMACIONES
+   Arepa la Llanerita - Colores Corporativos
+   ============================================ */
 
-/* Diseño horizontal completo para pantallas de PC */
+:root {
+    /* Colores Corporativos */
+    --arepa-primary: #722F37;
+    --arepa-accent: #8B4B52;
+    --arepa-light-burgundy: #A85D65;
+    --arepa-dark-burgundy: #5A252B;
+    --arepa-cream: #FFF8F8;
+    --white: #FFFFFF;
+}
+
+/* Diseño horizontal completo con animaciones */
 .register-wrapper {
     min-height: 100vh;
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* Panel izquierdo - Información de la empresa */
@@ -39,6 +56,18 @@
     text-align: center;
     z-index: 1;
     max-width: 400px;
+    animation: fadeInLeft 0.8s ease-out 0.2s backwards;
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .brand-logo {
@@ -55,10 +84,23 @@
     border: 3px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
+    animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+    }
 }
 
 .brand-logo:hover {
-    transform: scale(1.05);
+    animation: none;
+    transform: scale(1.1) rotate(5deg);
 }
 
 .brand-title {
@@ -90,12 +132,33 @@
     align-items: center;
     font-size: 1rem;
     opacity: 0.9;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideInFeature 0.6s ease-out backwards;
+}
+
+.brand-features li:nth-child(1) { animation-delay: 0.4s; }
+.brand-features li:nth-child(2) { animation-delay: 0.5s; }
+.brand-features li:nth-child(3) { animation-delay: 0.6s; }
+.brand-features li:nth-child(4) { animation-delay: 0.7s; }
+.brand-features li:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes slideInFeature {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 0.9;
+        transform: translateX(0);
+    }
 }
 
 .brand-features li:hover {
     opacity: 1;
-    transform: translateX(5px);
+    transform: translateX(10px) scale(1.02);
+    background: rgba(255, 255, 255, 0.1);
+    padding-left: 0.8rem;
+    border-radius: 8px;
 }
 
 .brand-features i {
@@ -142,6 +205,18 @@
     width: 100%;
     max-width: 520px;
     padding: 0;
+    animation: fadeInRight 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .form-floating {
@@ -165,6 +240,20 @@
     background: white;
     box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.25);
     outline: none;
+    transform: translateY(-2px) scale(1.01);
+    animation: inputFocus 0.3s ease-out;
+}
+
+@keyframes inputFocus {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-3px) scale(1.02);
+    }
+    100% {
+        transform: translateY(-2px) scale(1.01);
+    }
 }
 
 .form-floating > label {
@@ -188,16 +277,52 @@
     padding: 1rem 2rem;
     border-radius: 12px;
     width: 100%;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1.1rem;
     margin-bottom: 1rem;
     margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(114, 47, 55, 0.25);
+}
+
+.btn-register::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-register:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .btn-register:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(114, 47, 55, 0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(114, 47, 55, 0.4);
     color: white;
+    background: linear-gradient(135deg, var(--arepa-accent) 0%, var(--arepa-primary) 100%);
+}
+
+.btn-register:active {
+    transform: translateY(-1px) scale(0.98);
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(114, 47, 55, 0.7);
+    }
+    100% {
+        box-shadow: 0 0 0 20px rgba(114, 47, 55, 0);
+    }
 }
 
 .form-check {

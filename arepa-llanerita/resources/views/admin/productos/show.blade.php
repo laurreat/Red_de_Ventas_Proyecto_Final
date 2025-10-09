@@ -1,99 +1,104 @@
 @extends('layouts.admin')
 
-@section('title', '- Ver Producto')
+@section('title', '- Detalles del Producto')
 @section('page-title', 'Detalles del Producto')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/productos-modern.css') }}?v={{ filemtime(public_path('css/admin/productos-modern.css')) }}">
+@endpush
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
-                <div class="card-body text-white p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="text-white mb-1">{{ $producto->nombre }}</h4>
-                            <p class="text-white-50 mb-0">Informacion detallada del producto</p>
-                        </div>
-                        <div>
-                            <a href="{{ route('admin.productos.index') }}" class="btn btn-light me-2">
-                                <i class="bi bi-arrow-left me-1"></i>
-                                Volver
-                            </a>
-                            <a href="{{ route('admin.productos.edit', $producto) }}" class="btn btn-primary">
-                                <i class="bi bi-pencil me-1"></i>
-                                Editar
-                            </a>
-                        </div>
-                    </div>
+    {{-- Header Hero --}}
+    <div class="products-header fade-in-up">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="product-image-wrapper" style="width:80px;height:80px">
+                    @if($producto->imagen)
+                        <img src="{{ asset('storage/'.$producto->imagen) }}" alt="{{ $producto->nombre }}" class="product-image">
+                    @else
+                        <div class="product-placeholder"><i class="bi bi-image fs-3"></i></div>
+                    @endif
                 </div>
+                <div>
+                    <h1 class="products-title">{{ $producto->nombre }}</h1>
+                    <p class="products-subtitle">Información detallada del producto</p>
+                </div>
+            </div>
+            <div class="products-header-actions">
+                <a href="{{ route('admin.productos.edit',$producto) }}" class="products-btn products-btn-white">
+                    <i class="bi bi-pencil"></i>Editar
+                </a>
+                <a href="{{ route('admin.productos.index') }}" class="products-btn products-btn-white">
+                    <i class="bi bi-arrow-left"></i>Volver
+                </a>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <!-- Información del Producto -->
-        <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Informacion del Producto
-                    </h5>
+        <div class="col-lg-8">
+            {{-- Información Principal --}}
+            <div class="role-info-card fade-in-up">
+                <div class="role-info-card-header">
+                    <i class="bi bi-info-circle"></i>
+                    <h3 class="role-info-card-title">Información del Producto</h3>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Nombre</label>
-                            <p class="fs-5 fw-medium">{{ $producto->nombre }}</p>
+                <div class="role-info-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Nombre:</span>
+                                <span class="role-info-value">{{ $producto->nombre }}</span>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Categoria</label>
-                            <p class="fs-6">
-                                <span class="badge bg-info fs-6">{{ $producto->categoria->nombre }}</span>
-                            </p>
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Categoría:</span>
+                                <span class="product-badge product-badge-category">
+                                    <i class="bi bi-tag"></i>{{ $producto->categoria->nombre ?? 'Sin categoría' }}
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Precio</label>
-                            <p class="fs-4 fw-bold text-success">${{ number_format($producto->precio, 0) }}</p>
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Precio:</span>
+                                <span class="product-badge product-badge-price" style="font-size:1.25rem">${{ number_format($producto->precio,0,',','.') }}</span>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Stock Disponible</label>
-                            <p class="fs-5">
-                                @if($producto->stock <= 5)
-                                    <span class="badge bg-danger fs-6">{{ $producto->stock }} unidades</span>
-                                @elseif($producto->stock <= 10)
-                                    <span class="badge bg-warning fs-6">{{ $producto->stock }} unidades</span>
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Stock:</span>
+                                @if($producto->stock<=5)
+                                    <span class="product-badge product-badge-stock-low"><i class="bi bi-exclamation-circle"></i>{{ $producto->stock }}</span>
+                                @elseif($producto->stock<=10)
+                                    <span class="product-badge product-badge-stock-medium"><i class="bi bi-dash-circle"></i>{{ $producto->stock }}</span>
                                 @else
-                                    <span class="badge bg-success fs-6">{{ $producto->stock }} unidades</span>
+                                    <span class="product-badge product-badge-stock-high"><i class="bi bi-check-circle"></i>{{ $producto->stock }}</span>
                                 @endif
-                            </p>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Estado</label>
-                            <p class="fs-6">
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Estado:</span>
                                 @if($producto->activo)
-                                    <span class="badge bg-success fs-6">
-                                        <i class="bi bi-check-circle me-1"></i>
-                                        Activo
-                                    </span>
+                                    <span class="product-badge product-badge-active"><i class="bi bi-check-circle-fill"></i>Activo</span>
                                 @else
-                                    <span class="badge bg-secondary fs-6">
-                                        <i class="bi bi-pause-circle me-1"></i>
-                                        Inactivo
-                                    </span>
+                                    <span class="product-badge product-badge-inactive"><i class="bi bi-x-circle-fill"></i>Inactivo</span>
                                 @endif
-                            </p>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium text-muted">Fecha de Creacion</label>
-                            <p class="fs-6">{{ $producto->created_at->format('d/m/Y H:i') }}</p>
+                        <div class="col-md-6">
+                            <div class="role-info-item">
+                                <span class="role-info-label">Creado:</span>
+                                <span class="role-info-value">{{ $producto->created_at->format('d/m/Y H:i') }}</span>
+                            </div>
                         </div>
                         @if($producto->descripcion)
-                        <div class="col-12 mb-3">
-                            <label class="form-label fw-medium text-muted">Descripcion</label>
-                            <div class="border rounded p-3 bg-light">
-                                <p class="mb-0">{{ $producto->descripcion }}</p>
+                        <div class="col-12">
+                            <div class="role-info-item" style="flex-direction:column;align-items:flex-start">
+                                <span class="role-info-label mb-2">Descripción:</span>
+                                <div style="background:var(--gray-50);padding:1rem;border-radius:10px;width:100%">{{ $producto->descripcion }}</div>
                             </div>
                         </div>
                         @endif
@@ -102,166 +107,55 @@
             </div>
         </div>
 
-        <!-- Imagen del Producto y Acciones -->
-        <div class="col-lg-4 mb-4">
-            <!-- Imagen del Producto -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-image me-2"></i>
-                        Imagen del Producto
-                    </h5>
+        <div class="col-lg-4">
+            {{-- Imagen --}}
+            <div class="role-info-card fade-in-up animate-delay-1">
+                <div class="role-info-card-header">
+                    <i class="bi bi-image"></i>
+                    <h3 class="role-info-card-title">Imagen del Producto</h3>
                 </div>
-                <div class="card-body p-4 text-center">
+                <div class="role-info-card-body text-center">
                     @if($producto->imagen)
-                        <img src="{{ asset('storage/' . $producto->imagen) }}"
-                             alt="{{ $producto->nombre }}"
-                             class="img-fluid rounded shadow-sm"
-                             style="max-height: 300px; object-fit: cover;">
+                        <img src="{{ asset('storage/'.$producto->imagen) }}" alt="{{ $producto->nombre }}" style="width:100%;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1)">
                     @else
-                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                             style="height: 200px;">
-                            <div class="text-center">
-                                <i class="bi bi-image fs-1 text-muted"></i>
-                                <p class="text-muted mt-2 mb-0">Sin imagen</p>
-                            </div>
+                        <div style="background:var(--gray-100);padding:3rem;border-radius:12px">
+                            <i class="bi bi-image" style="font-size:4rem;color:var(--gray-400)"></i>
+                            <p class="text-muted mt-2">Sin imagen</p>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Acciones Rápidas -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-gear me-2"></i>
-                        Acciones Rápidas
-                    </h5>
+            {{-- Acciones --}}
+            <div class="role-info-card fade-in-up animate-delay-2">
+                <div class="role-info-card-header">
+                    <i class="bi bi-lightning"></i>
+                    <h3 class="role-info-card-title">Acciones Rápidas</h3>
                 </div>
-                <div class="card-body p-4">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('admin.productos.edit', $producto) }}" class="btn btn-primary">
-                            <i class="bi bi-pencil me-2"></i>
-                            Editar Producto
-                        </a>
+                <div class="role-info-card-body">
+                    <a href="{{ route('admin.productos.edit',$producto) }}" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-pencil"></i>Editar Producto
+                    </a>
+                    <button type="button" class="btn btn-{{ $producto->activo?'secondary':'success' }} w-100 mb-2" data-action="toggle-status" data-product-id="{{ $producto->_id }}" data-active="{{ $producto->activo?'true':'false' }}" data-product-name="{{ $producto->nombre }}">
+                        <i class="bi bi-{{ $producto->activo?'pause':'play' }}"></i>{{ $producto->activo?'Desactivar':'Activar' }}
+                    </button>
+                    <button type="button" class="btn btn-danger w-100 mb-2" data-action="delete-product" data-product-id="{{ $producto->_id }}" data-product-name="{{ $producto->nombre }}" data-product-image="{{ $producto->imagen?asset('storage/'.$producto->imagen):'' }}">
+                        <i class="bi bi-trash"></i>Eliminar
+                    </button>
+                    <hr>
+                    <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-list"></i>Ver Todos
+                    </a>
 
-                        <button type="button"
-                                class="btn {{ $producto->activo ? 'btn-warning' : 'btn-success' }}"
-                                onclick="event.preventDefault(); toggleStatus('{{ $producto->_id }}'); return false;">
-                            <i class="bi bi-{{ $producto->activo ? 'pause' : 'play' }} me-2"></i>
-                            {{ $producto->activo ? 'Desactivar' : 'Activar' }} Producto
-                        </button>
-
-                        <button type="button"
-                                class="btn btn-danger"
-                                onclick="event.preventDefault(); confirmDelete('{{ $producto->_id }}'); return false;">
-                            <i class="bi bi-trash me-2"></i>
-                            Eliminar Producto
-                        </button>
-
-                        <hr class="my-3">
-
-                        <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-list me-2"></i>
-                            Ver Todos los Productos
-                        </a>
-                    </div>
-
-                    <!-- Formularios ocultos -->
-                    <form id="toggle-form-{{ $producto->_id }}"
-                          action="{{ route('admin.productos.toggle-status', $producto) }}"
-                          method="POST" class="d-none">
-                        @csrf
-                        @method('PATCH')
-                    </form>
-
-                    <form id="delete-form-{{ $producto->_id }}"
-                          action="{{ route('admin.productos.destroy', $producto) }}"
-                          method="POST" class="d-none">
-                        @csrf
-                        @method('DELETE')
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Estadísticas del Producto -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-bar-chart me-2"></i>
-                        Informacion Adicional
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="text-center p-3 bg-light rounded">
-                                <i class="bi bi-calendar-plus fs-2 text-primary mb-2"></i>
-                                <h6 class="fw-semibold mb-1">Creado</h6>
-                                <p class="text-muted small mb-0">{{ $producto->created_at->format('d/m/Y') }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="text-center p-3 bg-light rounded">
-                                <i class="bi bi-calendar-check fs-2 text-info mb-2"></i>
-                                <h6 class="fw-semibold mb-1">Actualizado</h6>
-                                <p class="text-muted small mb-0">{{ $producto->updated_at->format('d/m/Y') }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="text-center p-3 bg-light rounded">
-                                <i class="bi bi-tag fs-2 text-success mb-2"></i>
-                                <h6 class="fw-semibold mb-1">ID del Producto</h6>
-                                <p class="text-muted small mb-0">#{{ $producto->id }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="text-center p-3 bg-light rounded">
-                                <i class="bi bi-boxes fs-2 text-warning mb-2"></i>
-                                <h6 class="fw-semibold mb-1">Categoría ID</h6>
-                                <p class="text-muted small mb-0">#{{ $producto->categoria_id }}</p>
-                            </div>
-                        </div>
-                    </div>
+                    <form id="toggle-form-{{ $producto->_id }}" action="{{ route('admin.productos.toggle-status',$producto) }}" method="POST" class="d-none">@csrf @method('PATCH')</form>
+                    <form id="delete-form-{{ $producto->_id }}" action="{{ route('admin.productos.destroy',$producto) }}" method="POST" class="d-none">@csrf @method('DELETE')</form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 @endsection
 
-{{-- Incluir modales de confirmación --}}
-@include('admin.partials.modals')
-
 @push('scripts')
-{{-- Pasar datos del producto a JavaScript --}}
-<script>
-window.productoData = {
-    id: '{{ $producto->_id }}',
-    nombre: '{{ $producto->nombre }}',
-    categoria: '{{ $producto->categoria->nombre ?? 'Sin categoría' }}',
-    imagen: '{{ $producto->imagen ? asset("storage/" . $producto->imagen) : "https://via.placeholder.com/50" }}',
-    activo: {{ $producto->activo ? 'true' : 'false' }}
-};
-
-// Override funciones globales con datos del producto
-window.confirmDelete = function(productId) {
-    if (window.originalConfirmDelete) {
-        window.originalConfirmDelete(productId, window.productoData);
-    }
-};
-
-window.toggleStatus = function(productId) {
-    if (window.originalToggleStatus) {
-        window.originalToggleStatus(productId, window.productoData);
-    }
-};
-</script>
-{{-- JavaScript movido a: public/js/admin/productos-show.js --}}
-<script src="{{ asset('js/admin/productos-show.js') }}"></script>
+<script src="{{ asset('js/admin/productos-modern.js') }}?v={{ filemtime(public_path('js/admin/productos-modern.js')) }}"></script>
 @endpush

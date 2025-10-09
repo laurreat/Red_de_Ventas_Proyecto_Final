@@ -794,7 +794,7 @@
 
     <!-- Main Content -->
     <main class="admin-main" id="adminMain">
-        @include('admin.partials.messages-simple')
+        {{-- @include('admin.partials.messages-simple') --}}
         @yield('content')
     </main>
 
