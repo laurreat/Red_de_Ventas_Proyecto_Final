@@ -43,6 +43,53 @@ class LoginController extends Controller
     }
 
     /**
+     * Validar login con protección NoSQL injection
+     */
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                // Prevenir inyección NoSQL
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'max:255',
+                // Prevenir caracteres MongoDB peligrosos
+                'regex:/^[^${}[\]]+$/'
+            ]
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+            'email.regex' => 'Formato de correo inválido.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.regex' => 'La contraseña contiene caracteres no permitidos.'
+        ]);
+    }
+
+    /**
+     * Sanitizar credenciales antes de autenticación
+     */
+    protected function credentials(Request $request)
+    {
+        $credentials = $request->only($this->username(), 'password');
+
+        // Sanitizar email
+        $credentials['email'] = filter_var($credentials['email'], FILTER_SANITIZE_EMAIL);
+
+        // Remover caracteres peligrosos para MongoDB
+        $credentials['email'] = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $credentials['email']);
+
+        return $credentials;
+    }
+
+    /**
      * Handle a login request to the application.
      *
      * @param  \Illuminate\Http\Request  $request

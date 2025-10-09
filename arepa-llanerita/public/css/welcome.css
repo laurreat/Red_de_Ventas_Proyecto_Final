@@ -872,7 +872,7 @@ body {
     display: flex;
     gap: 4px;
     margin-bottom: var(--spacing-md);
-    color: var(--secondary-color);
+    color: var(--primary-color);
 }
 
 .testimonial-text {
@@ -925,7 +925,7 @@ body {
    FOOTER
    ============================================ */
 .footer {
-    background: var(--text-dark);
+    background: var(--primary-dark);
     color: var(--bg-white);
     padding: 60px 0 20px;
 }

@@ -219,11 +219,41 @@
     // SMOOTH SCROLL
     // ============================================
     function initSmoothScroll() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+        navLinks.forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
 
                 // Ignorar links que solo son "#"
+                if (href === '#' || href.startsWith('#modal')) return;
+
+                e.preventDefault();
+
+                const target = document.querySelector(href);
+                if (target) {
+                    // Remover active de todos los links
+                    navLinks.forEach(link => link.classList.remove('active'));
+
+                    // Agregar active al link clickeado
+                    this.classList.add('active');
+
+                    const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 0;
+                    const targetPosition = target.offsetTop - navbarHeight - 20;
+
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Smooth scroll para otros enlaces con hash
+        document.querySelectorAll('a[href^="#"]:not(.nav-link)').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+
                 if (href === '#' || href.startsWith('#modal')) return;
 
                 e.preventDefault();
@@ -325,25 +355,41 @@
         const navLinks = document.querySelectorAll('.nav-link');
 
         function updateActiveLink() {
-            const scrollPosition = window.scrollY + 100;
+            const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 80;
+            const scrollPosition = window.scrollY + navbarHeight + 50;
+
+            // Array para almacenar secciones visibles
+            let currentSection = null;
 
             sections.forEach(section => {
                 const sectionTop = section.offsetTop;
                 const sectionHeight = section.offsetHeight;
                 const sectionId = section.getAttribute('id');
+                const sectionBottom = sectionTop + sectionHeight;
 
-                if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                    navLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === `#${sectionId}`) {
-                            link.classList.add('active');
-                        }
-                    });
+                // Detectar si estamos en esta sección
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    currentSection = sectionId;
+                }
+            });
+
+            // Si estamos cerca del final de la página, activar la última sección
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                const lastSection = sections[sections.length - 1];
+                currentSection = lastSection?.getAttribute('id');
+            }
+
+            // Actualizar clase active en los enlaces
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href === `#${currentSection}`) {
+                    link.classList.add('active');
                 }
             });
         }
 
-        window.addEventListener('scroll', updateActiveLink, { passive: true });
+        window.addEventListener('scroll', throttle(updateActiveLink, 100), { passive: true });
         updateActiveLink(); // Initial call
     }
 
@@ -447,7 +493,7 @@
     // ============================================
     // CONSOLE WELCOME MESSAGE
     // ============================================
-    console.log('%c🌟 Bienvenido a Arepa la Llanerita 🌟', 'color: #FF6B35; font-size: 20px; font-weight: bold;');
+    console.log('%c🍷 Bienvenido a Arepa la Llanerita 🍷', 'color: #8B1538; font-size: 20px; font-weight: bold;');
     console.log('%cSistema de Red de Ventas MLM', 'color: #4A4A4A; font-size: 14px;');
     console.log('%cDesarrollado por Luis Alberto Urrea Trujillo', 'color: #666; font-size: 12px;');
 
