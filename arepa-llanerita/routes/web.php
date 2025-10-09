@@ -6,8 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CatalogoPublicoController;
 
-// Página principal - mostrar catálogo público
-Route::get('/', [CatalogoPublicoController::class, 'index']);
+// Página principal - Welcome page renovada
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
+
+// Catálogo público (ruta alternativa)
+Route::get('/catalogo', [CatalogoPublicoController::class, 'index'])->name('catalogo.index');
 
 // Ruta para ver detalles de producto público
 Route::get('/catalogo/{producto}', [CatalogoPublicoController::class, 'show']);
