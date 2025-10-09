@@ -7,12 +7,12 @@
    VARIABLES CSS
    ============================================ */
 :root {
-    /* Colores Corporativos */
-    --primary-color: #FF6B35;
-    --primary-dark: #E55100;
-    --primary-light: #FF8C5F;
-    --secondary-color: #F7931E;
-    --accent-color: #FFA726;
+    /* Colores Corporativos - Vino Tinto y Blanco */
+    --primary-color: #8B1538;        /* Vino tinto oscuro */
+    --primary-dark: #6B0F2A;         /* Vino tinto más oscuro */
+    --primary-light: #A52A4A;        /* Vino tinto claro */
+    --secondary-color: #FFFFFF;      /* Blanco */
+    --accent-color: #C41E3A;         /* Vino tinto vibrante */
 
     /* Colores de Texto */
     --text-dark: #2C2C2C;
@@ -27,9 +27,9 @@
     --bg-dark: #1A1A1A;
 
     /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-    --gradient-dark: linear-gradient(135deg, #2C2C2C 0%, #4A4A4A 100%);
-    --gradient-overlay: linear-gradient(135deg, rgba(255, 107, 53, 0.9) 0%, rgba(247, 147, 30, 0.9) 100%);
+    --gradient-primary: linear-gradient(135deg, #8B1538 0%, #C41E3A 100%);
+    --gradient-dark: linear-gradient(135deg, #6B0F2A 0%, #8B1538 100%);
+    --gradient-overlay: linear-gradient(135deg, rgba(139, 21, 56, 0.9) 0%, rgba(196, 30, 58, 0.9) 100%);
 
     /* Sombras */
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -324,8 +324,8 @@ body {
     right: 0;
     bottom: 0;
     background-image:
-        radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(247, 147, 30, 0.1) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(139, 21, 56, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(196, 30, 58, 0.1) 0%, transparent 50%);
 }
 
 .hero-content {
@@ -345,7 +345,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(139, 21, 56, 0.1);
     color: var(--primary-color);
     padding: 8px 16px;
     border-radius: var(--radius-full);
@@ -476,7 +476,7 @@ body {
 
 .section-badge {
     display: inline-block;
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(139, 21, 56, 0.1);
     color: var(--primary-color);
     padding: 8px 16px;
     border-radius: var(--radius-full);
@@ -701,7 +701,7 @@ body {
     width: 70px;
     height: 70px;
     margin: var(--spacing-md) auto var(--spacing-sm);
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(139, 21, 56, 0.1);
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
@@ -1139,7 +1139,7 @@ body {
 }
 
 .modal-info {
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(139, 21, 56, 0.1);
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-md);
@@ -1185,7 +1185,7 @@ body {
 
 .contact-option:hover {
     border-color: var(--primary-color);
-    background: rgba(255, 107, 53, 0.05);
+    background: rgba(139, 21, 56, 0.05);
 }
 
 .contact-option i {

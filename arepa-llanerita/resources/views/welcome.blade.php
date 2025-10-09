@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Red de Ventas - Arepa la Llanerita. Sistema de gestión empresarial para red de ventas multinivel especializado en arepas tradicionales colombianas amazónicas.">
+    <meta name="theme-color" content="#8B1538">
     <title>{{ config('app.name', 'Red de Ventas - Arepa la Llanerita') }}</title>
 
     <!-- Preconnect -->
