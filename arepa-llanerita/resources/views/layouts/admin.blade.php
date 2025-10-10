@@ -676,13 +676,6 @@
             </div>
 
             <div class="nav-item">
-                <a href="{{ route('admin.respaldos.index') }}" class="nav-link">
-                    <i class="bi bi-cloud-download"></i>
-                    Respaldos
-                </a>
-            </div>
-
-            <div class="nav-item">
                 <a href="{{ route('admin.logs.index') }}" class="nav-link">
                     <i class="bi bi-file-text"></i>
                     Logs del Sistema

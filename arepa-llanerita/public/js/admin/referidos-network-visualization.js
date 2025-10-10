@@ -9,16 +9,17 @@ let simulation;
 let nodes = [];
 let links = [];
 
-// Configuración de colores y estilos - PALETA VINO TINTO MEJORADA
+// Configuración de colores y estilos - SISTEMA DE COLORES DIFERENCIADO
 const config = {
     colors: {
-        lider: '#722F37',        // Vino tinto principal (LÍDER)
-        vendedor: '#8b3c44',     // Vino tinto claro (VENDEDOR)
-        active: '#5a2329',       // Vino oscuro (+5 REFERIDOS)
-        selected: '#ffffff',     // Blanco con borde vino (SELECCIONADO)
+        lider: '#722F37',        // Vino tinto oscuro (LÍDER)
+        vendedor: '#A8556A',     // Vino rosado claro (VENDEDOR)
+        active: '#8B0000',       // Rojo oscuro intenso (+5 REFERIDOS)
+        selected: '#FFD700',     // Dorado (USUARIO ACTUAL/SELECCIONADO)
         default: '#722F37',      // Vino tinto por defecto
         border: '#ffffff',       // Borde blanco para contraste
-        selectedBorder: '#722F37' // Borde vino para seleccionado
+        selectedBorder: '#B8860B', // Borde dorado oscuro para seleccionado
+        activeBorder: '#ffffff'  // Borde blanco para nodos activos
     },
     nodeRadius: {
         min: 10,
@@ -453,25 +454,31 @@ function renderForceView() {
 
 /**
  * Obtener color del nodo según su tipo y características
+ * ORDEN DE PRIORIDAD:
+ * 1. Usuario actual/seleccionado (Dorado)
+ * 2. Nodos con +5 referidos (Rojo oscuro)
+ * 3. Líder (Vino tinto oscuro)
+ * 4. Vendedor (Vino rosado claro)
  */
 function getNodeColor(node) {
-    // Prioridad 1: Usuario seleccionado
+    // Prioridad 1: Usuario seleccionado/actual (DORADO)
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
-        return config.colors.selected;
+        return config.colors.selected; // #FFD700 - Dorado
     }
 
-    // Prioridad 2: Nodos con muchos referidos
+    // Prioridad 2: Nodos con muchos referidos (ROJO OSCURO INTENSO)
     if (node.referidos_count > 5) {
-        return config.colors.active; // Vino oscuro
+        return config.colors.active; // #8B0000 - Rojo oscuro
     }
 
-    // Prioridad 3: Tipo de usuario
+    // Prioridad 3: Tipo de usuario - LÍDER (VINO TINTO OSCURO)
     if (node.tipo === 'lider') {
-        return config.colors.lider; // Vino tinto principal
+        return config.colors.lider; // #722F37 - Vino tinto oscuro
     }
 
+    // Prioridad 4: Tipo de usuario - VENDEDOR (VINO ROSADO CLARO)
     if (node.tipo === 'vendedor') {
-        return config.colors.vendedor; // Vino tinto claro
+        return config.colors.vendedor; // #A8556A - Vino rosado claro
     }
 
     return config.colors.default;
@@ -481,24 +488,35 @@ function getNodeColor(node) {
  * Obtener color del borde del nodo
  */
 function getNodeBorderColor(node) {
-    // Usuario seleccionado tiene borde vino
+    // Usuario seleccionado tiene borde dorado oscuro
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
-        return config.colors.selectedBorder;
+        return config.colors.selectedBorder; // #B8860B - Dorado oscuro
+    }
+
+    // Nodos con muchos referidos tienen borde blanco destacado
+    if (node.referidos_count > 5) {
+        return config.colors.activeBorder; // #ffffff - Blanco
     }
 
     // Resto tiene borde blanco
-    return config.colors.border;
+    return config.colors.border; // #ffffff - Blanco
 }
 
 /**
  * Obtener ancho del borde del nodo
  */
 function getNodeBorderWidth(node) {
-    // Usuario seleccionado tiene borde más grueso
+    // Usuario seleccionado tiene borde más grueso (destacado)
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
+        return 5;
+    }
+
+    // Nodos con +5 referidos tienen borde grueso
+    if (node.referidos_count > 5) {
         return 4;
     }
 
+    // Resto tiene borde normal
     return 3;
 }
 

@@ -40,16 +40,16 @@
                             <i class="bi bi-calendar-event"></i> Fecha Inicio
                         </label>
                         <input type="date" class="form-control" name="fecha_inicio"
-                               value="{{ $fechaInicio }}"
-                               style="border-radius:10px;padding:.75rem;">
+                            value="{{ $fechaInicio }}"
+                            style="border-radius:10px;padding:.75rem;">
                     </div>
                     <div class="col-lg-3 col-md-6 mb-3">
                         <label class="form-label fw-semibold">
                             <i class="bi bi-calendar-check"></i> Fecha Fin
                         </label>
                         <input type="date" class="form-control" name="fecha_fin"
-                               value="{{ $fechaFin }}"
-                               style="border-radius:10px;padding:.75rem;">
+                            value="{{ $fechaFin }}"
+                            style="border-radius:10px;padding:.75rem;">
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
                         <label class="form-label fw-semibold">
@@ -58,9 +58,9 @@
                         <select class="form-select" name="vendedor_id" style="border-radius:10px;padding:.75rem;">
                             <option value="">Todos los vendedores</option>
                             @foreach($vendedores as $vendedor)
-                                <option value="{{ $vendedor->id }}" {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
-                                    {{ $vendedor->name }}
-                                </option>
+                            <option value="{{ $vendedor->id }}" {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
+                                {{ $vendedor->name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -82,7 +82,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(114,47,55,0.1);color:var(--wine);">
                     <i class="bi bi-cart-check"></i>
                 </div>
-                <div class="reporte-stat-value">{{ number_format($stats['total_ventas']) }}</div>
+                <div class="reporte-stat-value">{{ number_format((float)($stats['total_ventas'] ?? 0)) }}</div>
                 <div class="reporte-stat-label">Total Ventas</div>
             </div>
         </div>
@@ -92,7 +92,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">
                     <i class="bi bi-currency-dollar"></i>
                 </div>
-                <div class="reporte-stat-value">${{ format_number($stats['total_ingresos'] ?? 0, 0) }}</div>
+                <div class="reporte-stat-value">${{ format_number((float)($stats['total_ingresos'] ?? 0), 0) }}</div>
                 <div class="reporte-stat-label">Total Ingresos</div>
             </div>
         </div>
@@ -102,7 +102,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(59,130,246,0.1);color:var(--info);">
                     <i class="bi bi-receipt"></i>
                 </div>
-                <div class="reporte-stat-value">${{ format_number($stats['ticket_promedio'] ?? 0, 0) }}</div>
+                <div class="reporte-stat-value">${{ format_number((float)($stats['ticket_promedio'] ?? 0), 0) }}</div>
                 <div class="reporte-stat-label">Ticket Promedio</div>
             </div>
         </div>
@@ -112,7 +112,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning);">
                     <i class="bi bi-box-seam"></i>
                 </div>
-                <div class="reporte-stat-value">{{ number_format($stats['productos_vendidos']) }}</div>
+                <div class="reporte-stat-value">{{ number_format((float)($stats['productos_vendidos'] ?? 0)) }}</div>
                 <div class="reporte-stat-label">Productos Vendidos</div>
             </div>
         </div>
@@ -130,17 +130,17 @@
                 </div>
                 <div class="reporte-chart-body">
                     @if($ventasPorDia->count() > 0)
-                        <div class="reporte-chart-container">
-                            <canvas id="ventasPorDiaChart"></canvas>
-                        </div>
+                    <div class="reporte-chart-container">
+                        <canvas id="ventasPorDiaChart"></canvas>
+                    </div>
                     @else
-                        <div class="reporte-empty-state">
-                            <div class="reporte-empty-state-icon">
-                                <i class="bi bi-graph-down"></i>
-                            </div>
-                            <h4 class="reporte-empty-state-title">No hay datos disponibles</h4>
-                            <p class="reporte-empty-state-text">No se encontraron ventas en el período seleccionado</p>
+                    <div class="reporte-empty-state">
+                        <div class="reporte-empty-state-icon">
+                            <i class="bi bi-graph-down"></i>
                         </div>
+                        <h4 class="reporte-empty-state-title">No hay datos disponibles</h4>
+                        <p class="reporte-empty-state-text">No se encontraron ventas en el período seleccionado</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -157,16 +157,16 @@
                 </div>
                 <div class="reporte-chart-body">
                     @if($ventasPorEstado->count() > 0)
-                        <div class="reporte-chart-container" style="height:300px;">
-                            <canvas id="ventasPorEstadoChart"></canvas>
-                        </div>
+                    <div class="reporte-chart-container" style="height:300px;">
+                        <canvas id="ventasPorEstadoChart"></canvas>
+                    </div>
                     @else
-                        <div class="reporte-empty-state" style="padding:2rem;">
-                            <div class="reporte-empty-state-icon" style="font-size:3rem;">
-                                <i class="bi bi-pie-chart"></i>
-                            </div>
-                            <p class="reporte-empty-state-text" style="margin:1rem 0 0 0;">No hay datos disponibles</p>
+                    <div class="reporte-empty-state" style="padding:2rem;">
+                        <div class="reporte-empty-state-icon" style="font-size:3rem;">
+                            <i class="bi bi-pie-chart"></i>
                         </div>
+                        <p class="reporte-empty-state-text" style="margin:1rem 0 0 0;">No hay datos disponibles</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -205,13 +205,13 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="reporte-badge reporte-badge-info">{{ $data['cantidad_pedidos'] }} pedidos</span>
+                                        <span class="reporte-badge reporte-badge-info">{{ (int)($data['cantidad_pedidos'] ?? 0) }} pedidos</span>
                                     </td>
                                     <td>
-                                        <strong style="font-size:1.125rem;color:var(--wine);">${{ format_number($data['total_ventas'] ?? 0, 0) }}</strong>
+                                        <strong style="font-size:1.125rem;color:var(--wine);">${{ format_number((float)($data['total_ventas'] ?? 0), 0) }}</strong>
                                     </td>
                                     <td>
-                                        <strong style="font-size:1.125rem;color:var(--success);">${{ format_number($data['comision_estimada'] ?? 0, 0) }}</strong>
+                                        <strong style="font-size:1.125rem;color:var(--success);">${{ format_number((float)($data['comision_estimada'] ?? 0), 0) }}</strong>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -236,30 +236,30 @@
                 </div>
                 <div class="card-body p-4">
                     @if($productosMasVendidos->count() > 0)
-                        @foreach($productosMasVendidos->take(10) as $index => $data)
-                            <div class="reporte-ranking-item">
-                                <div class="reporte-ranking-position {{ $index === 0 ? 'top-1' : ($index === 1 ? 'top-2' : ($index === 2 ? 'top-3' : '')) }}">
-                                    {{ $index + 1 }}
-                                </div>
-                                <div class="reporte-ranking-info">
-                                    <div class="reporte-ranking-name">{{ $data['producto'] }}</div>
-                                    <div class="reporte-ranking-detail">
-                                        <span class="reporte-badge reporte-badge-info">{{ $data['categoria'] }}</span>
-                                        <span style="margin-left:.5rem;">{{ $data['cantidad_vendida'] }} unidades vendidas</span>
-                                    </div>
-                                </div>
-                                <div class="reporte-ranking-value">
-                                    ${{ format_number($data['total_ingresos'] ?? 0, 0) }}
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="reporte-empty-state">
-                            <div class="reporte-empty-state-icon">
-                                <i class="bi bi-box"></i>
-                            </div>
-                            <p class="reporte-empty-state-text">No hay productos vendidos</p>
+                    @foreach($productosMasVendidos->take(10) as $index => $data)
+                    <div class="reporte-ranking-item">
+                        <div class="reporte-ranking-position {{ $index === 0 ? 'top-1' : ($index === 1 ? 'top-2' : ($index === 2 ? 'top-3' : '')) }}">
+                            {{ $index + 1 }}
                         </div>
+                        <div class="reporte-ranking-info">
+                            <div class="reporte-ranking-name">{{ $data['producto'] }}</div>
+                            <div class="reporte-ranking-detail">
+                                <span class="reporte-badge reporte-badge-info">{{ $data['categoria'] }}</span>
+                                <span style="margin-left:.5rem;">{{ (int)($data['cantidad_vendida'] ?? 0) }} unidades vendidas</span>
+                            </div>
+                        </div>
+                        <div class="reporte-ranking-value">
+                            ${{ format_number((float)($data['total_ingresos'] ?? 0), 0) }}
+                        </div>
+                    </div>
+                    @endforeach
+                    @else
+                    <div class="reporte-empty-state">
+                        <div class="reporte-empty-state-icon">
+                            <i class="bi bi-box"></i>
+                        </div>
+                        <p class="reporte-empty-state-text">No hay productos vendidos</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -276,29 +276,29 @@
                 </div>
                 <div class="card-body p-4">
                     @if($clientesMasActivos->count() > 0)
-                        @foreach($clientesMasActivos->take(10) as $index => $data)
-                            <div class="reporte-ranking-item">
-                                <div class="reporte-ranking-position {{ $index === 0 ? 'top-1' : ($index === 1 ? 'top-2' : ($index === 2 ? 'top-3' : '')) }}">
-                                    {{ $index + 1 }}
-                                </div>
-                                <div class="reporte-ranking-info">
-                                    <div class="reporte-ranking-name">{{ $data['cliente'] }}</div>
-                                    <div class="reporte-ranking-detail">
-                                        {{ $data['email'] }} · {{ $data['cantidad_pedidos'] }} pedidos
-                                    </div>
-                                </div>
-                                <div class="reporte-ranking-value">
-                                    ${{ format_number($data['total_gastado'] ?? 0, 0) }}
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="reporte-empty-state">
-                            <div class="reporte-empty-state-icon">
-                                <i class="bi bi-people"></i>
-                            </div>
-                            <p class="reporte-empty-state-text">No hay clientes activos</p>
+                    @foreach($clientesMasActivos->take(10) as $index => $data)
+                    <div class="reporte-ranking-item">
+                        <div class="reporte-ranking-position {{ $index === 0 ? 'top-1' : ($index === 1 ? 'top-2' : ($index === 2 ? 'top-3' : '')) }}">
+                            {{ $index + 1 }}
                         </div>
+                        <div class="reporte-ranking-info">
+                            <div class="reporte-ranking-name">{{ $data['cliente'] }}</div>
+                            <div class="reporte-ranking-detail">
+                                {{ $data['email'] }} · {{ (int)($data['cantidad_pedidos'] ?? 0) }} pedidos
+                            </div>
+                        </div>
+                        <div class="reporte-ranking-value">
+                            ${{ format_number((float)($data['total_gastado'] ?? 0), 0) }}
+                        </div>
+                    </div>
+                    @endforeach
+                    @else
+                    <div class="reporte-empty-state">
+                        <div class="reporte-empty-state-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <p class="reporte-empty-state-text">No hay clientes activos</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -308,51 +308,52 @@
 @endsection
 
 @push('scripts')
-{{-- Datos para gráficos (solo datos, sin Chart.js todavía) --}}
 <script>
-// Configuración de rutas
-window.reportesRoutes = {
-    exportar: '{{ route("admin.reportes.exportar-ventas") }}'
-};
+    window.reportesRoutes = {
+        exportar: '{{ route("admin.reportes.exportar-ventas") }}'
+    };
 
-// Datos de ventas por día
-window.ventasPorDiaData = {
-    labels: [@foreach($ventasPorDia as $fecha => $data)'{{ \Carbon\Carbon::parse($fecha)->format("d/m") }}',@endforeach],
-    datasets: [{
-        label: 'Ingresos Diarios',
-        data: [@foreach($ventasPorDia as $data){{ to_float($data['total'] ?? 0) }},@endforeach],
-        backgroundColor: 'rgba(114, 47, 55, 0.1)',
-        borderColor: '#722F37',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#722F37',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7
-    }]
-};
-
-// Datos de ventas por estado
-window.ventasPorEstadoData = {
-    labels: [@foreach($ventasPorEstado as $estado => $data)'{{ ucfirst(str_replace("_", " ", $estado)) }}',@endforeach],
-    datasets: [{
-        data: [@foreach($ventasPorEstado as $data){{ to_float($data['total'] ?? 0) }},@endforeach],
-        backgroundColor: [
-            '#722F37', // Wine
-            '#10b981', // Success
-            '#3b82f6', // Info
-            '#f59e0b', // Warning
-            '#8b5cf6', // Purple
-            '#ef4444', // Danger
-            '#6b7280'  // Gray
+    window.ventasPorDiaData = {
+        labels: [@foreach($ventasPorDia as $fecha => $data)
+            '{{ \Carbon\Carbon::parse($fecha)->format("d/m") }}', @endforeach
         ],
-        borderWidth: 0
-    }]
-};
+        datasets: [{
+            label: 'Ingresos Diarios',
+            data: [@foreach($ventasPorDia as $data) {
+                {
+                    (float)($data['total'] ?? 0)
+                }
+            }, @endforeach],
+            backgroundColor: 'rgba(114, 47, 55, 0.1)',
+            borderColor: '#722F37',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#722F37',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+        }]
+    };
+
+    window.ventasPorEstadoData = {
+        labels: [@foreach($ventasPorEstado as $estado => $data)
+            '{{ ucfirst(str_replace("_", " ", $estado)) }}', @endforeach
+        ],
+        datasets: [{
+            data: [@foreach($ventasPorEstado as $data) {
+                {
+                    (float)($data['total'] ?? 0)
+                }
+            }, @endforeach],
+            backgroundColor: [
+                '#722F37', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280'
+            ],
+            borderWidth: 0
+        }]
+    };
 </script>
 
-{{-- Cargar JavaScript moderno con lazy loading de Chart.js --}}
 <script src="{{ asset('js/admin/reportes-modern.js') }}?v={{ filemtime(public_path('js/admin/reportes-modern.js')) }}" defer></script>
 @endpush

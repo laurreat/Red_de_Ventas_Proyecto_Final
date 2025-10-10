@@ -437,7 +437,7 @@
                         </div>
                     </div>
 
-                    <!-- Leyenda Mejorada -->
+                    <!-- Leyenda Mejorada con Colores Diferenciados -->
                     <div class="referidos-legend mb-4">
                         <div class="referidos-legend-title">
                             <i class="bi bi-palette-fill"></i>
@@ -445,19 +445,19 @@
                         </div>
                         <div class="referidos-legend-items">
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot" style="background: #722F37; border: 3px solid #fff;"></div>
+                                <div class="referidos-legend-dot referidos-legend-dot-lider"></div>
                                 <span class="referidos-legend-label">Líder</span>
                             </div>
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot" style="background: #8b3c44; border: 3px solid #fff;"></div>
+                                <div class="referidos-legend-dot referidos-legend-dot-vendedor"></div>
                                 <span class="referidos-legend-label">Vendedor</span>
                             </div>
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot" style="background: #5a2329; border: 3px solid #fff;"></div>
+                                <div class="referidos-legend-dot referidos-legend-dot-active"></div>
                                 <span class="referidos-legend-label">+5 Referidos</span>
                             </div>
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot" style="background: #fff; border: 3px solid #722F37; box-shadow: 0 0 0 1px #722F37;"></div>
+                                <div class="referidos-legend-dot referidos-legend-dot-selected"></div>
                                 <span class="referidos-legend-label">Usuario Actual</span>
                             </div>
                         </div>

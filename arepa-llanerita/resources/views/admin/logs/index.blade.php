@@ -3,448 +3,261 @@
 @section('title', 'Logs del Sistema')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/logs.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/logs-modern.css') }}?v={{ filemtime(public_path('css/admin/logs-modern.css')) }}">
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2>Logs del Sistema</h2>
-                    <h4 class="text-muted mb-0">Monitoreo y gestión de logs de la aplicación</h4>
-                </div>
-                <div>
-                    <button class="btn btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#confirmClearModal">
-                        <i class="bi bi-trash me-1"></i>
-                        Limpiar Log Principal
-                    </button>
-                    <button class="btn btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#cleanupModal">
-                        <i class="bi bi-archive me-1"></i>
-                        Limpiar Antiguos
-                    </button>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-                        <i class="bi bi-download me-1"></i>
-                        Exportar
-                    </button>
-                </div>
+<div class="container-fluid px-4 py-3">
+    {{-- Header Hero --}}
+    <div class="logs-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="logs-header-title">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Logs del Sistema
+                </h1>
+                <p class="logs-header-subtitle">
+                    Monitoreo y gestión centralizada de logs de la aplicación
+                </p>
             </div>
-        </div>
-    </div>
-
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-file-text fs-2 text-primary"></i>
-                    <h4 class="mt-2">{{ $stats['total_logs'] }}</h4>
-                    <small class="text-muted">Total Logs</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-exclamation-triangle fs-2 text-danger"></i>
-                    <h4 class="mt-2">{{ $stats['errors_today'] }}</h4>
-                    <small class="text-muted">Errores Hoy</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-exclamation-circle fs-2 text-warning"></i>
-                    <h4 class="mt-2">{{ $stats['warnings_today'] }}</h4>
-                    <small class="text-muted">Advertencias Hoy</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-info-circle fs-2 text-info"></i>
-                    <h4 class="mt-2">{{ $stats['info_today'] }}</h4>
-                    <small class="text-muted">Info Hoy</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-files fs-2 text-secondary"></i>
-                    <h4 class="mt-2">{{ $stats['log_files_count'] }}</h4>
-                    <small class="text-muted">Archivos</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-hdd fs-2 text-success"></i>
-                    <h4 class="mt-2">{{ $stats['total_size'] }}</h4>
-                    <small class="text-muted">Tamaño Total</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label" style="color: black;">Nivel de Log</label>
-                            <select name="filter" class="form-select">
-                                <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>Todos los niveles</option>
-                                <option value="error" {{ $filter == 'error' ? 'selected' : '' }}>Error</option>
-                                <option value="warning" {{ $filter == 'warning' ? 'selected' : '' }}>Warning</option>
-                                <option value="info" {{ $filter == 'info' ? 'selected' : '' }}>Info</option>
-                                <option value="debug" {{ $filter == 'debug' ? 'selected' : '' }}>Debug</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label" style="color: black;">Fecha</label>
-                            <input type="date" name="date" class="form-control" value="{{ $date }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" style="color: black;">Buscar en logs</label>
-                            <input type="text" name="search" class="form-control"
-                                   placeholder="Buscar en el contenido..." value="{{ $search }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search"></i> Filtrar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen por Niveles -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-bar-chart me-2"></i>
-                        Resumen del Día ({{ $date }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @foreach($levelSummary as $level => $count)
-                        <div class="col-md-3">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <div class="me-3">
-                                    @switch($level)
-                                        @case('error')
-                                            <i class="bi bi-x-circle fs-4 text-danger"></i>
-                                            @break
-                                        @case('warning')
-                                            <i class="bi bi-exclamation-triangle fs-4 text-warning"></i>
-                                            @break
-                                        @case('info')
-                                            <i class="bi bi-info-circle fs-4 text-info"></i>
-                                            @break
-                                        @default
-                                            <i class="bi bi-bug fs-4 text-secondary"></i>
-                                    @endswitch
-                                </div>
-                                <div>
-                                    <h5 class="mb-0" style="color: black;">{{ $count }}</h5>
-                                    <small class="text-muted text-capitalize">{{ $level }}</small>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logs Recientes -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-list me-2"></i>
-                        Logs {{ $filter != 'all' ? '(' . ucfirst($filter) . ')' : '' }}
-                        @if($search)
-                            - Búsqueda: "{{ $search }}"
-                        @endif
-                    </h5>
-                    <button class="btn btn-sm btn-outline-primary" onclick="obtenerEstadisticas()">
-                        <i class="bi bi-arrow-clockwise"></i> Actualizar
-                    </button>
-                </div>
-                <div class="card-body">
-                    @if(count($logs) > 0)
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th style="color: black;">Fecha/Hora</th>
-                                        <th style="color: black;">Nivel</th>
-                                        <th style="color: black;">Mensaje</th>
-                                        <th style="color: black;">Archivo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($logs as $log)
-                                    <tr>
-                                        <td style="color: black;">
-                                            <small>{{ $log['date'] }}</small><br>
-                                            <strong>{{ $log['time'] }}</strong>
-                                        </td>
-                                        <td>
-                                            @switch($log['level'])
-                                                @case('error')
-                                                    <span class="badge bg-danger">ERROR</span>
-                                                    @break
-                                                @case('warning')
-                                                    <span class="badge bg-warning text-dark">WARNING</span>
-                                                    @break
-                                                @case('info')
-                                                    <span class="badge bg-info">INFO</span>
-                                                    @break
-                                                @case('debug')
-                                                    <span class="badge bg-secondary">DEBUG</span>
-                                                    @break
-                                                @default
-                                                    <span class="badge bg-light text-dark">{{ strtoupper($log['level']) }}</span>
-                                            @endswitch
-                                        </td>
-                                        <td style="color: black;">
-                                            <div style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
-                                                {{ Str::limit($log['message'], 100) }}
-                                            </div>
-                                            @if(strlen($log['message']) > 100)
-                                                <button class="btn btn-sm btn-link p-0" onclick="mostrarMensajeCompleto({{ json_encode($log['message']) }})">
-                                                    Ver completo
-                                                </button>
-                                            @endif
-                                        </td>
-                                        <td style="color: black;">
-                                            <small>{{ $log['file'] }}</small>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        @if(count($logs) >= 1000)
-                            <div class="alert alert-info mt-3">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Se muestran los primeros 1000 logs. Usa filtros para refinar la búsqueda.
-                            </div>
-                        @endif
-                    @else
-                        <div class="text-center py-5">
-                            <i class="bi bi-file-text fs-1 text-muted"></i>
-                            <h4 class="mt-3 text-muted">No se encontraron logs</h4>
-                            <p class="text-muted">
-                                @if($search)
-                                    No hay logs que coincidan con "{{ $search }}"
-                                @else
-                                    No hay logs para la fecha y filtros seleccionados
-                                @endif
-                            </p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Limpiar Logs Antiguos -->
-<div class="modal fade" id="cleanupModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Limpiar Logs Antiguos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="cleanupForm">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label" style="color: black;">Eliminar logs más antiguos a:</label>
-                        <select name="days" class="form-select" required>
-                            <option value="7">7 días</option>
-                            <option value="14">14 días</option>
-                            <option value="30" selected>30 días</option>
-                            <option value="60">60 días</option>
-                            <option value="90">90 días</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Advertencia:</strong> Esta acción eliminará permanentemente los archivos de log antiguos.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i> Limpiar Logs
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Exportar Logs -->
-<div class="modal fade" id="exportModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Exportar Logs</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="exportForm">
-                @csrf
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label" style="color: black;">Fecha Inicio</label>
-                                <input type="date" name="start_date" class="form-control"
-                                       value="{{ now()->subDays(7)->format('Y-m-d') }}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label" style="color: black;">Fecha Fin</label>
-                                <input type="date" name="end_date" class="form-control"
-                                       value="{{ now()->format('Y-m-d') }}" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="color: black;">Nivel (Opcional)</label>
-                        <select name="level" class="form-select">
-                            <option value="">Todos los niveles</option>
-                            <option value="error">Solo Errores</option>
-                            <option value="warning">Solo Warnings</option>
-                            <option value="info">Solo Info</option>
-                            <option value="debug">Solo Debug</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-download me-1"></i> Exportar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Mensaje Completo -->
-<div class="modal fade" id="messageModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Mensaje Completo del Log</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <pre id="messageContent" style="color: black; max-height: 400px; overflow-y: auto; word-wrap: break-word; white-space: pre-wrap;"></pre>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Confirmación para Limpiar Log Principal -->
-<div class="modal fade" id="confirmClearModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-white">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    Confirmar Limpieza
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <strong>¿Estás seguro de limpiar el log principal?</strong>
-                </div>
-                <p>Esta acción eliminará todo el contenido del archivo de log principal y no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning" onclick="confirmarLimpiarLogs()">
-                    <i class="bi bi-trash me-1"></i> Sí, Limpiar
+            <div class="logs-header-actions">
+                <button class="logs-action-btn logs-action-btn-warning" data-logs-action="clear">
+                    <i class="bi bi-trash"></i>
+                    Limpiar Principal
+                </button>
+                <button class="logs-action-btn logs-action-btn-danger" data-logs-action="cleanup">
+                    <i class="bi bi-archive"></i>
+                    Limpiar Antiguos
+                </button>
+                <button class="logs-action-btn logs-action-btn-success" data-logs-action="export">
+                    <i class="bi bi-download"></i>
+                    Exportar
+                </button>
+                <button class="logs-action-btn" data-logs-action="refresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Actualizar
                 </button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal de Éxito -->
-<div class="modal fade" id="successModal" tabindex="-1" style="z-index: 1070;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success">
-                <h5 class="modal-title text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Operación Exitosa
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    {{-- Stats Cards --}}
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-1">
+                <i class="bi bi-file-text logs-stat-icon text-primary"></i>
+                <div class="logs-stat-value">{{ $stats['total_logs'] }}</div>
+                <div class="logs-stat-label">Total Logs</div>
             </div>
-            <div class="modal-body">
-                <p id="successMessage" class="mb-0"></p>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-2">
+                <i class="bi bi-exclamation-triangle logs-stat-icon text-danger"></i>
+                <div class="logs-stat-value">{{ $stats['errors_today'] }}</div>
+                <div class="logs-stat-label">Errores Hoy</div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-3">
+                <i class="bi bi-exclamation-circle logs-stat-icon text-warning"></i>
+                <div class="logs-stat-value">{{ $stats['warnings_today'] }}</div>
+                <div class="logs-stat-label">Advertencias Hoy</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-4">
+                <i class="bi bi-info-circle logs-stat-icon text-info"></i>
+                <div class="logs-stat-value">{{ $stats['info_today'] }}</div>
+                <div class="logs-stat-label">Info Hoy</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-5">
+                <i class="bi bi-files logs-stat-icon text-secondary"></i>
+                <div class="logs-stat-value">{{ $stats['log_files_count'] }}</div>
+                <div class="logs-stat-label">Archivos</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="logs-stat-card animate-delay-6">
+                <i class="bi bi-hdd logs-stat-icon text-success"></i>
+                <div class="logs-stat-value">{{ $stats['total_size'] }}</div>
+                <div class="logs-stat-label">Tamaño Total</div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal de Error -->
-<div class="modal fade" id="errorModal" tabindex="-1" style="z-index: 1070;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger">
-                <h5 class="modal-title text-white">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    Error
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p id="errorMessage" class="mb-0"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
+    {{-- Filtros --}}
+    <div class="logs-section-card animate-delay-1">
+        <div class="logs-section-header">
+            <h5 class="logs-section-title">
+                <i class="bi bi-funnel"></i>
+                Filtros de Búsqueda
+            </h5>
+        </div>
+        <div class="logs-filter-form">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="logs-filter-label">Nivel de Log</label>
+                    <select name="filter" class="logs-filter-control">
+                        <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>Todos los niveles</option>
+                        <option value="error" {{ $filter == 'error' ? 'selected' : '' }}>Error</option>
+                        <option value="warning" {{ $filter == 'warning' ? 'selected' : '' }}>Warning</option>
+                        <option value="info" {{ $filter == 'info' ? 'selected' : '' }}>Info</option>
+                        <option value="debug" {{ $filter == 'debug' ? 'selected' : '' }}>Debug</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="logs-filter-label">Fecha</label>
+                    <input type="date" name="date" class="logs-filter-control" value="{{ $date }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="logs-filter-label">Buscar en logs</label>
+                    <input type="text" name="search" class="logs-filter-control"
+                           placeholder="Buscar en el contenido..." value="{{ $search }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="logs-filter-btn">
+                        <i class="bi bi-search me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
+    {{-- Resumen por Niveles --}}
+    <div class="logs-section-card animate-delay-2">
+        <div class="logs-section-header">
+            <h5 class="logs-section-title">
+                <i class="bi bi-bar-chart"></i>
+                Resumen del Día ({{ $date }})
+            </h5>
+        </div>
+        <div class="logs-summary-grid">
+            @foreach($levelSummary as $level => $count)
+            <div class="logs-summary-item">
+                <div class="logs-summary-icon">
+                    @switch($level)
+                        @case('error')
+                            <i class="bi bi-x-circle text-danger"></i>
+                            @break
+                        @case('warning')
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                            @break
+                        @case('info')
+                            <i class="bi bi-info-circle text-info"></i>
+                            @break
+                        @default
+                            <i class="bi bi-bug text-secondary"></i>
+                    @endswitch
+                </div>
+                <div class="logs-summary-content">
+                    <div class="logs-summary-value">{{ $count }}</div>
+                    <div class="logs-summary-label">{{ $level }}</div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Tabla de Logs --}}
+    <div class="logs-section-card animate-delay-3">
+        <div class="logs-section-header">
+            <h5 class="logs-section-title">
+                <i class="bi bi-list"></i>
+                Logs {{ $filter != 'all' ? '(' . ucfirst($filter) . ')' : '' }}
+                @if($search)
+                    - Búsqueda: "{{ $search }}"
+                @endif
+            </h5>
+            <button class="logs-refresh-btn" data-logs-action="refresh">
+                <i class="bi bi-arrow-clockwise"></i>
+                Actualizar
+            </button>
+        </div>
+
+        @if(count($logs) > 0)
+            <div class="logs-table-container">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha/Hora</th>
+                            <th>Nivel</th>
+                            <th>Mensaje</th>
+                            <th>Archivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($logs as $log)
+                        <tr>
+                            <td>
+                                <small style="color:#6c757d">{{ $log['date'] }}</small><br>
+                                <strong style="color:#722F37">{{ $log['time'] }}</strong>
+                            </td>
+                            <td>
+                                @switch($log['level'])
+                                    @case('error')
+                                        <span class="logs-badge logs-badge-error">ERROR</span>
+                                        @break
+                                    @case('warning')
+                                        <span class="logs-badge logs-badge-warning">WARNING</span>
+                                        @break
+                                    @case('info')
+                                        <span class="logs-badge logs-badge-info">INFO</span>
+                                        @break
+                                    @case('debug')
+                                        <span class="logs-badge logs-badge-debug">DEBUG</span>
+                                        @break
+                                    @default
+                                        <span class="logs-badge logs-badge-success">{{ strtoupper($log['level']) }}</span>
+                                @endswitch
+                            </td>
+                            <td class="logs-message-cell">
+                                <div class="logs-message-text">
+                                    {{ Str::limit($log['message'], 150) }}
+                                </div>
+                                @if(strlen($log['message']) > 150)
+                                    <button class="logs-message-expand" onclick="mostrarMensajeCompleto({{ json_encode($log['message']) }})">
+                                        Ver completo <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                @endif
+                            </td>
+                            <td>
+                                <small style="color:#6c757d;font-family:monospace">{{ $log['file'] }}</small>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if(count($logs) >= 1000)
+                <div class="logs-info-limit">
+                    <i class="bi bi-info-circle"></i>
+                    <div>
+                        <strong>Límite alcanzado:</strong> Se muestran los primeros 1000 logs. Usa filtros para refinar la búsqueda.
+                    </div>
+                </div>
+            @endif
+        @else
+            <div class="logs-empty-state">
+                <i class="bi bi-file-text logs-empty-icon"></i>
+                <h4 class="logs-empty-title">No se encontraron logs</h4>
+                <p class="logs-empty-text">
+                    @if($search)
+                        No hay logs que coincidan con "<strong>{{ $search }}</strong>"
+                    @else
+                        No hay logs para la fecha y filtros seleccionados
+                    @endif
+                </p>
+            </div>
+        @endif
+    </div>
+</div>
 @endsection
 
 @push('scripts')
-{{-- Variables globales para los módulos de logs --}}
+{{-- Variables globales para LogsManager --}}
 <script>
 window.logsRoutes = {
     clear: '{{ route("admin.logs.clear") }}',
@@ -457,6 +270,6 @@ window.logsCurrentDate = '{{ $date }}';
 window.logsToday = '{{ now()->format("Y-m-d") }}';
 </script>
 
-{{-- Módulos de funcionalidad de logs --}}
-<script src="{{ asset('js/admin/logs-management.js') }}"></script>
+{{-- Logs Manager Moderno --}}
+<script src="{{ asset('js/admin/logs-modern.js') }}?v={{ filemtime(public_path('js/admin/logs-modern.js')) }}"></script>
 @endpush

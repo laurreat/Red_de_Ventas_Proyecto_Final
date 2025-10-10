@@ -843,6 +843,28 @@
   stroke-width:2px;
 }
 
+/* Estilos específicos para leyenda de colores */
+.referidos-legend-dot-lider{
+  background:#722F37;
+  box-shadow:0 2px 8px rgba(114,47,55,.4);
+}
+
+.referidos-legend-dot-vendedor{
+  background:#A8556A;
+  box-shadow:0 2px 8px rgba(168,85,106,.4);
+}
+
+.referidos-legend-dot-active{
+  background:#8B0000;
+  box-shadow:0 2px 8px rgba(139,0,0,.4);
+}
+
+.referidos-legend-dot-selected{
+  background:#FFD700;
+  border:3px solid #B8860B;
+  box-shadow:0 2px 12px rgba(255,215,0,.5);
+}
+
 /* Responsive */
 @media (max-width:768px){
   .referidos-header{padding:1.5rem}

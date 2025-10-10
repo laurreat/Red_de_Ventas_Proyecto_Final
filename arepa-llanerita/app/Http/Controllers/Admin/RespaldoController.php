@@ -345,75 +345,113 @@ class RespaldoController extends Controller
 
     private function createDatabaseBackup($path)
     {
-        \Log::info('Iniciando createDatabaseBackup', ['path' => $path]);
+        \Log::info('Iniciando createDatabaseBackup con datos reales', ['path' => $path]);
 
-        // Versión simplificada para debugging
         try {
-            // Crear un backup completo en formato JSON fácil de exportar
+            // Obtener datos reales de MongoDB
+            $users = \App\Models\User::all()->toArray();
+            $productos = \App\Models\Producto::all()->toArray();
+            $pedidos = \App\Models\Pedido::all()->toArray();
+            $comisiones = \App\Models\Comision::all()->toArray();
+            $referidos = \App\Models\Referido::all()->toArray();
+            $configuraciones = \App\Models\Configuracion::all()->toArray();
+            $roles = \App\Models\Role::all()->toArray();
+            $notificaciones = \App\Models\Notificacion::all()->toArray();
+
+            // Crear un backup completo en formato JSON legible
             $data = [
                 'backup_info' => [
                     'created_at' => now()->toISOString(),
-                    'created_by' => 'Arepa la Llanerita - Sistema de Respaldos',
+                    'created_by' => auth()->user()->name ?? 'Sistema',
                     'type' => 'database_backup',
-                    'version' => '2.0',
-                    'format' => 'JSON - Easy to export/import',
-                    'description' => 'Respaldo completo de la base de datos en formato JSON'
+                    'version' => '3.0',
+                    'format' => 'JSON - Complete MongoDB Export',
+                    'description' => 'Respaldo completo de la base de datos MongoDB con datos reales',
+                    'total_collections' => 8,
+                    'total_records' => count($users) + count($productos) + count($pedidos) + count($comisiones) + count($referidos) + count($configuraciones) + count($roles) + count($notificaciones)
                 ],
                 'system_info' => [
                     'php_version' => PHP_VERSION,
                     'laravel_version' => app()->version(),
+                    'mongodb_driver' => 'mongodb/laravel-mongodb',
                     'timestamp' => time(),
                     'server_time' => now()->format('Y-m-d H:i:s'),
-                    'timezone' => config('app.timezone', 'UTC')
+                    'timezone' => config('app.timezone', 'UTC'),
+                    'database' => config('database.connections.mongodb.database')
                 ],
-                'database_structure' => [
+                'collections' => [
                     'users' => [
-                        'description' => 'Usuarios del sistema',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                        'total_records' => count($users),
+                        'description' => 'Usuarios del sistema (Administradores, Líderes, Vendedores, Clientes)',
+                        'data' => $users
                     ],
-                    'products' => [
-                        'description' => 'Catálogo de productos Arepa la Llanerita',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                    'productos' => [
+                        'total_records' => count($productos),
+                        'description' => 'Catálogo completo de productos Arepa la Llanerita',
+                        'data' => $productos
                     ],
-                    'orders' => [
-                        'description' => 'Historial de pedidos y ventas',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                    'pedidos' => [
+                        'total_records' => count($pedidos),
+                        'description' => 'Historial completo de pedidos y ventas',
+                        'data' => $pedidos
                     ],
-                    'settings' => [
+                    'comisiones' => [
+                        'total_records' => count($comisiones),
+                        'description' => 'Sistema de comisiones MLM',
+                        'data' => $comisiones
+                    ],
+                    'referidos' => [
+                        'total_records' => count($referidos),
+                        'description' => 'Red de referidos multinivel',
+                        'data' => $referidos
+                    ],
+                    'configuraciones' => [
+                        'total_records' => count($configuraciones),
                         'description' => 'Configuraciones del sistema',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                        'data' => $configuraciones
+                    ],
+                    'roles' => [
+                        'total_records' => count($roles),
+                        'description' => 'Roles y permisos del sistema',
+                        'data' => $roles
+                    ],
+                    'notificaciones' => [
+                        'total_records' => count($notificaciones),
+                        'description' => 'Notificaciones del sistema',
+                        'data' => $notificaciones
                     ]
                 ],
-                'export_instructions' => [
-                    'format' => 'Este archivo está en formato JSON estándar',
-                    'compatibility' => 'Compatible con Excel, Google Sheets, y bases de datos',
-                    'usage' => 'Puede importarse fácilmente en cualquier sistema',
-                    'human_readable' => 'El formato es legible y editable manualmente'
+                'restore_instructions' => [
+                    'format' => 'Este archivo contiene TODOS los datos reales de MongoDB',
+                    'compatibility' => 'Compatible con MongoDB, MySQL (con conversión), Excel, Google Sheets',
+                    'usage' => 'Los datos están listos para importarse directamente',
+                    'structure' => 'Cada colección tiene un array "data" con los registros completos',
+                    'import_command' => 'mongoimport --db arepa_llanerita --collection [nombre] --file backup.json',
+                    'warning' => 'Este backup contiene información sensible. Mantener seguro.'
                 ]
             ];
 
-            // Guardar como archivo JSON simple
-            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            // Guardar como archivo JSON legible con formato bonito
+            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
             if ($success === false) {
                 throw new \Exception('No se pudo escribir el archivo de backup');
             }
 
-            \Log::info('Backup de database creado exitosamente', [
+            \Log::info('Backup de database con datos reales creado exitosamente', [
                 'path' => $path,
-                'size' => filesize($path)
+                'size' => filesize($path),
+                'total_records' => $data['backup_info']['total_records'],
+                'collections' => 8
             ]);
 
             return;
 
         } catch (\Exception $e) {
-            \Log::error('Error en createDatabaseBackup simple', [
+            \Log::error('Error en createDatabaseBackup con datos reales', [
                 'error' => $e->getMessage(),
-                'path' => $path
+                'path' => $path,
+                'trace' => $e->getTraceAsString()
             ]);
             throw $e;
         }
@@ -483,81 +521,111 @@ class RespaldoController extends Controller
     private function createFullBackup($path)
     {
         try {
-            \Log::info('Creando backup completo en formato JSON', ['path' => $path]);
+            \Log::info('Creando backup completo con datos reales', ['path' => $path]);
 
-            // Crear backup completo combinando base de datos y archivos en formato JSON
+            // Obtener datos reales de MongoDB
+            $users = \App\Models\User::all()->toArray();
+            $productos = \App\Models\Producto::all()->toArray();
+            $pedidos = \App\Models\Pedido::all()->toArray();
+            $comisiones = \App\Models\Comision::all()->toArray();
+            $referidos = \App\Models\Referido::all()->toArray();
+            $configuraciones = \App\Models\Configuracion::all()->toArray();
+            $roles = \App\Models\Role::all()->toArray();
+            $notificaciones = \App\Models\Notificacion::all()->toArray();
+
+            // Crear backup completo combinando base de datos y archivos
             $data = [
                 'backup_info' => [
                     'created_at' => now()->toISOString(),
-                    'created_by' => 'Arepa la Llanerita - Sistema de Respaldos',
+                    'created_by' => auth()->user()->name ?? 'Sistema',
                     'type' => 'full_backup',
-                    'version' => '2.0',
-                    'format' => 'JSON - Complete system backup',
-                    'description' => 'Respaldo completo del sistema: base de datos + archivos en formato JSON'
+                    'version' => '3.0',
+                    'format' => 'JSON - Complete MongoDB Export + Files Inventory',
+                    'description' => 'Respaldo completo: base de datos MongoDB con datos reales + inventario de archivos',
+                    'total_collections' => 8,
+                    'total_records' => count($users) + count($productos) + count($pedidos) + count($comisiones) + count($referidos) + count($configuraciones) + count($roles) + count($notificaciones)
                 ],
                 'system_info' => [
                     'php_version' => PHP_VERSION,
                     'laravel_version' => app()->version(),
+                    'mongodb_driver' => 'mongodb/laravel-mongodb',
                     'timestamp' => time(),
                     'server_time' => now()->format('Y-m-d H:i:s'),
-                    'timezone' => config('app.timezone', 'UTC')
+                    'timezone' => config('app.timezone', 'UTC'),
+                    'database' => config('database.connections.mongodb.database')
                 ],
-                'database_backup' => [
+                'database_collections' => [
                     'users' => [
+                        'total_records' => count($users),
                         'description' => 'Usuarios del sistema',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                        'data' => $users
                     ],
-                    'products' => [
-                        'description' => 'Catálogo de productos Arepa la Llanerita',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                    'productos' => [
+                        'total_records' => count($productos),
+                        'description' => 'Catálogo de productos',
+                        'data' => $productos
                     ],
-                    'orders' => [
-                        'description' => 'Historial de pedidos y ventas',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                    'pedidos' => [
+                        'total_records' => count($pedidos),
+                        'description' => 'Historial de pedidos',
+                        'data' => $pedidos
                     ],
-                    'settings' => [
-                        'description' => 'Configuraciones del sistema',
-                        'estimated_records' => 0,
-                        'status' => 'ready_for_export'
+                    'comisiones' => [
+                        'total_records' => count($comisiones),
+                        'description' => 'Sistema de comisiones',
+                        'data' => $comisiones
+                    ],
+                    'referidos' => [
+                        'total_records' => count($referidos),
+                        'description' => 'Red de referidos',
+                        'data' => $referidos
+                    ],
+                    'configuraciones' => [
+                        'total_records' => count($configuraciones),
+                        'description' => 'Configuraciones',
+                        'data' => $configuraciones
+                    ],
+                    'roles' => [
+                        'total_records' => count($roles),
+                        'description' => 'Roles y permisos',
+                        'data' => $roles
+                    ],
+                    'notificaciones' => [
+                        'total_records' => count($notificaciones),
+                        'description' => 'Notificaciones',
+                        'data' => $notificaciones
                     ]
                 ],
                 'files_inventory' => [
                     'storage_public' => $this->getDirectoryInfo(storage_path('app/public')),
                     'public_uploads' => $this->getDirectoryInfo(public_path('uploads')),
-                    'public_images' => $this->getDirectoryInfo(public_path('images')),
-                    'config_files' => [
-                        'description' => 'Archivos de configuración importantes',
-                        'note' => 'Por seguridad, las configuraciones no se incluyen en el respaldo'
-                    ]
+                    'public_images' => $this->getDirectoryInfo(public_path('images'))
                 ],
-                'export_instructions' => [
-                    'format' => 'Este archivo combina base de datos y archivos en formato JSON estándar',
-                    'compatibility' => 'Compatible con Excel, Google Sheets, y bases de datos',
-                    'database_section' => 'La sección database_backup contiene la estructura de datos',
-                    'files_section' => 'La sección files_inventory contiene el inventario de archivos',
-                    'usage' => 'Puede importarse fácilmente en cualquier sistema',
-                    'human_readable' => 'El formato es legible y editable manualmente'
+                'restore_instructions' => [
+                    'format' => 'Backup completo: base de datos + archivos',
+                    'database' => 'La sección database_collections contiene TODOS los datos reales',
+                    'files' => 'La sección files_inventory contiene el inventario completo de archivos',
+                    'usage' => 'Importar datos con mongoimport o importar a Excel/Sheets',
+                    'warning' => 'Contiene información sensible. Mantener seguro.'
                 ]
             ];
 
-            // Guardar como archivo JSON
-            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            // Guardar como archivo JSON legible
+            $success = file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
             if ($success === false) {
                 throw new \Exception('No se pudo escribir el archivo de backup completo');
             }
 
-            \Log::info('Backup completo creado exitosamente', [
+            \Log::info('Backup completo con datos reales creado exitosamente', [
                 'path' => $path,
                 'size' => filesize($path),
-                'format' => 'JSON'
+                'total_records' => $data['backup_info']['total_records'],
+                'collections' => 8
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Error en createFullBackup', [
+            \Log::error('Error en createFullBackup con datos reales', [
                 'error' => $e->getMessage(),
                 'path' => $path
             ]);

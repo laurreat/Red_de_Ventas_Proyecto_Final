@@ -177,51 +177,80 @@ class ConfiguracionController extends Controller
     public function backup()
     {
         try {
-            // Crear backup real usando MongoDB dump
+            // Crear backup real con datos de MongoDB
             $filename = 'backup_arepa_llanerita_' . now()->format('Y-m-d_H-i-s') . '.json';
-            $backupPath = storage_path('app/backups');
+            $tempPath = sys_get_temp_dir() . '/' . $filename;
 
-            // Crear directorio si no existe
-            if (!file_exists($backupPath)) {
-                mkdir($backupPath, 0755, true);
-            }
+            // Obtener datos reales de MongoDB
+            $users = \App\Models\User::all()->toArray();
+            $productos = \App\Models\Producto::all()->toArray();
+            $pedidos = \App\Models\Pedido::all()->toArray();
+            $comisiones = \App\Models\Comision::all()->toArray();
+            $referidos = \App\Models\Referido::all()->toArray();
+            $configuraciones = \App\Models\Configuracion::all()->toArray();
+            $roles = \App\Models\Role::all()->toArray();
+            $notificaciones = \App\Models\Notificacion::all()->toArray();
 
-            // Ejecutar comando de backup MongoDB (simulado para este ejemplo)
-            $collections = ['users', 'products', 'orders', 'comisiones'];
-            $backupData = [];
-
-            foreach ($collections as $collection) {
-                try {
-                    // En un entorno real, aquí se haría el dump de MongoDB
-                    $backupData[$collection] = "Backup data for {$collection} collection";
-                } catch (\Exception $e) {
-                    $backupData[$collection] = "Error backing up {$collection}: " . $e->getMessage();
-                }
-            }
-
-            // Guardar backup
-            $fullPath = $backupPath . '/' . $filename;
-            file_put_contents($fullPath, json_encode([
-                'timestamp' => now()->toISOString(),
-                'version' => app()->version(),
-                'collections' => $backupData,
+            // Preparar estructura del backup
+            $backupData = [
+                'backup_info' => [
+                    'timestamp' => now()->toISOString(),
+                    'date_human' => now()->format('d/m/Y H:i:s'),
+                    'laravel_version' => app()->version(),
+                    'app_version' => '1.0.0',
+                    'created_by' => auth()->user()->name,
+                    'created_by_email' => auth()->user()->email,
+                    'database' => config('database.default'),
+                ],
+                'collections' => [
+                    'users' => [
+                        'total_records' => count($users),
+                        'data' => $users
+                    ],
+                    'productos' => [
+                        'total_records' => count($productos),
+                        'data' => $productos
+                    ],
+                    'pedidos' => [
+                        'total_records' => count($pedidos),
+                        'data' => $pedidos
+                    ],
+                    'comisiones' => [
+                        'total_records' => count($comisiones),
+                        'data' => $comisiones
+                    ],
+                    'referidos' => [
+                        'total_records' => count($referidos),
+                        'data' => $referidos
+                    ],
+                    'configuraciones' => [
+                        'total_records' => count($configuraciones),
+                        'data' => $configuraciones
+                    ],
+                    'roles' => [
+                        'total_records' => count($roles),
+                        'data' => $roles
+                    ],
+                    'notificaciones' => [
+                        'total_records' => count($notificaciones),
+                        'data' => $notificaciones
+                    ],
+                ],
                 'statistics' => [
-                    'file_size' => '0 MB',
-                    'collections_count' => count($collections),
-                    'created_by' => auth()->user()->name
+                    'total_collections' => 8,
+                    'total_records' => count($users) + count($productos) + count($pedidos) + count($comisiones) + count($referidos) + count($configuraciones) + count($roles) + count($notificaciones),
                 ]
-            ], JSON_PRETTY_PRINT));
+            ];
 
-            $fileSize = round(filesize($fullPath) / 1024 / 1024, 2);
+            // Guardar backup en archivo temporal con formato legible
+            file_put_contents($tempPath, json_encode($backupData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Backup creado exitosamente',
-                'filename' => $filename,
-                'size' => $fileSize . ' MB',
-                'path' => 'storage/app/backups/' . $filename,
-                'collections' => count($collections)
-            ]);
+            // Retornar descarga automática y eliminar archivo temporal después
+            return response()->download($tempPath, $filename, [
+                'Content-Type' => 'application/json',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ])->deleteFileAfterSend(true);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
