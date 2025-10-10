@@ -31,6 +31,7 @@ Route::get('/inicio', function () {
 Auth::routes();
 
 // Dashboard principal (requiere autenticación)
+//rol de cliente
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])
     ->name('dashboard');
@@ -38,6 +39,46 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // Rutas protegidas por roles
 Route::middleware(['auth', 'role'])->group(function () {
     
+/**
+ * RUTAS DEL CLIENTE
+ * Protegidas con middleware auth y verified
+ */
+
+    Route::prefix('cliente')->name('cliente.')->middleware(['auth', 'verified'])->group(function () {
+        
+        // Dashboard Principal
+        Route::get('/dashboard', [ClienteDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // Favoritos
+        Route::post('/favoritos/agregar', [ClienteDashboardController::class, 'agregarFavorito'])
+            ->name('favoritos.agregar');
+        
+        Route::post('/favoritos/eliminar', [ClienteDashboardController::class, 'eliminarFavorito'])
+            ->name('favoritos.eliminar');
+
+        // Perfil
+        Route::post('/perfil/actualizar', [ClienteDashboardController::class, 'actualizarPerfil'])
+            ->name('perfil.actualizar');
+
+        // Pedidos
+        Route::post('/pedidos/crear', [ClienteDashboardController::class, 'crearPedido'])
+            ->name('pedidos.crear');
+        
+        Route::get('/pedidos/historial', [ClienteDashboardController::class, 'historialPedidos'])
+            ->name('pedidos.historial');
+        
+        Route::get('/pedidos/{id}', [ClienteDashboardController::class, 'verPedido'])
+            ->name('pedidos.ver');
+        
+        Route::post('/pedidos/{id}/cancelar', [ClienteDashboardController::class, 'cancelarPedido'])
+            ->name('pedidos.cancelar');
+
+        // Recomendaciones
+        Route::get('/productos/recomendados', [ClienteDashboardController::class, 'productosRecomendados'])
+            ->name('productos.recomendados');
+    });
+
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {
         // Dashboard SPA del Administrador

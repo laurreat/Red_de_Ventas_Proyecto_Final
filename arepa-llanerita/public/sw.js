@@ -6,7 +6,11 @@ const urlsToCache = [
   '/images/favicon.svg',
   '/images/icons/icon-192x192.png',
   '/images/icons/icon-512x512.png',
-  '/images/icons/icon-144x144.png'
+  '/images/icons/icon-144x144.png',
+  '/',
+  '/css/pages/cliente-dashboard-modern.css',
+  '/js/pages/cliente-dashboard-modern.js',
+  '/offline.html'
 ];
 
 // Eventos principales del service worker
@@ -252,4 +256,34 @@ self.addEventListener('notificationclick', event => {
       clients.openWindow('/')
     );
   }
+});
+
+// Sincronización en segundo plano
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-orders') {
+    event.waitUntil(syncOrders());
+  }
+});
+
+function syncOrders() {
+  // Sincronizar pedidos pendientes cuando vuelva la conexión
+  return Promise.resolve();
+}
+
+// Notificaciones Push
+self.addEventListener('push', event => {
+  const options = {
+    body: event.data ? event.data.text() : 'Nuevo pedido disponible',
+    icon: '/images/icon-192x192.png',
+    badge: '/images/badge-72x72.png',
+    vibrate: [200, 100, 200],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('Arepa la Llanerita', options)
+  );
 });

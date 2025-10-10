@@ -323,7 +323,7 @@ class DashboardController extends Controller
         // Productos favoritos (los más comprados por el cliente)
         $productos_favoritos = $this->obtenerProductosFavoritosCliente($user->_id);
 
-        return view('dashboard.cliente', compact('stats', 'pedidos_recientes', 'productos_favoritos'));
+        return view('cliente.dashboard', compact('stats', 'pedidos_recientes', 'productos_favoritos'));
     }
 
     // Métodos auxiliares para el dashboard admin
