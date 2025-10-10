@@ -12,9 +12,45 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 // use Maatwebsite\Excel\Facades\Excel; // Removed - Excel export functionality removed
 use Barryvdh\DomPDF\Facade\Pdf;
+use MongoDB\BSON\Decimal128;
 
 class ReporteController extends Controller
 {
+    /**
+     * Convert MongoDB Decimal128 or any value to float safely
+     */
+    private function toFloat($value)
+    {
+        if ($value instanceof Decimal128) {
+            return (float) $value->__toString();
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Recursively convert Decimal128 values in arrays
+     */
+    private function convertDecimal128InArray($data)
+    {
+        if (!is_array($data)) {
+            return $data;
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value instanceof Decimal128) {
+                $data[$key] = (float) $value->__toString();
+            } elseif (is_array($value)) {
+                $data[$key] = $this->convertDecimal128InArray($value);
+            }
+        }
+
+        return $data;
+    }
     public function __construct()
     {
         $this->middleware('auth');
@@ -35,7 +71,7 @@ class ReporteController extends Controller
         $tipoReporte = $request->get('tipo_reporte', 'resumen');
 
         // Consulta base
-        $query = Pedido::with(['cliente', 'vendedor', 'detalles.producto'])
+        $query = Pedido::with(['cliente', 'vendedor'])
             ->whereDate('created_at', '>=', $fechaInicio)
             ->whereDate('created_at', '<=', $fechaFin)
             ->where('estado', '!=', 'cancelado');
@@ -47,24 +83,36 @@ class ReporteController extends Controller
         $pedidos = $query->get();
 
         // Estadísticas generales
+        $totalIngresos = 0;
+        $productosVendidos = 0;
+
+        foreach ($pedidos as $pedido) {
+            $totalIngresos += $this->toFloat($pedido->total_final);
+            $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
+            foreach ($detalles as $detalle) {
+                $productosVendidos += (int)($detalle['cantidad'] ?? 0);
+            }
+        }
+
+        $totalVentas = $pedidos->count();
         $stats = [
-            'total_ventas' => $pedidos->count(),
-            'total_ingresos' => to_float($pedidos->sum('total_final')),
-            'ticket_promedio' => $pedidos->count() > 0 ? $pedidos->avg('total_final') : 0,
-            'productos_vendidos' => $pedidos->sum(function ($pedido) {
-                return collect($pedido->detalles)->sum(function($detalle) {
-                    return $detalle['cantidad'] ?? 0;
-                });
-            }),
+            'total_ventas' => (int)$totalVentas,
+            'total_ingresos' => (float)$totalIngresos,
+            'ticket_promedio' => $totalVentas > 0 ? (float)((float)$totalIngresos / (float)$totalVentas) : 0.0,
+            'productos_vendidos' => (int)$productosVendidos,
         ];
 
         // Ventas por día
         $ventasPorDia = $pedidos->groupBy(function ($pedido) {
             return $pedido->created_at->format('Y-m-d');
         })->map(function ($pedidosDia) {
+            $total = 0;
+            foreach ($pedidosDia as $pedido) {
+                $total += $this->toFloat($pedido->total_final);
+            }
             return [
-                'cantidad' => $pedidosDia->count(),
-                'total' => to_float($pedidosDia->sum('total_final'))
+                'cantidad' => (int)$pedidosDia->count(),
+                'total' => (float)$total
             ];
         });
 
@@ -73,34 +121,46 @@ class ReporteController extends Controller
             ->groupBy('vendedor_id')
             ->map(function ($pedidosVendedor) {
                 $vendedor = $pedidosVendedor->first()->vendedor;
+                if (!$vendedor) {
+                    return null;
+                }
+                $totalVentas = 0.0;
+                foreach ($pedidosVendedor as $pedido) {
+                    $totalVentas += $this->toFloat($pedido->total_final);
+                }
                 return [
-                    'vendedor' => $vendedor->name,
-                    'email' => $vendedor->email,
-                    'cantidad_pedidos' => $pedidosVendedor->count(),
-                    'total_ventas' => to_float($pedidosVendedor->sum('total_final')),
-                    'comision_estimada' => to_float($pedidosVendedor->sum('total_final')) * 0.1, // 10% comisión estimada
+                    'vendedor' => $vendedor->name ?? 'Sin nombre',
+                    'email' => $vendedor->email ?? '',
+                    'cantidad_pedidos' => (int)$pedidosVendedor->count(),
+                    'total_ventas' => (float)$totalVentas,
+                    'comision_estimada' => (float)($totalVentas * 0.1),
                 ];
-            });
+            })
+            ->filter(); // Eliminar elementos null
 
         // Productos más vendidos
         $productosData = [];
 
         foreach ($pedidos as $pedido) {
-            foreach ($pedido->detalles as $detalle) {
+            $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
+            foreach ($detalles as $detalle) {
                 $productoId = $detalle['producto_id'] ?? null;
                 if (!$productoId) continue;
 
                 if (!isset($productosData[$productoId])) {
                     $productosData[$productoId] = [
-                        'producto' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
-                        'categoria' => $detalle['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría',
+                        'producto' => $detalle['producto_nombre'] ?? 'Producto sin nombre',
+                        'categoria' => 'General',
                         'cantidad_vendida' => 0,
-                        'total_ingresos' => 0,
+                        'total_ingresos' => 0.0,
                     ];
                 }
 
-                $productosData[$productoId]['cantidad_vendida'] += $detalle['cantidad'] ?? 0;
-                $productosData[$productoId]['total_ingresos'] += $detalle['subtotal'] ?? 0;
+                $cantidadActual = (int)($productosData[$productoId]['cantidad_vendida'] ?? 0);
+                $ingresosActual = (float)($productosData[$productoId]['total_ingresos'] ?? 0);
+
+                $productosData[$productoId]['cantidad_vendida'] = $cantidadActual + (int)($detalle['cantidad'] ?? 0);
+                $productosData[$productoId]['total_ingresos'] = $ingresosActual + (float)($detalle['subtotal'] ?? 0);
             }
         }
 
@@ -112,26 +172,38 @@ class ReporteController extends Controller
         $clientesMasActivos = $pedidos->groupBy('cliente_id')
             ->map(function ($pedidosCliente) {
                 $cliente = $pedidosCliente->first()->cliente;
+                if (!$cliente) {
+                    return null;
+                }
+                $totalGastado = 0.0;
+                foreach ($pedidosCliente as $pedido) {
+                    $totalGastado += $this->toFloat($pedido->total_final);
+                }
                 return [
-                    'cliente' => $cliente->name,
-                    'email' => $cliente->email,
-                    'cantidad_pedidos' => $pedidosCliente->count(),
-                    'total_gastado' => to_float($pedidosCliente->sum('total_final')),
+                    'cliente' => $cliente->name ?? 'Sin nombre',
+                    'email' => $cliente->email ?? '',
+                    'cantidad_pedidos' => (int)$pedidosCliente->count(),
+                    'total_gastado' => (float)$totalGastado,
                 ];
             })
+            ->filter() // Eliminar elementos null
             ->sortByDesc('total_gastado')
             ->take(10);
 
         // Ventas por estado
         $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {
+            $total = 0;
+            foreach ($pedidosEstado as $pedido) {
+                $total += $this->toFloat($pedido->total_final);
+            }
             return [
-                'cantidad' => $pedidosEstado->count(),
-                'total' => to_float($pedidosEstado->sum('total_final'))
+                'cantidad' => (int)$pedidosEstado->count(),
+                'total' => (float)$total
             ];
         });
 
         // Para filtros
-        $vendedores = User::vendedores()->orderBy('name')->get();
+        $vendedores = User::where('rol', 'vendedor')->orderBy('name')->get();
 
         return view('admin.reportes.ventas', compact(
             'stats',
@@ -189,11 +261,18 @@ class ReporteController extends Controller
             ->get();
 
         // Estadísticas
+        $totalUnidades = 0;
+        $totalIngresos = 0;
+        foreach ($productosConVentas as $producto) {
+            $totalUnidades += (int)($producto->cantidad_vendida ?? 0);
+            $totalIngresos += (float)($producto->ingresos_totales ?? 0);
+        }
+
         $stats = [
-            'productos_vendidos' => $productosConVentas->count(),
-            'productos_sin_ventas' => $productosSinVentas->count(),
-            'total_unidades' => $productosConVentas->sum('cantidad_vendida'),
-            'total_ingresos' => $productosConVentas->sum('ingresos_totales'),
+            'productos_vendidos' => (int)$productosConVentas->count(),
+            'productos_sin_ventas' => (int)$productosSinVentas->count(),
+            'total_unidades' => (int)$totalUnidades,
+            'total_ingresos' => (float)$totalIngresos,
         ];
 
         // Para filtros
@@ -240,11 +319,19 @@ class ReporteController extends Controller
             ->get();
 
         // Estadísticas
+        $totalComisiones = 0;
+        $totalVentas = 0;
+        foreach ($comisiones as $comision) {
+            $totalComisiones += (float)($comision->comision_estimada ?? 0);
+            $totalVentas += (float)($comision->total_ventas ?? 0);
+        }
+
+        $vendedoresActivos = $comisiones->count();
         $stats = [
-            'total_comisiones' => $comisiones->sum('comision_estimada'),
-            'total_ventas' => $comisiones->sum('total_ventas'),
-            'vendedores_activos' => $comisiones->count(),
-            'promedio_comision' => $comisiones->count() > 0 ? $comisiones->avg('comision_estimada') : 0,
+            'total_comisiones' => (float)$totalComisiones,
+            'total_ventas' => (float)$totalVentas,
+            'vendedores_activos' => (int)$vendedoresActivos,
+            'promedio_comision' => $vendedoresActivos > 0 ? (float)((float)$totalComisiones / (float)$vendedoresActivos) : 0.0,
         ];
 
         // Para filtros
@@ -287,24 +374,36 @@ class ReporteController extends Controller
         $pedidos = $query->get();
 
         // Estadísticas generales
+        $totalIngresos = 0;
+        $productosVendidos = 0;
+
+        foreach ($pedidos as $pedido) {
+            $totalIngresos += $this->toFloat($pedido->total_final);
+            $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
+            foreach ($detalles as $detalle) {
+                $productosVendidos += (int)($detalle['cantidad'] ?? 0);
+            }
+        }
+
+        $totalVentasCount = $pedidos->count();
         $stats = [
-            'total_ventas' => $pedidos->count(),
-            'total_ingresos' => to_float($pedidos->sum('total_final')),
-            'ticket_promedio' => $pedidos->count() > 0 ? $pedidos->avg('total_final') : 0,
-            'productos_vendidos' => $pedidos->sum(function ($pedido) {
-                return collect($pedido->detalles)->sum(function($detalle) {
-                    return $detalle['cantidad'] ?? 0;
-                });
-            }),
+            'total_ventas' => (int)$totalVentasCount,
+            'total_ingresos' => (float)$totalIngresos,
+            'ticket_promedio' => $totalVentasCount > 0 ? (float)((float)$totalIngresos / (float)$totalVentasCount) : 0.0,
+            'productos_vendidos' => (int)$productosVendidos,
         ];
 
         // Ventas por día
         $ventasPorDia = $pedidos->groupBy(function ($pedido) {
             return $pedido->created_at->format('Y-m-d');
         })->map(function ($pedidosDia) {
+            $total = 0;
+            foreach ($pedidosDia as $pedido) {
+                $total += $this->toFloat($pedido->total_final);
+            }
             return [
-                'cantidad' => $pedidosDia->count(),
-                'total' => to_float($pedidosDia->sum('total_final'))
+                'cantidad' => (int)$pedidosDia->count(),
+                'total' => (float)$total
             ];
         });
 
@@ -313,33 +412,45 @@ class ReporteController extends Controller
             ->groupBy('vendedor_id')
             ->map(function ($pedidosVendedor) {
                 $vendedor = $pedidosVendedor->first()->vendedor;
+                if (!$vendedor) {
+                    return null;
+                }
+                $totalVentas = 0.0;
+                foreach ($pedidosVendedor as $pedido) {
+                    $totalVentas += $this->toFloat($pedido->total_final);
+                }
                 return [
-                    'vendedor' => $vendedor->name,
-                    'email' => $vendedor->email,
-                    'cantidad_pedidos' => $pedidosVendedor->count(),
-                    'total_ventas' => to_float($pedidosVendedor->sum('total_final')),
-                    'comision_estimada' => to_float($pedidosVendedor->sum('total_final')) * 0.1,
+                    'vendedor' => $vendedor->name ?? 'Sin nombre',
+                    'email' => $vendedor->email ?? '',
+                    'cantidad_pedidos' => (int)$pedidosVendedor->count(),
+                    'total_ventas' => (float)$totalVentas,
+                    'comision_estimada' => (float)($totalVentas * 0.1),
                 ];
-            });
+            })
+            ->filter(); // Eliminar elementos null
 
         // Productos más vendidos
         $productosData = [];
         foreach ($pedidos as $pedido) {
-            foreach ($pedido->detalles as $detalle) {
+            $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
+            foreach ($detalles as $detalle) {
                 $productoId = $detalle['producto_id'] ?? null;
                 if (!$productoId) continue;
 
                 if (!isset($productosData[$productoId])) {
                     $productosData[$productoId] = [
-                        'producto' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
-                        'categoria' => $detalle['producto_data']['categoria_data']['nombre'] ?? 'Sin categoría',
+                        'producto' => $detalle['producto_nombre'] ?? 'Producto sin nombre',
+                        'categoria' => 'General',
                         'cantidad_vendida' => 0,
-                        'total_ingresos' => 0,
+                        'total_ingresos' => 0.0,
                     ];
                 }
 
-                $productosData[$productoId]['cantidad_vendida'] += $detalle['cantidad'] ?? 0;
-                $productosData[$productoId]['total_ingresos'] += $detalle['subtotal'] ?? 0;
+                $cantidadActual = (int)($productosData[$productoId]['cantidad_vendida'] ?? 0);
+                $ingresosActual = (float)($productosData[$productoId]['total_ingresos'] ?? 0);
+
+                $productosData[$productoId]['cantidad_vendida'] = $cantidadActual + (int)($detalle['cantidad'] ?? 0);
+                $productosData[$productoId]['total_ingresos'] = $ingresosActual + (float)($detalle['subtotal'] ?? 0);
             }
         }
 
@@ -351,21 +462,33 @@ class ReporteController extends Controller
         $clientesMasActivos = $pedidos->groupBy('cliente_id')
             ->map(function ($pedidosCliente) {
                 $cliente = $pedidosCliente->first()->cliente;
+                if (!$cliente) {
+                    return null;
+                }
+                $totalGastado = 0.0;
+                foreach ($pedidosCliente as $pedido) {
+                    $totalGastado += $this->toFloat($pedido->total_final);
+                }
                 return [
-                    'cliente' => $cliente->name,
-                    'email' => $cliente->email,
-                    'cantidad_pedidos' => $pedidosCliente->count(),
-                    'total_gastado' => to_float($pedidosCliente->sum('total_final')),
+                    'cliente' => $cliente->name ?? 'Sin nombre',
+                    'email' => $cliente->email ?? '',
+                    'cantidad_pedidos' => (int)$pedidosCliente->count(),
+                    'total_gastado' => (float)$totalGastado,
                 ];
             })
+            ->filter() // Eliminar elementos null
             ->sortByDesc('total_gastado')
             ->take(10);
 
         // Ventas por estado
         $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {
+            $total = 0;
+            foreach ($pedidosEstado as $pedido) {
+                $total += $this->toFloat($pedido->total_final);
+            }
             return [
-                'cantidad' => $pedidosEstado->count(),
-                'total' => to_float($pedidosEstado->sum('total_final'))
+                'cantidad' => (int)$pedidosEstado->count(),
+                'total' => (float)$total
             ];
         });
 

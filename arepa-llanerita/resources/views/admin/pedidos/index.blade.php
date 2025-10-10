@@ -4,352 +4,302 @@
 @section('page-title', 'Gestión de Pedidos')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}?v={{ time() }}">
-<link rel="stylesheet" href="{{ asset('css/admin/modals-pedidos.css') }}?v={{ time() }}">
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos-modern.css') }}?v={{ filemtime(public_path('css/admin/pedidos-modern.css')) }}">
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #722f37 0%, #8b3c44 100%);">
-                <div class="card-body text-white p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 fw-bold text-white">Administra todos los pedidos del sistema</h2>
-                        </div>
-                    <div>
-                        <a href="{{ route('admin.pedidos.create') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i>
-                            Nuevo Pedido
-                        </a>
-                    </div>
-                    </div>
-                </div>
+<div class="container-fluid fade-in">
+    {{-- Header Hero --}}
+    <div class="pedido-header scale-in">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="pedido-header-title">Gestión de Pedidos</h1>
+                <p class="pedido-header-subtitle">Administra todos los pedidos del sistema de manera eficiente</p>
+            </div>
+            <div class="pedido-header-actions">
+                <a href="{{ route('admin.pedidos.create') }}" class="pedido-btn pedido-btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nuevo Pedido</span>
+                </a>
             </div>
         </div>
     </div>
 
-    {{-- Mensajes flash manejados por AdminAlerts en admin-functions.js --}}
-
-    <!-- Estadísticas de Pedidos -->
+    {{-- Estadísticas de Pedidos --}}
     <div class="row mb-4">
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-basket3 fs-2" style="color: var(--primary-color);"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ $stats['total_pedidos'] }}</h3>
-                    <p class="text-muted mb-0 small">Total Pedidos</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-1">
+                <div class="pedido-stat-icon" style="background:rgba(114,47,55,0.1);color:var(--wine);">
+                    <i class="bi bi-basket3"></i>
                 </div>
+                <div class="pedido-stat-value">{{ $stats['total_pedidos'] }}</div>
+                <div class="pedido-stat-label">Total Pedidos</div>
             </div>
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.1);">
-                        <i class="bi bi-clock fs-2 text-primary"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-primary">{{ $stats['pedidos_hoy'] }}</h3>
-                    <p class="text-muted mb-0 small">Hoy</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-2">
+                <div class="pedido-stat-icon" style="background:rgba(59,130,246,0.1);color:var(--info);">
+                    <i class="bi bi-clock"></i>
                 </div>
+                <div class="pedido-stat-value">{{ $stats['pedidos_hoy'] }}</div>
+                <div class="pedido-stat-label">Pedidos Hoy</div>
             </div>
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
-                        <i class="bi bi-hourglass-split fs-2 text-warning"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-warning">{{ $stats['pedidos_pendientes'] }}</h3>
-                    <p class="text-muted mb-0 small">Pendientes</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-3">
+                <div class="pedido-stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning);">
+                    <i class="bi bi-hourglass-split"></i>
                 </div>
+                <div class="pedido-stat-value">{{ $stats['pedidos_pendientes'] }}</div>
+                <div class="pedido-stat-label">Pendientes</div>
             </div>
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.1);">
-                        <i class="bi bi-check-circle fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">{{ $stats['pedidos_entregados'] }}</h3>
-                    <p class="text-muted mb-0 small">Entregados</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-1">
+                <div class="pedido-stat-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">
+                    <i class="bi bi-check-circle"></i>
                 </div>
+                <div class="pedido-stat-value">{{ $stats['pedidos_entregados'] }}</div>
+                <div class="pedido-stat-label">Entregados</div>
             </div>
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(220, 53, 69, 0.1);">
-                        <i class="bi bi-x-circle fs-2 text-danger"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-danger">{{ $stats['pedidos_cancelados'] }}</h3>
-                    <p class="text-muted mb-0 small">Cancelados</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-2">
+                <div class="pedido-stat-icon" style="background:rgba(239,68,68,0.1);color:var(--danger);">
+                    <i class="bi bi-x-circle"></i>
                 </div>
+                <div class="pedido-stat-value">{{ $stats['pedidos_cancelados'] }}</div>
+                <div class="pedido-stat-label">Cancelados</div>
             </div>
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm stats-card">
-                <div class="card-body text-center p-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-currency-dollar fs-2" style="color: var(--primary-color);"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">${{ format_currency($stats['ingresos_mes']) }}</h3>
-                    <p class="text-muted mb-0 small">Ingresos del Mes</p>
+            <div class="pedido-stat-card fade-in-up animate-delay-3">
+                <div class="pedido-stat-icon" style="background:rgba(114,47,55,0.1);color:var(--wine);">
+                    <i class="bi bi-currency-dollar"></i>
                 </div>
+                <div class="pedido-stat-value">${{ format_currency($stats['ingresos_mes']) }}</div>
+                <div class="pedido-stat-label">Ingresos del Mes</div>
             </div>
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm filters-card">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-funnel me-2"></i>
-                        Filtros de Búsqueda
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form method="GET" action="{{ route('admin.pedidos.index') }}">
-                        <div class="row">
-                            <div class="col-lg-3 col-md-4 mb-3">
-                                <label class="form-label">Buscar pedido</label>
-                                <input type="text" class="form-control" name="buscar"
-                                       placeholder="Número de pedido, cliente..."
-                                       value="{{ request('buscar') }}">
-                            </div>
-                            <div class="col-lg-2 col-md-4 mb-3">
-                                <label class="form-label">Estado</label>
-                                <select class="form-select" name="estado">
-                                    <option value="">Todos los estados</option>
-                                    @foreach($estados as $valor => $nombre)
-                                        <option value="{{ $valor }}"
-                                                {{ request('estado') == $valor ? 'selected' : '' }}>
-                                            {{ $nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-2 col-md-4 mb-3">
-                                <label class="form-label">Vendedor</label>
-                                <select class="form-select" name="vendedor">
-                                    <option value="">Todos los vendedores</option>
-                                    @foreach($vendedores as $vendedor)
-                                        <option value="{{ $vendedor->id }}"
-                                                {{ request('vendedor') == $vendedor->id ? 'selected' : '' }}>
-                                            {{ $vendedor->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-2 col-md-6 mb-3">
-                                <label class="form-label">Fecha Desde</label>
-                                <input type="date" class="form-control" name="fecha_desde"
-                                       value="{{ request('fecha_desde') }}">
-                            </div>
-                            <div class="col-lg-2 col-md-6 mb-3">
-                                <label class="form-label">Fecha Hasta</label>
-                                <input type="date" class="form-control" name="fecha_hasta"
-                                       value="{{ request('fecha_hasta') }}">
-                            </div>
-                            <div class="col-lg-1 col-md-12 mb-3">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                    <a href="{{ route('admin.pedidos.index') }}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    {{-- Filtros de Búsqueda --}}
+    <div class="pedido-filters-card fade-in-up">
+        <div class="pedido-filters-header">
+            <i class="bi bi-funnel"></i>
+            <h3 class="pedido-filters-title">Filtros de Búsqueda</h3>
         </div>
-    </div>
-
-    <!-- Lista de Pedidos -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-list-ul me-2"></i>
-                        Lista de Pedidos ({{ $pedidos->total() }})
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    @if($pedidos->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Pedido</th>
-                                        <th>Cliente</th>
-                                        <th>Vendedor</th>
-                                        <th>Total</th>
-                                        <th>Estado</th>
-                                        <th>Fecha</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($pedidos as $pedido)
-                                    <tr>
-                                        <td>
-                                            <div>
-                                                <div class="fw-medium">{{ $pedido->numero_pedido }}</div>
-                                                <small class="text-muted">{{ count($pedido->detalles_embebidos) }} producto(s)</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div>
-                                                <div class="fw-medium">{{ $pedido->cliente->name }}</div>
-                                                <small class="text-muted">{{ $pedido->cliente->email }}</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if($pedido->vendedor)
-                                                <div>
-                                                    <div class="fw-medium">{{ $pedido->vendedor->name }}</div>
-                                                    <small class="text-muted">{{ $pedido->vendedor->email }}</small>
-                                                </div>
-                                            @else
-                                                <span class="text-muted">Sin vendedor</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div>
-                                                <strong>${{ format_currency($pedido->total_final) }}</strong>
-                                                @if($pedido->descuento > 0)
-                                                    <small class="text-success d-block">-${{ format_currency($pedido->descuento) }}</small>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @switch($pedido->estado)
-                                                @case('pendiente')
-                                                    <span class="badge bg-warning">Pendiente</span>
-                                                    @break
-                                                @case('confirmado')
-                                                    <span class="badge bg-info">Confirmado</span>
-                                                    @break
-                                                @case('en_preparacion')
-                                                    <span class="badge bg-primary">En Preparación</span>
-                                                    @break
-                                                @case('listo')
-                                                    <span class="badge bg-secondary">Listo</span>
-                                                    @break
-                                                @case('en_camino')
-                                                    <span class="badge" style="background-color: var(--primary-color);">En Camino</span>
-                                                    @break
-                                                @case('entregado')
-                                                    <span class="badge bg-success">Entregado</span>
-                                                    @break
-                                                @case('cancelado')
-                                                    <span class="badge bg-danger">Cancelado</span>
-                                                    @break
-                                            @endswitch
-                                        </td>
-                                        <td>
-                                            <div>
-                                                <div>{{ $pedido->created_at->format('d/m/Y') }}</div>
-                                                <small class="text-muted">{{ $pedido->created_at->format('H:i') }}</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('admin.pedidos.show', $pedido) }}"
-                                                   class="btn btn-sm btn-outline-info" title="Ver Detalles">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
-                                                    <a href="{{ route('admin.pedidos.edit', $pedido) }}"
-                                                       class="btn btn-sm btn-outline-primary" title="Editar">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                @endif
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-secondary"
-                                                        title="Cambiar Estado"
-                                                        onclick="event.preventDefault(); showStatusSelector({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode(ucfirst($pedido->estado)) }}, {{ json_encode($estados) }})">
-                                                    <i class="bi bi-arrow-repeat"></i>
-                                                </button>
-                                                @if($pedido->estado != 'entregado')
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            title="Eliminar"
-                                                            onclick="event.preventDefault(); confirmDeletePedido({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode('$' . format_currency($pedido->total_final)) }}, {{ json_encode(ucfirst($pedido->estado)) }})">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </div>
-
-                                            <!-- Formularios ocultos -->
-                                            <form id="status-form-{{ $pedido->id }}"
-                                                  action="{{ route('admin.pedidos.update-status', $pedido) }}"
-                                                  method="POST" class="d-none">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="estado" id="estado-{{ $pedido->id }}">
-                                            </form>
-
-                                            <form id="delete-form-{{ $pedido->id }}"
-                                                  action="{{ route('admin.pedidos.destroy', $pedido) }}"
-                                                  method="POST" class="d-none">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Paginación -->
-                        <div class="p-4">
-                            {{ $pedidos->appends(request()->query())->links() }}
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <i class="bi bi-basket3 fs-1 text-muted"></i>
-                            <h4 class="mt-3 text-muted">No hay pedidos</h4>
-                            <p class="text-muted">No se encontraron pedidos que coincidan con los filtros.</p>
-                            <a href="{{ route('admin.pedidos.create') }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-1"></i>
-                                Crear primer pedido
+        <div class="pedido-filters-body">
+            <form method="GET" action="{{ route('admin.pedidos.index') }}" autocomplete="off">
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Buscar pedido</label>
+                        <input type="text" class="form-control" name="buscar"
+                               placeholder="Número de pedido, cliente..."
+                               value="{{ request('buscar') }}"
+                               style="border-radius:10px;padding:.75rem;">
+                    </div>
+                    <div class="col-lg-2 col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Estado</label>
+                        <select class="form-select" name="estado" style="border-radius:10px;padding:.75rem;">
+                            <option value="">Todos los estados</option>
+                            @foreach($estados as $valor => $nombre)
+                                <option value="{{ $valor }}" {{ request('estado') == $valor ? 'selected' : '' }}>
+                                    {{ $nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Vendedor</label>
+                        <select class="form-select" name="vendedor" style="border-radius:10px;padding:.75rem;">
+                            <option value="">Todos los vendedores</option>
+                            @foreach($vendedores as $vendedor)
+                                <option value="{{ $vendedor->id }}" {{ request('vendedor') == $vendedor->id ? 'selected' : '' }}>
+                                    {{ $vendedor->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha Desde</label>
+                        <input type="date" class="form-control" name="fecha_desde"
+                               value="{{ request('fecha_desde') }}" style="border-radius:10px;padding:.75rem;">
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Fecha Hasta</label>
+                        <input type="date" class="form-control" name="fecha_hasta"
+                               value="{{ request('fecha_hasta') }}" style="border-radius:10px;padding:.75rem;">
+                    </div>
+                    <div class="col-lg-1 col-md-12 mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" style="border-radius:10px;padding:.75rem;">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a href="{{ route('admin.pedidos.index') }}" class="btn btn-outline-secondary" style="border-radius:10px;padding:.75rem;">
+                                <i class="bi bi-x-circle"></i>
                             </a>
                         </div>
-                    @endif
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Incluir modales profesionales de pedidos -->
-@include('admin.partials.modals-pedidos-professional')
+    {{-- Tabla de Pedidos --}}
+    <div class="pedido-table-container fade-in-up">
+        <div class="pedido-table-header">
+            <h3 class="pedido-table-header-title">
+                <i class="bi bi-list-ul"></i>
+                <span>Lista de Pedidos ({{ $pedidos->total() }})</span>
+            </h3>
+        </div>
+
+        @if($pedidos->count() > 0)
+            <div class="table-responsive">
+                <table class="pedido-table">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th style="text-align:center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pedidos as $pedido)
+                        <tr class="fade-in-up">
+                            <td>
+                                <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
+                                    {{ $pedido->numero_pedido }}
+                                </div>
+                                <small style="color:var(--gray-500);">
+                                    <i class="bi bi-box-seam"></i> {{ count($pedido->detalles_embebidos) }} producto(s)
+                                </small>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
+                                    {{ $pedido->cliente->name }}
+                                </div>
+                                <small style="color:var(--gray-500);">{{ $pedido->cliente->email }}</small>
+                            </td>
+                            <td>
+                                @if($pedido->vendedor)
+                                    <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
+                                        {{ $pedido->vendedor->name }}
+                                    </div>
+                                    <small style="color:var(--gray-500);">{{ $pedido->vendedor->email }}</small>
+                                @else
+                                    <span style="color:var(--gray-500);">Sin vendedor</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div style="font-weight:700;font-size:1.125rem;color:var(--wine);margin-bottom:.25rem;">
+                                    ${{ format_currency($pedido->total_final) }}
+                                </div>
+                                @if($pedido->descuento > 0)
+                                    <small style="color:var(--success);">
+                                        <i class="bi bi-tag"></i> -${{ format_currency($pedido->descuento) }}
+                                    </small>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="pedido-badge pedido-badge-{{ $pedido->estado }}">
+                                    {{ ucfirst(str_replace('_', ' ', $pedido->estado)) }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
+                                    {{ $pedido->created_at->format('d/m/Y') }}
+                                </div>
+                                <small style="color:var(--gray-500);">
+                                    <i class="bi bi-clock"></i> {{ $pedido->created_at->format('H:i') }}
+                                </small>
+                            </td>
+                            <td style="text-align:center;">
+                                <div style="display:inline-flex;gap:.25rem;">
+                                    <a href="{{ route('admin.pedidos.show', $pedido) }}"
+                                       class="pedido-action-btn pedido-action-btn-view"
+                                       title="Ver Detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
+                                        <a href="{{ route('admin.pedidos.edit', $pedido) }}"
+                                           class="pedido-action-btn pedido-action-btn-edit"
+                                           title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endif
+                                    <button type="button"
+                                            class="pedido-action-btn pedido-action-btn-status"
+                                            title="Cambiar Estado"
+                                            onclick="showStatusSelector({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode(ucfirst($pedido->estado)) }}, {{ json_encode($estados) }})">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                    @if($pedido->estado != 'entregado')
+                                        <button type="button"
+                                                class="pedido-action-btn pedido-action-btn-delete"
+                                                title="Eliminar"
+                                                onclick="confirmDeletePedido({{ json_encode($pedido->id) }}, {{ json_encode($pedido->numero_pedido) }}, {{ json_encode($pedido->cliente->name ?? 'Cliente') }}, {{ json_encode('$' . format_currency($pedido->total_final)) }}, {{ json_encode(ucfirst($pedido->estado)) }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    @endif
+                                </div>
+
+                                {{-- Formularios ocultos --}}
+                                <form id="status-form-{{ $pedido->id }}"
+                                      action="{{ route('admin.pedidos.update-status', $pedido) }}"
+                                      method="POST" class="d-none">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="estado" id="estado-{{ $pedido->id }}">
+                                </form>
+
+                                <form id="delete-form-{{ $pedido->id }}"
+                                      action="{{ route('admin.pedidos.destroy', $pedido) }}"
+                                      method="POST" class="d-none">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Paginación --}}
+            <div style="padding:1.5rem;">
+                {{ $pedidos->appends(request()->query())->links() }}
+            </div>
+        @else
+            <div class="pedido-empty-state">
+                <div class="pedido-empty-state-icon">
+                    <i class="bi bi-basket3"></i>
+                </div>
+                <h3 class="pedido-empty-state-title">No hay pedidos</h3>
+                <p class="pedido-empty-state-text">No se encontraron pedidos que coincidan con los filtros aplicados.</p>
+                <a href="{{ route('admin.pedidos.create') }}" class="pedido-btn pedido-btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Crear primer pedido</span>
+                </a>
+            </div>
+        @endif
+    </div>
+</div>
+@endsection
 
 @push('scripts')
-{{-- Variables globales para los módulos de pedidos --}}
+{{-- Variables globales para el módulo de pedidos --}}
 <script>
 window.pedidosRoutes = {
     details: '{{ route("admin.pedidos.show", ":id") }}',
@@ -358,9 +308,37 @@ window.pedidosRoutes = {
 };
 </script>
 
-{{-- Módulos de funcionalidad de pedidos --}}
-<script src="{{ asset('js/admin/pedidos-modals.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('js/admin/pedidos-init.js') }}?v={{ time() }}"></script>
-@endpush
+{{-- Módulo JavaScript optimizado --}}
+<script src="{{ asset('js/admin/pedidos-modern.js') }}?v={{ filemtime(public_path('js/admin/pedidos-modern.js')) }}"></script>
 
-@endsection
+{{-- Mostrar mensajes flash como toasts --}}
+@if(session('success'))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.pedidosManager) {
+        window.pedidosManager.showToast('{{ session("success") }}', 'success');
+    }
+});
+</script>
+@endif
+
+@if(session('error'))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.pedidosManager) {
+        window.pedidosManager.showToast('{{ session("error") }}', 'error');
+    }
+});
+</script>
+@endif
+
+@if($errors->any())
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.pedidosManager) {
+        window.pedidosManager.showToast('{{ $errors->first() }}', 'error');
+    }
+});
+</script>
+@endif
+@endpush
