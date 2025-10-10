@@ -9,17 +9,20 @@ let simulation;
 let nodes = [];
 let links = [];
 
-// Configuración de colores y estilos
+// Configuración de colores y estilos - PALETA VINO TINTO MEJORADA
 const config = {
     colors: {
-        lider: '#722f37',
-        vendedor: '#0d6efd',
-        active: '#198754',
-        default: '#6c757d'
+        lider: '#722F37',        // Vino tinto principal (LÍDER)
+        vendedor: '#8b3c44',     // Vino tinto claro (VENDEDOR)
+        active: '#5a2329',       // Vino oscuro (+5 REFERIDOS)
+        selected: '#ffffff',     // Blanco con borde vino (SELECCIONADO)
+        default: '#722F37',      // Vino tinto por defecto
+        border: '#ffffff',       // Borde blanco para contraste
+        selectedBorder: '#722F37' // Borde vino para seleccionado
     },
     nodeRadius: {
-        min: 8,
-        max: 20
+        min: 10,
+        max: 22
     }
 };
 
@@ -44,22 +47,25 @@ function initializeDataFromGlobals(moduleRedDataFromView, moduleUsuarioSeleccion
  */
 function initializeVisualization() {
     console.log('Starting initializeVisualization...');
-    const container = document.getElementById('network-container');
+    // Buscar el contenedor con ambos IDs posibles
+    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
 
     if (!container) {
-        console.error('Network container not found!');
+        console.error('Network container not found! Looking for: referidos-network-container or network-container');
         return;
     }
+
+    console.log('Container found:', container.id);
 
     const width = container.clientWidth;
     const height = container.clientHeight;
     console.log('Container dimensions:', width, 'x', height);
 
     // Limpiar contenedor
-    d3.select('#network-container').selectAll('*').remove();
+    d3.select('#' + container.id).selectAll('*').remove();
 
     // Crear SVG
-    svg = d3.select('#network-container')
+    svg = d3.select('#' + container.id)
         .append('svg')
         .attr('width', '100%')
         .attr('height', '100%')
@@ -205,7 +211,7 @@ function updateVisualization() {
  * Renderizar vista de árbol
  */
 function renderTreeView() {
-    const container = document.getElementById('network-container');
+    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
 
@@ -297,7 +303,7 @@ function renderTree(treeData, width, height) {
             })
         )
         .style('fill', 'none')
-        .style('stroke', '#ddd')
+        .style('stroke', 'rgba(114, 47, 55, 0.2)')
         .style('stroke-width', 2);
 
     // Crear nodos
@@ -315,13 +321,17 @@ function renderTree(treeData, width, height) {
     nodeGroup.append('circle')
         .attr('r', function(d) {
             return Math.max(config.nodeRadius.min,
-                Math.min(config.nodeRadius.max, 8 + d.data.referidos_count));
+                Math.min(config.nodeRadius.max, 10 + d.data.referidos_count));
         })
         .style('fill', function(d) {
             return getNodeColor(d.data);
         })
-        .style('stroke', '#fff')
-        .style('stroke-width', 2);
+        .style('stroke', function(d) {
+            return getNodeBorderColor(d.data);
+        })
+        .style('stroke-width', function(d) {
+            return getNodeBorderWidth(d.data);
+        });
 
     // Etiquetas de nodos
     nodeGroup.append('text')
@@ -348,7 +358,7 @@ function renderTree(treeData, width, height) {
  * Renderizar vista de fuerza
  */
 function renderForceView() {
-    const container = document.getElementById('network-container');
+    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
 
@@ -374,7 +384,7 @@ function renderForceView() {
         .enter()
         .append('line')
         .attr('class', 'link')
-        .style('stroke', '#ddd')
+        .style('stroke', 'rgba(114, 47, 55, 0.2)')
         .style('stroke-width', 2);
 
     // Crear nodos
@@ -393,13 +403,17 @@ function renderForceView() {
     nodeGroup.append('circle')
         .attr('r', function(d) {
             return Math.max(config.nodeRadius.min,
-                Math.min(config.nodeRadius.max, 8 + d.referidos_count));
+                Math.min(config.nodeRadius.max, 10 + d.referidos_count));
         })
         .style('fill', function(d) {
             return getNodeColor(d);
         })
-        .style('stroke', '#fff')
-        .style('stroke-width', 2);
+        .style('stroke', function(d) {
+            return getNodeBorderColor(d);
+        })
+        .style('stroke-width', function(d) {
+            return getNodeBorderWidth(d);
+        });
 
     // Etiquetas de nodos
     nodeGroup.append('text')
@@ -438,13 +452,54 @@ function renderForceView() {
 }
 
 /**
- * Obtener color del nodo según su tipo
+ * Obtener color del nodo según su tipo y características
  */
 function getNodeColor(node) {
-    if (node.tipo === 'lider') return config.colors.lider;
-    if (node.referidos_count > 5) return config.colors.active;
-    if (node.tipo === 'vendedor') return config.colors.vendedor;
+    // Prioridad 1: Usuario seleccionado
+    if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
+        return config.colors.selected;
+    }
+
+    // Prioridad 2: Nodos con muchos referidos
+    if (node.referidos_count > 5) {
+        return config.colors.active; // Vino oscuro
+    }
+
+    // Prioridad 3: Tipo de usuario
+    if (node.tipo === 'lider') {
+        return config.colors.lider; // Vino tinto principal
+    }
+
+    if (node.tipo === 'vendedor') {
+        return config.colors.vendedor; // Vino tinto claro
+    }
+
     return config.colors.default;
+}
+
+/**
+ * Obtener color del borde del nodo
+ */
+function getNodeBorderColor(node) {
+    // Usuario seleccionado tiene borde vino
+    if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
+        return config.colors.selectedBorder;
+    }
+
+    // Resto tiene borde blanco
+    return config.colors.border;
+}
+
+/**
+ * Obtener ancho del borde del nodo
+ */
+function getNodeBorderWidth(node) {
+    // Usuario seleccionado tiene borde más grueso
+    if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
+        return 4;
+    }
+
+    return 3;
 }
 
 /**
@@ -518,7 +573,13 @@ function resetZoom() {
  * Exportar SVG
  */
 function exportSVG() {
-    const svgElement = document.querySelector('#network-container svg');
+    const svgElement = document.querySelector('#referidos-network-container svg') || document.querySelector('#network-container svg');
+
+    if (!svgElement) {
+        console.error('SVG element not found for export');
+        return;
+    }
+
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(svgElement);
 
@@ -541,7 +602,8 @@ function exportSVG() {
  */
 function showEmptyState() {
     console.log('Showing empty state');
-    const container = d3.select('#network-container');
+    const containerId = document.getElementById('referidos-network-container') ? 'referidos-network-container' : 'network-container';
+    const container = d3.select('#' + containerId);
     container.selectAll('*').remove();
 
     // Determinar el tipo de mensaje según el contexto
@@ -611,7 +673,7 @@ function updateNetworkMetrics() {
 // Redimensionar al cambiar tamaño de ventana
 window.addEventListener('resize', function() {
     if (svg) {
-        const container = document.getElementById('network-container');
+        const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
         const width = container.clientWidth;
         const height = container.clientHeight;
         svg.attr('viewBox', '0 0 ' + width + ' ' + height);

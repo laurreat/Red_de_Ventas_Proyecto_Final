@@ -38,6 +38,10 @@ class ReporteController extends Controller
     private function convertDecimal128InArray($data)
     {
         if (!is_array($data)) {
+            // Si no es un array, intentar convertir si es Decimal128
+            if ($data instanceof Decimal128) {
+                return (float) $data->__toString();
+            }
             return $data;
         }
 
@@ -46,6 +50,8 @@ class ReporteController extends Controller
                 $data[$key] = (float) $value->__toString();
             } elseif (is_array($value)) {
                 $data[$key] = $this->convertDecimal128InArray($value);
+            } elseif (is_object($value) && $value instanceof Decimal128) {
+                $data[$key] = (float) $value->__toString();
             }
         }
 
@@ -64,11 +70,19 @@ class ReporteController extends Controller
 
     public function ventas(Request $request)
     {
+        // Validar entradas para prevenir inyección MongoDB
+        $validated = $request->validate([
+            'fecha_inicio' => 'nullable|date|before_or_equal:today',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio|before_or_equal:today',
+            'vendedor_id' => 'nullable|string|max:24', // ObjectId MongoDB tiene 24 caracteres
+            'tipo_reporte' => 'nullable|string|in:resumen,detallado'
+        ]);
+
         // Fechas por defecto (último mes)
-        $fechaInicio = $request->get('fecha_inicio', now()->subMonth()->format('Y-m-d'));
-        $fechaFin = $request->get('fecha_fin', now()->format('Y-m-d'));
-        $vendedorId = $request->get('vendedor_id');
-        $tipoReporte = $request->get('tipo_reporte', 'resumen');
+        $fechaInicio = $validated['fecha_inicio'] ?? now()->subMonth()->format('Y-m-d');
+        $fechaFin = $validated['fecha_fin'] ?? now()->format('Y-m-d');
+        $vendedorId = $validated['vendedor_id'] ?? null;
+        $tipoReporte = $validated['tipo_reporte'] ?? 'resumen';
 
         // Consulta base
         $query = Pedido::with(['cliente', 'vendedor'])
@@ -160,7 +174,7 @@ class ReporteController extends Controller
                 $ingresosActual = (float)($productosData[$productoId]['total_ingresos'] ?? 0);
 
                 $productosData[$productoId]['cantidad_vendida'] = $cantidadActual + (int)($detalle['cantidad'] ?? 0);
-                $productosData[$productoId]['total_ingresos'] = $ingresosActual + (float)($detalle['subtotal'] ?? 0);
+                $productosData[$productoId]['total_ingresos'] = $ingresosActual + $this->toFloat($detalle['subtotal'] ?? 0);
             }
         }
 
@@ -265,7 +279,7 @@ class ReporteController extends Controller
         $totalIngresos = 0;
         foreach ($productosConVentas as $producto) {
             $totalUnidades += (int)($producto->cantidad_vendida ?? 0);
-            $totalIngresos += (float)($producto->ingresos_totales ?? 0);
+            $totalIngresos += $this->toFloat($producto->ingresos_totales ?? 0);
         }
 
         $stats = [
@@ -322,8 +336,8 @@ class ReporteController extends Controller
         $totalComisiones = 0;
         $totalVentas = 0;
         foreach ($comisiones as $comision) {
-            $totalComisiones += (float)($comision->comision_estimada ?? 0);
-            $totalVentas += (float)($comision->total_ventas ?? 0);
+            $totalComisiones += $this->toFloat($comision->comision_estimada ?? 0);
+            $totalVentas += $this->toFloat($comision->total_ventas ?? 0);
         }
 
         $vendedoresActivos = $comisiones->count();
@@ -349,9 +363,16 @@ class ReporteController extends Controller
 
     public function exportarVentas(Request $request)
     {
-        $fechaInicio = $request->get('fecha_inicio', now()->subMonth()->format('Y-m-d'));
-        $fechaFin = $request->get('fecha_fin', now()->format('Y-m-d'));
-        $vendedorId = $request->get('vendedor_id');
+        // Validar entradas para prevenir inyección MongoDB
+        $validated = $request->validate([
+            'fecha_inicio' => 'nullable|date|before_or_equal:today',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio|before_or_equal:today',
+            'vendedor_id' => 'nullable|string|max:24'
+        ]);
+
+        $fechaInicio = $validated['fecha_inicio'] ?? now()->subMonth()->format('Y-m-d');
+        $fechaFin = $validated['fecha_fin'] ?? now()->format('Y-m-d');
+        $vendedorId = $validated['vendedor_id'] ?? null;
 
         // Obtener los mismos datos que en el método ventas
         $data = $this->getDatosVentas($fechaInicio, $fechaFin, $vendedorId);
@@ -450,7 +471,7 @@ class ReporteController extends Controller
                 $ingresosActual = (float)($productosData[$productoId]['total_ingresos'] ?? 0);
 
                 $productosData[$productoId]['cantidad_vendida'] = $cantidadActual + (int)($detalle['cantidad'] ?? 0);
-                $productosData[$productoId]['total_ingresos'] = $ingresosActual + (float)($detalle['subtotal'] ?? 0);
+                $productosData[$productoId]['total_ingresos'] = $ingresosActual + $this->toFloat($detalle['subtotal'] ?? 0);
             }
         }
 

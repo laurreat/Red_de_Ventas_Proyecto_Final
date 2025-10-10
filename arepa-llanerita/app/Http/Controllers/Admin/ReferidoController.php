@@ -22,18 +22,24 @@ class ReferidoController extends Controller
 
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        $cedula = $request->get('cedula');
-        $nivel = $request->get('nivel');
-        $tipo = $request->get('tipo');
+        // Sanitizar y validar inputs
+        $search = $request->get('search') ? strip_tags(trim($request->get('search'))) : null;
+        $cedula = $request->get('cedula') ? preg_replace('/[^0-9]/', '', $request->get('cedula')) : null;
+        $nivel = $request->get('nivel') ? strip_tags($request->get('nivel')) : null;
+        $tipo = $request->get('tipo') ? strip_tags($request->get('tipo')) : null;
         $usuarioSeleccionado = null;
+
+        // Validar tipo de usuario
+        if ($tipo && !in_array($tipo, ['vendedor', 'lider'])) {
+            $tipo = null; // Reset si es inválido
+        }
 
         // Si hay búsqueda por cédula, buscar el usuario específico
         if ($cedula) {
             try {
                 // Validación en tiempo real: verificar formato de cédula
                 if (!preg_match('/^[0-9]{6,12}$/', $cedula)) {
-                    session()->flash('warning', "Formato de cédula inválido: {$cedula}. Debe contener solo números (6-12 dígitos).");
+                    session()->flash('warning', "Formato de cédula inválido. Debe contener solo números (6-12 dígitos).");
                     return redirect()->route('admin.referidos.index');
                 }
 
@@ -171,11 +177,32 @@ class ReferidoController extends Controller
 
     public function show($id)
     {
-        $usuario = User::find($id);
-
-        if (!$usuario) {
+        // Validar que el ID sea un ObjectId válido de MongoDB
+        if (!preg_match('/^[a-f\d]{24}$/i', $id)) {
             return redirect()->route('admin.referidos.index')
-                ->with('error', 'Usuario no encontrado');
+                ->with('error', 'ID de usuario inválido');
+        }
+
+        try {
+            $usuario = User::find($id);
+
+            if (!$usuario) {
+                return redirect()->route('admin.referidos.index')
+                    ->with('error', 'Usuario no encontrado');
+            }
+
+            // Validar que el usuario sea vendedor o líder
+            if (!in_array($usuario->rol, ['vendedor', 'lider'])) {
+                return redirect()->route('admin.referidos.index')
+                    ->with('warning', 'Solo se pueden ver redes de vendedores y líderes');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener usuario para red:', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->route('admin.referidos.index')
+                ->with('error', 'Error al cargar los datos del usuario');
         }
 
         // Obtener toda la red del usuario (hasta 5 niveles)

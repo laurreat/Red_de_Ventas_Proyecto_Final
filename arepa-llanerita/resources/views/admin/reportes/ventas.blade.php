@@ -1,14 +1,13 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
-@section('title', '- Reportes de Ventas')
-@section('page-title', 'Reportes de Ventas')
+@section('title', 'Reportes de Ventas')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/reportes-modern.css') }}?v={{ filemtime(public_path('css/admin/reportes-modern.css')) }}">
+<link href="{{ asset('css/admin/reportes-modern.css') }}?v={{ filemtime(public_path('css/admin/reportes-modern.css')) }}" rel="stylesheet">
 @endpush
 
 @section('content')
-<div class="container-fluid fade-in">
+<div class="container-fluid">
     {{-- Header Hero --}}
     <div class="reporte-header scale-in">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -19,7 +18,7 @@
                 <p class="reporte-header-subtitle">Análisis detallado de ventas y rendimiento del negocio</p>
             </div>
             <div class="reporte-header-actions">
-                <button class="reporte-btn reporte-btn-danger" type="button" onclick="exportarReporte()">
+                <button class="reporte-btn reporte-btn-danger" type="button">
                     <i class="bi bi-file-earmark-pdf"></i>
                     <span>Exportar PDF</span>
                 </button>
@@ -83,7 +82,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(114,47,55,0.1);color:var(--wine);">
                     <i class="bi bi-cart-check"></i>
                 </div>
-                <div class="reporte-stat-value">{{ $stats['total_ventas'] }}</div>
+                <div class="reporte-stat-value">{{ number_format($stats['total_ventas']) }}</div>
                 <div class="reporte-stat-label">Total Ventas</div>
             </div>
         </div>
@@ -93,7 +92,7 @@
                 <div class="reporte-stat-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">
                     <i class="bi bi-currency-dollar"></i>
                 </div>
-                <div class="reporte-stat-value">${{ number_format((float)($stats['total_ingresos'] ?? 0), 0) }}</div>
+                <div class="reporte-stat-value">${{ format_number($stats['total_ingresos'] ?? 0, 0) }}</div>
                 <div class="reporte-stat-label">Total Ingresos</div>
             </div>
         </div>
@@ -103,17 +102,17 @@
                 <div class="reporte-stat-icon" style="background:rgba(59,130,246,0.1);color:var(--info);">
                     <i class="bi bi-receipt"></i>
                 </div>
-                <div class="reporte-stat-value">${{ number_format((float)($stats['ticket_promedio'] ?? 0), 0) }}</div>
+                <div class="reporte-stat-value">${{ format_number($stats['ticket_promedio'] ?? 0, 0) }}</div>
                 <div class="reporte-stat-label">Ticket Promedio</div>
             </div>
         </div>
 
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="reporte-stat-card fade-in-up animate-delay-1">
+            <div class="reporte-stat-card fade-in-up animate-delay-4">
                 <div class="reporte-stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning);">
                     <i class="bi bi-box-seam"></i>
                 </div>
-                <div class="reporte-stat-value">{{ $stats['productos_vendidos'] }}</div>
+                <div class="reporte-stat-value">{{ number_format($stats['productos_vendidos']) }}</div>
                 <div class="reporte-stat-label">Productos Vendidos</div>
             </div>
         </div>
@@ -180,8 +179,10 @@
         <div class="col-12">
             <div class="reporte-table-card fade-in-up">
                 <div class="reporte-table-header">
-                    <i class="bi bi-person-badge"></i>
-                    <h3 class="reporte-table-title">Rendimiento por Vendedor</h3>
+                    <div class="reporte-table-title">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Rendimiento por Vendedor</span>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -207,10 +208,10 @@
                                         <span class="reporte-badge reporte-badge-info">{{ $data['cantidad_pedidos'] }} pedidos</span>
                                     </td>
                                     <td>
-                                        <strong style="font-size:1.125rem;color:var(--wine);">${{ number_format((float)($data['total_ventas'] ?? 0), 0) }}</strong>
+                                        <strong style="font-size:1.125rem;color:var(--wine);">${{ format_number($data['total_ventas'] ?? 0, 0) }}</strong>
                                     </td>
                                     <td>
-                                        <strong style="font-size:1.125rem;color:var(--success);">${{ number_format((float)($data['comision_estimada'] ?? 0), 0) }}</strong>
+                                        <strong style="font-size:1.125rem;color:var(--success);">${{ format_number($data['comision_estimada'] ?? 0, 0) }}</strong>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -228,8 +229,10 @@
         <div class="col-lg-6 mb-4">
             <div class="reporte-table-card fade-in-up animate-delay-2">
                 <div class="reporte-table-header">
-                    <i class="bi bi-trophy"></i>
-                    <h3 class="reporte-table-title">Top 10 Productos</h3>
+                    <div class="reporte-table-title">
+                        <i class="bi bi-trophy"></i>
+                        <span>Top 10 Productos</span>
+                    </div>
                 </div>
                 <div class="card-body p-4">
                     @if($productosMasVendidos->count() > 0)
@@ -246,7 +249,7 @@
                                     </div>
                                 </div>
                                 <div class="reporte-ranking-value">
-                                    ${{ number_format((float)($data['total_ingresos'] ?? 0), 0) }}
+                                    ${{ format_number($data['total_ingresos'] ?? 0, 0) }}
                                 </div>
                             </div>
                         @endforeach
@@ -266,8 +269,10 @@
         <div class="col-lg-6 mb-4">
             <div class="reporte-table-card fade-in-up animate-delay-3">
                 <div class="reporte-table-header">
-                    <i class="bi bi-people"></i>
-                    <h3 class="reporte-table-title">Top 10 Clientes</h3>
+                    <div class="reporte-table-title">
+                        <i class="bi bi-people"></i>
+                        <span>Top 10 Clientes</span>
+                    </div>
                 </div>
                 <div class="card-body p-4">
                     @if($clientesMasActivos->count() > 0)
@@ -283,7 +288,7 @@
                                     </div>
                                 </div>
                                 <div class="reporte-ranking-value">
-                                    ${{ number_format((float)($data['total_gastado'] ?? 0), 0) }}
+                                    ${{ format_number($data['total_gastado'] ?? 0, 0) }}
                                 </div>
                             </div>
                         @endforeach
@@ -303,17 +308,19 @@
 @endsection
 
 @push('scripts')
-{{-- Chart.js CDN --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-{{-- Datos para gráficos --}}
+{{-- Datos para gráficos (solo datos, sin Chart.js todavía) --}}
 <script>
+// Configuración de rutas
+window.reportesRoutes = {
+    exportar: '{{ route("admin.reportes.exportar-ventas") }}'
+};
+
 // Datos de ventas por día
 window.ventasPorDiaData = {
     labels: [@foreach($ventasPorDia as $fecha => $data)'{{ \Carbon\Carbon::parse($fecha)->format("d/m") }}',@endforeach],
     datasets: [{
         label: 'Ingresos Diarios',
-        data: [@foreach($ventasPorDia as $data){{ (float)($data['total'] ?? 0) }},@endforeach],
+        data: [@foreach($ventasPorDia as $data){{ to_float($data['total'] ?? 0) }},@endforeach],
         backgroundColor: 'rgba(114, 47, 55, 0.1)',
         borderColor: '#722F37',
         borderWidth: 3,
@@ -331,7 +338,7 @@ window.ventasPorDiaData = {
 window.ventasPorEstadoData = {
     labels: [@foreach($ventasPorEstado as $estado => $data)'{{ ucfirst(str_replace("_", " ", $estado)) }}',@endforeach],
     datasets: [{
-        data: [@foreach($ventasPorEstado as $data){{ (float)($data['total'] ?? 0) }},@endforeach],
+        data: [@foreach($ventasPorEstado as $data){{ to_float($data['total'] ?? 0) }},@endforeach],
         backgroundColor: [
             '#722F37', // Wine
             '#10b981', // Success
@@ -344,127 +351,8 @@ window.ventasPorEstadoData = {
         borderWidth: 0
     }]
 };
-
-// Función de exportación
-function exportarReporte() {
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = '{{ route("admin.reportes.exportar-ventas") }}';
-
-    const params = {
-        fecha_inicio: '{{ $fechaInicio }}',
-        fecha_fin: '{{ $fechaFin }}',
-        vendedor_id: '{{ $vendedorId }}'
-    };
-
-    Object.keys(params).forEach(key => {
-        if (params[key]) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = params[key];
-            form.appendChild(input);
-        }
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-}
 </script>
 
-{{-- Inicialización de gráficos --}}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Gráfico de Ventas por Día
-    const ventasPorDiaCanvas = document.getElementById('ventasPorDiaChart');
-    if (ventasPorDiaCanvas && window.ventasPorDiaData) {
-        new Chart(ventasPorDiaCanvas, {
-            type: 'line',
-            data: window.ventasPorDiaData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            font: { size: 12, weight: '600' },
-                            color: '#374151',
-                            padding: 15
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#722F37',
-                        padding: 12,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        callbacks: {
-                            label: function(context) {
-                                return 'Ingresos: $' + context.parsed.y.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
-                            },
-                            color: '#6b7280',
-                            font: { size: 11 }
-                        },
-                        grid: { color: '#e5e7eb' }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#6b7280',
-                            font: { size: 11 }
-                        },
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    }
-
-    // Gráfico de Ventas por Estado
-    const ventasPorEstadoCanvas = document.getElementById('ventasPorEstadoChart');
-    if (ventasPorEstadoCanvas && window.ventasPorEstadoData) {
-        new Chart(ventasPorEstadoCanvas, {
-            type: 'doughnut',
-            data: window.ventasPorEstadoData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 11, weight: '600' },
-                            color: '#374151',
-                            padding: 10,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#722F37',
-                        padding: 12,
-                        callbacks: {
-                            label: function(context) {
-                                return context.label + ': $' + context.parsed.toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    console.log('✓ Reportes de Ventas cargados correctamente');
-});
-</script>
+{{-- Cargar JavaScript moderno con lazy loading de Chart.js --}}
+<script src="{{ asset('js/admin/reportes-modern.js') }}?v={{ filemtime(public_path('js/admin/reportes-modern.js')) }}" defer></script>
 @endpush
