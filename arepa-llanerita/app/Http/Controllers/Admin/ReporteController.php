@@ -101,10 +101,15 @@ class ReporteController extends Controller
         $productosVendidos = 0;
 
         foreach ($pedidos as $pedido) {
-            $totalIngresos += $this->toFloat($pedido->total_final);
-            $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
-            foreach ($detalles as $detalle) {
-                $productosVendidos += (int)($detalle['cantidad'] ?? 0);
+            try {
+                $totalIngresos += $this->toFloat($pedido->total_final ?? 0);
+                $detalles = $this->convertDecimal128InArray($pedido->detalles_embebidos ?? []);
+                foreach ($detalles as $detalle) {
+                    $productosVendidos += (int)($detalle['cantidad'] ?? 0);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Error procesando pedido en reportes', ['pedido_id' => $pedido->_id ?? 'unknown']);
+                continue;
             }
         }
 
@@ -118,39 +123,51 @@ class ReporteController extends Controller
 
         // Ventas por día
         $ventasPorDia = $pedidos->groupBy(function ($pedido) {
-            return $pedido->created_at->format('Y-m-d');
-        })->map(function ($pedidosDia) {
-            $total = 0;
-            foreach ($pedidosDia as $pedido) {
-                $total += $this->toFloat($pedido->total_final);
+            try {
+                if ($pedido->created_at instanceof \Carbon\Carbon) {
+                    return $pedido->created_at->format('Y-m-d');
+                } elseif ($pedido->created_at instanceof \MongoDB\BSON\UTCDateTime) {
+                    return Carbon::createFromTimestamp($pedido->created_at->toDateTime()->getTimestamp())->format('Y-m-d');
+                }
+                return now()->format('Y-m-d');
+            } catch (\Exception $e) {
+                return now()->format('Y-m-d');
             }
-            return [
-                'cantidad' => (int)$pedidosDia->count(),
-                'total' => (float)$total
-            ];
+        })->map(function ($pedidosDia) {
+            $total = 0.0;
+            foreach ($pedidosDia as $pedido) {
+                $total += $this->toFloat($pedido->total_final ?? 0);
+            }
+            return ['cantidad' => (int)$pedidosDia->count(), 'total' => (float)$total];
         });
 
         // Ventas por vendedor
         $ventasPorVendedor = $pedidos->whereNotNull('vendedor_id')
             ->groupBy('vendedor_id')
             ->map(function ($pedidosVendedor) {
-                $vendedor = $pedidosVendedor->first()->vendedor;
-                if (!$vendedor) {
+                try {
+                    $vendedor = $pedidosVendedor->first()->vendedor;
+                    if (!$vendedor) {
+                        return null;
+                    }
+                    $totalVentas = 0.0;
+                    foreach ($pedidosVendedor as $pedido) {
+                        $totalVentas += $this->toFloat($pedido->total_final ?? 0);
+                    }
+                    return [
+                        'vendedor' => $vendedor->name ?? 'Sin nombre',
+                        'email' => $vendedor->email ?? '',
+                        'cantidad_pedidos' => (int)$pedidosVendedor->count(),
+                        'total_ventas' => (float)$totalVentas,
+                        'comision_estimada' => (float)($totalVentas * 0.1),
+                    ];
+                } catch (\Exception $e) {
+                    \Log::warning('Error procesando ventas por vendedor en reportes', ['error' => $e->getMessage()]);
                     return null;
                 }
-                $totalVentas = 0.0;
-                foreach ($pedidosVendedor as $pedido) {
-                    $totalVentas += $this->toFloat($pedido->total_final);
-                }
-                return [
-                    'vendedor' => $vendedor->name ?? 'Sin nombre',
-                    'email' => $vendedor->email ?? '',
-                    'cantidad_pedidos' => (int)$pedidosVendedor->count(),
-                    'total_ventas' => (float)$totalVentas,
-                    'comision_estimada' => (float)($totalVentas * 0.1),
-                ];
             })
-            ->filter(); // Eliminar elementos null
+            ->filter() // Eliminar elementos null
+            ->values(); // Reindexar numéricamente
 
         // Productos más vendidos
         $productosData = [];
@@ -180,40 +197,52 @@ class ReporteController extends Controller
 
         $productosMasVendidos = collect($productosData)
             ->sortByDesc('cantidad_vendida')
-            ->take(10);
+            ->take(10)
+            ->values(); // Reindexar numéricamente para evitar error en vista
 
         // Clientes más activos
         $clientesMasActivos = $pedidos->groupBy('cliente_id')
             ->map(function ($pedidosCliente) {
-                $cliente = $pedidosCliente->first()->cliente;
-                if (!$cliente) {
+                try {
+                    $cliente = $pedidosCliente->first()->cliente;
+                    if (!$cliente) {
+                        return null;
+                    }
+                    $totalGastado = 0.0;
+                    foreach ($pedidosCliente as $pedido) {
+                        $totalGastado += $this->toFloat($pedido->total_final ?? 0);
+                    }
+                    return [
+                        'cliente' => $cliente->name ?? 'Sin nombre',
+                        'email' => $cliente->email ?? '',
+                        'cantidad_pedidos' => (int)$pedidosCliente->count(),
+                        'total_gastado' => (float)$totalGastado,
+                    ];
+                } catch (\Exception $e) {
+                    \Log::warning('Error procesando clientes más activos en reportes', ['error' => $e->getMessage()]);
                     return null;
                 }
-                $totalGastado = 0.0;
-                foreach ($pedidosCliente as $pedido) {
-                    $totalGastado += $this->toFloat($pedido->total_final);
-                }
-                return [
-                    'cliente' => $cliente->name ?? 'Sin nombre',
-                    'email' => $cliente->email ?? '',
-                    'cantidad_pedidos' => (int)$pedidosCliente->count(),
-                    'total_gastado' => (float)$totalGastado,
-                ];
             })
             ->filter() // Eliminar elementos null
             ->sortByDesc('total_gastado')
-            ->take(10);
+            ->take(10)
+            ->values(); // Reindexar numéricamente para evitar error en vista
 
         // Ventas por estado
         $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {
-            $total = 0;
-            foreach ($pedidosEstado as $pedido) {
-                $total += $this->toFloat($pedido->total_final);
+            try {
+                $total = 0.0;
+                foreach ($pedidosEstado as $pedido) {
+                    $total += $this->toFloat($pedido->total_final ?? 0);
+                }
+                return [
+                    'cantidad' => (int)$pedidosEstado->count(),
+                    'total' => (float)$total
+                ];
+            } catch (\Exception $e) {
+                \Log::warning('Error procesando ventas por estado en reportes', ['error' => $e->getMessage()]);
+                return ['cantidad' => 0, 'total' => 0.0];
             }
-            return [
-                'cantidad' => (int)$pedidosEstado->count(),
-                'total' => (float)$total
-            ];
         });
 
         // Para filtros
@@ -477,7 +506,8 @@ class ReporteController extends Controller
 
         $productosMasVendidos = collect($productosData)
             ->sortByDesc('cantidad_vendida')
-            ->take(10);
+            ->take(10)
+            ->values(); // Reindexar numéricamente para evitar error en vista
 
         // Clientes más activos
         $clientesMasActivos = $pedidos->groupBy('cliente_id')
@@ -499,7 +529,8 @@ class ReporteController extends Controller
             })
             ->filter() // Eliminar elementos null
             ->sortByDesc('total_gastado')
-            ->take(10);
+            ->take(10)
+            ->values(); // Reindexar numéricamente para evitar error en vista
 
         // Ventas por estado
         $ventasPorEstado = $pedidos->groupBy('estado')->map(function ($pedidosEstado) {

@@ -62,6 +62,24 @@ class NotificacionController extends Controller
     }
 
     /**
+     * Mostrar detalles de una notificación
+     */
+    public function show($id)
+    {
+        $user = Auth::user();
+
+        $notificacion = Notificacion::where('user_id', $user->id)
+            ->where('_id', $id)
+            ->first();
+
+        if (!$notificacion) {
+            abort(404, 'Notificación no encontrada');
+        }
+
+        return view('admin.notificaciones.show', compact('notificacion'));
+    }
+
+    /**
      * Obtener notificaciones para el dropdown del navbar (AJAX)
      */
     public function dropdown()

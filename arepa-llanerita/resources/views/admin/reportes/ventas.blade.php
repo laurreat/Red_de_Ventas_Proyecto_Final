@@ -1,177 +1,206 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Reportes de Ventas')
+@section('title', '- Reportes de Ventas')
+
+@section('page-title', 'Reportes de Ventas')
 
 @push('styles')
 <link href="{{ asset('css/admin/reportes-modern.css') }}?v={{ filemtime(public_path('css/admin/reportes-modern.css')) }}" rel="stylesheet">
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    {{-- Header Hero --}}
-    <div class="reporte-header scale-in">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h1 class="reporte-header-title">
-                    <i class="bi bi-bar-chart-line"></i> Reportes de Ventas
-                </h1>
-                <p class="reporte-header-subtitle">Análisis detallado de ventas y rendimiento del negocio</p>
-            </div>
-            <div class="reporte-header-actions">
-                <button class="reporte-btn reporte-btn-danger" type="button">
-                    <i class="bi bi-file-earmark-pdf"></i>
-                    <span>Exportar PDF</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    {{-- Filtros de Reporte --}}
-    <div class="reporte-filters-card fade-in-up">
-        <div class="reporte-filters-header">
-            <i class="bi bi-funnel"></i>
-            <h3 class="reporte-filters-title">Filtros de Reporte</h3>
-        </div>
-        <div class="reporte-filters-body">
-            <form method="GET" action="{{ route('admin.reportes.ventas') }}" autocomplete="off">
-                <div class="row">
-                    <div class="col-lg-3 col-md-6 mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-event"></i> Fecha Inicio
-                        </label>
-                        <input type="date" class="form-control" name="fecha_inicio"
-                            value="{{ $fechaInicio }}"
-                            style="border-radius:10px;padding:.75rem;">
+{{-- Header de Reportes --}}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); border-radius: 0.5rem;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="text-white">
+                        <h2 class="mb-2" style="font-weight: 700;">
+                            <i class="bi bi-bar-chart-line me-2"></i>
+                            Reportes de Ventas
+                        </h2>
+                        <p class="mb-0 opacity-90">Análisis detallado de ventas y rendimiento del negocio</p>
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-calendar-check"></i> Fecha Fin
-                        </label>
-                        <input type="date" class="form-control" name="fecha_fin"
-                            value="{{ $fechaFin }}"
-                            style="border-radius:10px;padding:.75rem;">
-                    </div>
-                    <div class="col-lg-4 col-md-6 mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-person-badge"></i> Vendedor
-                        </label>
-                        <select class="form-select" name="vendedor_id" style="border-radius:10px;padding:.75rem;">
-                            <option value="">Todos los vendedores</option>
-                            @foreach($vendedores as $vendedor)
-                            <option value="{{ $vendedor->id }}" {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
-                                {{ $vendedor->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-6 mb-3">
-                        <label class="form-label">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary w-100" style="border-radius:10px;padding:.75rem;">
-                            <i class="bi bi-search"></i> Generar
+                    <div class="mt-3 mt-md-0">
+                        <button class="btn btn-light" type="button" id="exportButton" onclick="exportarReporte()">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>
+                            Exportar PDF
+                        </button>
+                        <button class="btn btn-outline-light ms-2" type="button" id="refreshButton" onclick="refrescarReportes()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Actualizar
                         </button>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Estadísticas Generales --}}
-    <div class="row mb-4">
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="reporte-stat-card fade-in-up animate-delay-1">
-                <div class="reporte-stat-icon" style="background:rgba(114,47,55,0.1);color:var(--wine);">
-                    <i class="bi bi-cart-check"></i>
-                </div>
-                <div class="reporte-stat-value">{{ number_format((float)($stats['total_ventas'] ?? 0)) }}</div>
-                <div class="reporte-stat-label">Total Ventas</div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="reporte-stat-card fade-in-up animate-delay-2">
-                <div class="reporte-stat-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">
-                    <i class="bi bi-currency-dollar"></i>
-                </div>
-                <div class="reporte-stat-value">${{ format_number((float)($stats['total_ingresos'] ?? 0), 0) }}</div>
-                <div class="reporte-stat-label">Total Ingresos</div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="reporte-stat-card fade-in-up animate-delay-3">
-                <div class="reporte-stat-icon" style="background:rgba(59,130,246,0.1);color:var(--info);">
-                    <i class="bi bi-receipt"></i>
-                </div>
-                <div class="reporte-stat-value">${{ format_number((float)($stats['ticket_promedio'] ?? 0), 0) }}</div>
-                <div class="reporte-stat-label">Ticket Promedio</div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="reporte-stat-card fade-in-up animate-delay-4">
-                <div class="reporte-stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning);">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="reporte-stat-value">{{ number_format((float)($stats['productos_vendidos'] ?? 0)) }}</div>
-                <div class="reporte-stat-label">Productos Vendidos</div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="row">
-        {{-- Gráfico de Ventas por Día --}}
-        <div class="col-lg-8 mb-4">
-            <div class="reporte-chart-card fade-in-up">
-                <div class="reporte-chart-header">
-                    <h3 class="reporte-chart-title">
-                        <i class="bi bi-graph-up"></i>
-                        <span>Ventas por Día</span>
-                    </h3>
-                </div>
-                <div class="reporte-chart-body">
-                    @if($ventasPorDia->count() > 0)
-                    <div class="reporte-chart-container">
-                        <canvas id="ventasPorDiaChart"></canvas>
-                    </div>
-                    @else
-                    <div class="reporte-empty-state">
-                        <div class="reporte-empty-state-icon">
-                            <i class="bi bi-graph-down"></i>
+{{-- Filtros de Reporte --}}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex align-items-center">
+                <i class="bi bi-funnel me-2 text-primary"></i>
+                <h5 class="mb-0">Filtros de Reporte</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.reportes.ventas') }}" autocomplete="off" id="filtrosForm">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calendar-event"></i> Fecha Inicio
+                            </label>
+                            <input type="date" class="form-control" name="fecha_inicio" id="fechaInicio"
+                                value="{{ $fechaInicio }}">
                         </div>
-                        <h4 class="reporte-empty-state-title">No hay datos disponibles</h4>
-                        <p class="reporte-empty-state-text">No se encontraron ventas en el período seleccionado</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        {{-- Ventas por Estado --}}
-        <div class="col-lg-4 mb-4">
-            <div class="reporte-chart-card fade-in-up animate-delay-1">
-                <div class="reporte-chart-header">
-                    <h3 class="reporte-chart-title">
-                        <i class="bi bi-pie-chart"></i>
-                        <span>Ventas por Estado</span>
-                    </h3>
-                </div>
-                <div class="reporte-chart-body">
-                    @if($ventasPorEstado->count() > 0)
-                    <div class="reporte-chart-container" style="height:300px;">
-                        <canvas id="ventasPorEstadoChart"></canvas>
-                    </div>
-                    @else
-                    <div class="reporte-empty-state" style="padding:2rem;">
-                        <div class="reporte-empty-state-icon" style="font-size:3rem;">
-                            <i class="bi bi-pie-chart"></i>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calendar-check"></i> Fecha Fin
+                            </label>
+                            <input type="date" class="form-control" name="fecha_fin" id="fechaFin"
+                                value="{{ $fechaFin }}">
                         </div>
-                        <p class="reporte-empty-state-text" style="margin:1rem 0 0 0;">No hay datos disponibles</p>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-person-badge"></i> Vendedor
+                            </label>
+                            <select class="form-select" name="vendedor_id" id="vendedorId">
+                                <option value="">Todos los vendedores</option>
+                                @foreach($vendedores as $vendedor)
+                                <option value="{{ $vendedor->id }}" {{ $vendedorId == $vendedor->id ? 'selected' : '' }}>
+                                    {{ $vendedor->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Generar
+                            </button>
+                        </div>
                     </div>
-                    @endif
-                </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
+
+{{-- Estadísticas Generales --}}
+<div class="row mb-4">
+    <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div style="width: 60px; height: 60px; background: rgba(114,47,55,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="bi bi-cart-check" style="font-size: 1.75rem; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+                <h3 class="mb-1" style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">
+                    {{ number_format((float)($stats['total_ventas'] ?? 0)) }}
+                </h3>
+                <p class="text-muted mb-0 fw-semibold small text-uppercase">Total Ventas</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div style="width: 60px; height: 60px; background: rgba(16,185,129,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="bi bi-currency-dollar" style="font-size: 1.75rem; color: #10b981;"></i>
+                    </div>
+                </div>
+                <h3 class="mb-1" style="font-size: 2rem; font-weight: 700; color: #10b981;">
+                    ${{ format_number((float)($stats['total_ingresos'] ?? 0), 0) }}
+                </h3>
+                <p class="text-muted mb-0 fw-semibold small text-uppercase">Total Ingresos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div style="width: 60px; height: 60px; background: rgba(59,130,246,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="bi bi-receipt" style="font-size: 1.75rem; color: #3b82f6;"></i>
+                    </div>
+                </div>
+                <h3 class="mb-1" style="font-size: 2rem; font-weight: 700; color: #3b82f6;">
+                    ${{ format_number((float)($stats['ticket_promedio'] ?? 0), 0) }}
+                </h3>
+                <p class="text-muted mb-0 fw-semibold small text-uppercase">Ticket Promedio</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div style="width: 60px; height: 60px; background: rgba(245,158,11,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="bi bi-box-seam" style="font-size: 1.75rem; color: #f59e0b;"></i>
+                    </div>
+                </div>
+                <h3 class="mb-1" style="font-size: 2rem; font-weight: 700; color: #f59e0b;">
+                    {{ number_format((float)($stats['productos_vendidos'] ?? 0)) }}
+                </h3>
+                <p class="text-muted mb-0 fw-semibold small text-uppercase">Productos Vendidos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Gráficos --}}
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex align-items-center">
+                <i class="bi bi-graph-up me-2 text-primary"></i>
+                <h5 class="mb-0">Ventas por Día</h5>
+            </div>
+            <div class="card-body">
+                @if($ventasPorDia->count() > 0)
+                <div style="position: relative; height: 350px;">
+                    <canvas id="ventasPorDiaChart"></canvas>
+                </div>
+                @else
+                <div class="text-center py-5">
+                    <i class="bi bi-graph-down text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">No hay datos disponibles</h5>
+                    <p class="text-muted">No se encontraron ventas en el período seleccionado</p>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex align-items-center">
+                <i class="bi bi-pie-chart me-2 text-primary"></i>
+                <h5 class="mb-0">Ventas por Estado</h5>
+            </div>
+            <div class="card-body">
+                @if($ventasPorEstado->count() > 0)
+                <div style="position: relative; height: 300px;">
+                    <canvas id="ventasPorEstadoChart"></canvas>
+                </div>
+                @else
+                <div class="text-center py-5">
+                    <i class="bi bi-pie-chart text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3 mb-0">No hay datos disponibles</p>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
 
     {{-- Rendimiento por Vendedor --}}
     @if($ventasPorVendedor->count() > 0)
@@ -308,52 +337,68 @@
 @endsection
 
 @push('scripts')
+{{-- Chart.js CDN (última versión estable) --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+
 <script>
+    // Rutas para el módulo
     window.reportesRoutes = {
+        exportarPDF: '{{ route("admin.reportes.exportar-ventas") }}',
         exportar: '{{ route("admin.reportes.exportar-ventas") }}'
     };
 
+    // Datos para gráfico de ventas por día
     window.ventasPorDiaData = {
-        labels: [@foreach($ventasPorDia as $fecha => $data)
-            '{{ \Carbon\Carbon::parse($fecha)->format("d/m") }}', @endforeach
+        labels: [
+            @foreach($ventasPorDia as $fecha => $data)
+                '{{ \Carbon\Carbon::parse($fecha)->format("d/m") }}',
+            @endforeach
         ],
-        datasets: [{
-            label: 'Ingresos Diarios',
-            data: [@foreach($ventasPorDia as $data) {
-                {
-                    (float)($data['total'] ?? 0)
-                }
-            }, @endforeach],
-            backgroundColor: 'rgba(114, 47, 55, 0.1)',
-            borderColor: '#722F37',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#722F37',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7
-        }]
+        data: [
+            @foreach($ventasPorDia as $data)
+                {{ (float)($data['total'] ?? 0) }},
+            @endforeach
+        ]
     };
 
+    // Datos para gráfico de ventas por estado
     window.ventasPorEstadoData = {
-        labels: [@foreach($ventasPorEstado as $estado => $data)
-            '{{ ucfirst(str_replace("_", " ", $estado)) }}', @endforeach
+        labels: [
+            @foreach($ventasPorEstado as $estado => $data)
+                '{{ ucfirst(str_replace("_", " ", $estado)) }}',
+            @endforeach
         ],
-        datasets: [{
-            data: [@foreach($ventasPorEstado as $data) {
-                {
-                    (float)($data['total'] ?? 0)
-                }
-            }, @endforeach],
-            backgroundColor: [
-                '#722F37', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280'
-            ],
-            borderWidth: 0
-        }]
+        data: [
+            @foreach($ventasPorEstado as $data)
+                {{ (float)($data['total'] ?? 0) }},
+            @endforeach
+        ]
     };
 </script>
 
-<script src="{{ asset('js/admin/reportes-modern.js') }}?v={{ filemtime(public_path('js/admin/reportes-modern.js')) }}" defer></script>
+{{-- Módulo de reportes minificado --}}
+<script src="{{ asset('js/admin/reportes-modern.js') }}?v={{ filemtime(public_path('js/admin/reportes-modern.js')) }}"></script>
+
+{{-- Función de actualización manual --}}
+<script>
+    function refrescarReportes() {
+        const btn = document.getElementById('refreshButton');
+        const originalHTML = btn.innerHTML;
+
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Actualizando...';
+        btn.disabled = true;
+
+        // Recargar la página con los filtros actuales
+        document.getElementById('filtrosForm').submit();
+    }
+
+    // Auto-refresh opcional cada 5 minutos (si está habilitado)
+    let autoRefreshEnabled = false; // Cambia a true para habilitar
+    if (autoRefreshEnabled) {
+        setInterval(function() {
+            console.log('⏱️ Auto-refresh de reportes (cada 5 minutos)');
+            document.getElementById('filtrosForm').submit();
+        }, 300000); // 5 minutos
+    }
+</script>
 @endpush

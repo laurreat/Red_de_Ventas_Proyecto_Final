@@ -7,6 +7,26 @@
     <meta name="theme-color" content="#8B1538">
     <title>{{ config('app.name', 'Red de Ventas - Arepa la Llanerita') }}</title>
 
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Arepa Llanerita">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/icons/icon-120x120.png">
+    <link rel="apple-touch-icon" href="/images/icons/icon-180x180.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/icons/icon-512x512.png">
+
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.bunny.net">
 
@@ -309,7 +329,7 @@
                     </div>
                     <div class="commission-card highlight">
                         <h4>Bono Referido</h4>
-                        <div class="commission-value">50k VES</div>
+                        <div class="commission-value">50k COP</div>
                         <p>Por cada nuevo vendedor</p>
                     </div>
                 </div>
@@ -633,7 +653,187 @@
         </div>
     </div>
 
+    <!-- PWA Install Banner -->
+    <div id="install-banner" class="pwa-install-banner" style="display:none;">
+        <div class="install-banner-content">
+            <div class="install-banner-icon">
+                <i class="bi bi-download"></i>
+            </div>
+            <div class="install-banner-text">
+                <strong>¿Instalar la app?</strong>
+                <p>Instala Arepa la Llanerita para acceso rápido y uso offline</p>
+            </div>
+            <div class="install-banner-actions">
+                <button class="btn btn-primary btn-sm" onclick="installPWA()">
+                    <i class="bi bi-download"></i> Instalar
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="hideInstallBanner()">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ asset('js/welcome.js') }}?v={{ filemtime(public_path('js/welcome.js')) }}"></script>
+
+    <!-- PWA Service Worker & Install Script -->
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('[PWA] Service Worker registrado exitosamente:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('[PWA] Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('[PWA] Prompt de instalación disponible');
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('[PWA] App instalada exitosamente');
+            hideInstallBanner();
+
+            // Mostrar mensaje de éxito
+            alert('¡App instalada exitosamente! Ahora puedes acceder desde tu pantalla de inicio.');
+        });
+
+        function showInstallBanner() {
+            const banner = document.getElementById('install-banner');
+            if (banner) {
+                banner.style.display = 'block';
+                setTimeout(() => {
+                    banner.classList.add('show');
+                }, 100);
+            }
+        }
+
+        function hideInstallBanner() {
+            const banner = document.getElementById('install-banner');
+            if (banner) {
+                banner.classList.remove('show');
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('[PWA] Usuario aceptó instalar');
+                    } else {
+                        console.log('[PWA] Usuario rechazó instalar');
+                    }
+                    deferredPrompt = null;
+                    hideInstallBanner();
+                });
+            }
+        }
+
+        // Detectar si ya está instalada
+        window.addEventListener('load', () => {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('[PWA] App ejecutándose como PWA instalada');
+            }
+        });
+    </script>
+
+    <style>
+        .pwa-install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #8B1538 0%, #6B1028 100%);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            z-index: 9999;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .pwa-install-banner.show {
+            transform: translateY(0);
+        }
+
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .install-banner-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .install-banner-text {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .install-banner-text strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .install-banner-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .install-banner-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .install-banner-actions .btn {
+            white-space: nowrap;
+        }
+
+        .install-banner-actions .btn-outline {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .install-banner-actions .btn-outline:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .install-banner-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .install-banner-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </body>
 </html>

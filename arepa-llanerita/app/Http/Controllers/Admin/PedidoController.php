@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pedido;
 use App\Models\User;
 use App\Models\Producto;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -281,6 +282,40 @@ class PedidoController extends Controller
             'primer_detalle' => (is_array($detallesGuardados) && count($detallesGuardados) > 0) ? $detallesGuardados[0] : null
         ]);
 
+        // 🔔 Enviar notificaciones automáticas
+        try {
+            // Recargar relaciones para notificaciones
+            $pedidoCompleto = Pedido::with(['cliente', 'vendedor'])->find($pedido->_id);
+
+            // Notificar nuevo pedido a administradores y líderes
+            NotificationService::nuevoPedido($pedidoCompleto);
+
+            // Si hay vendedor, notificar nueva venta
+            if ($pedidoCompleto->vendedor) {
+                NotificationService::nuevaVenta($pedidoCompleto);
+            }
+
+            // Notificar al cliente
+            if ($pedidoCompleto->cliente) {
+                NotificationService::crear(
+                    $pedidoCompleto->cliente->id,
+                    'pedido',
+                    "Pedido #{$pedidoCompleto->numero_pedido} Creado",
+                    "Tu pedido ha sido creado exitosamente por un monto de $" . number_format($pedidoCompleto->total_final, 2),
+                    [
+                        'pedido_id' => $pedidoCompleto->_id,
+                        'numero_pedido' => $pedidoCompleto->numero_pedido,
+                        'total' => $pedidoCompleto->total_final
+                    ],
+                    'alta'
+                );
+            }
+
+            \Log::info('Notificaciones enviadas para pedido', ['pedido_id' => $pedido->_id]);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar notificaciones: ' . $e->getMessage());
+        }
+
         return redirect()->route('admin.pedidos.index')
             ->with('success', 'Pedido creado exitosamente.');
 
@@ -431,6 +466,32 @@ class PedidoController extends Controller
             'estado' => $request->estado,
             'stock_devuelto' => $pedido->stock_devuelto ?? false
         ]);
+
+        // 🔔 Enviar notificación de cambio de estado
+        try {
+            $pedidoCompleto = Pedido::with(['cliente', 'vendedor'])->find($pedido->_id);
+            if ($pedidoCompleto) {
+                NotificationService::cambioEstadoPedido($pedidoCompleto, $estadoAnterior);
+
+                // Notificar también al vendedor si existe
+                if ($pedidoCompleto->vendedor && $request->estado === 'entregado') {
+                    NotificationService::crear(
+                        $pedidoCompleto->vendedor->id,
+                        'venta',
+                        "Pedido Entregado #{$pedidoCompleto->numero_pedido}",
+                        "El pedido ha sido entregado exitosamente. ¡Venta completada!",
+                        [
+                            'pedido_id' => $pedidoCompleto->_id,
+                            'numero_pedido' => $pedidoCompleto->numero_pedido,
+                            'total' => $pedidoCompleto->total_final
+                        ],
+                        'alta'
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar notificaciones de cambio de estado: ' . $e->getMessage());
+        }
 
         \Log::info('=== FIN updateStatus ===');
 

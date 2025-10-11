@@ -1049,6 +1049,9 @@
     {{-- Incluir funciones JavaScript para pedidos --}}
     {{-- <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script> --}}
 
+    {{-- Sistema de notificaciones en tiempo real mejorado --}}
+    <script src="{{ asset('js/admin/notifications-realtime.js') }}?v={{ filemtime(public_path('js/admin/notifications-realtime.js')) }}"></script>
+
     @stack('scripts')
 </body>
 </html>

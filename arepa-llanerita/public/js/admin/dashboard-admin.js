@@ -541,7 +541,7 @@ class AdminDashboard {
      * Helpers
      */
     formatCurrency(amount) {
-        return new Intl.NumberFormat('es-VE', {
+        return new Intl.NumberFormat('es-CO', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(amount);
@@ -577,7 +577,7 @@ class AdminDashboard {
 
     formatDate(dateString) {
         const date = new Date(dateString);
-        return new Intl.DateTimeFormat('es-VE', {
+        return new Intl.DateTimeFormat('es-CO', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

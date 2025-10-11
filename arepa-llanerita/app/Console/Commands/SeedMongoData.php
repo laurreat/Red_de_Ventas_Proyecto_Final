@@ -121,7 +121,7 @@ class SeedMongoData extends Command
                     'password' => Hash::make('admin123456'),
                     'rol' => 'administrador',
                     'activo' => true,
-                    'telefono' => '+58 424 000 0000',
+                    'telefono' => '+57 300 000 0000',
                     'email_verified_at' => now(),
                     'comisiones_disponibles' => 0,
                     'total_referidos' => 0,
@@ -138,7 +138,7 @@ class SeedMongoData extends Command
     private function seedCategorias($force = false)
     {
         $categorias = [
-            ['nombre' => 'Arepas Tradicionales', 'descripcion' => 'Arepas clásicas venezolanas'],
+            ['nombre' => 'Arepas Tradicionales', 'descripcion' => 'Arepas clásicas colombianas de la región amazónica'],
             ['nombre' => 'Arepas Especiales', 'descripcion' => 'Arepas con ingredientes especiales'],
             ['nombre' => 'Bebidas', 'descripcion' => 'Bebidas para acompañar'],
             ['nombre' => 'Postres', 'descripcion' => 'Postres tradicionales'],
@@ -180,7 +180,7 @@ class SeedMongoData extends Command
             ],
             [
                 'clave' => 'moneda',
-                'valor' => 'VES',
+                'valor' => 'COP',
                 'tipo' => 'texto',
                 'descripcion' => 'Moneda principal del sistema',
                 'categoria' => 'general'

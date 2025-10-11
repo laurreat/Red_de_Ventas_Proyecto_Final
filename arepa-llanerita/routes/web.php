@@ -157,15 +157,16 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('admin/logs/export', [\App\Http\Controllers\Admin\LogController::class, 'export'])->name('admin.logs.export');
         Route::get('admin/logs-stats', [\App\Http\Controllers\Admin\LogController::class, 'stats'])->name('admin.logs.stats');
 
-        // Notificaciones
+        // Notificaciones (rutas específicas ANTES de las dinámicas)
         Route::get('admin/notificaciones', [\App\Http\Controllers\Admin\NotificacionController::class, 'index'])->name('admin.notificaciones.index');
         Route::get('admin/notificaciones/dropdown', [\App\Http\Controllers\Admin\NotificacionController::class, 'dropdown'])->name('admin.notificaciones.dropdown');
-        Route::post('admin/notificaciones/{id}/marcar-leida', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarLeida'])->name('admin.notificaciones.marcar-leida');
-        Route::post('admin/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarTodasLeidas'])->name('admin.notificaciones.marcar-todas-leidas');
-        Route::delete('admin/notificaciones/{id}', [\App\Http\Controllers\Admin\NotificacionController::class, 'eliminar'])->name('admin.notificaciones.eliminar');
-        Route::delete('admin/notificaciones/limpiar-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'limpiarLeidas'])->name('admin.notificaciones.limpiar-leidas');
         Route::get('admin/notificaciones/contar-no-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'contarNoLeidas'])->name('admin.notificaciones.contar-no-leidas');
+        Route::post('admin/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarTodasLeidas'])->name('admin.notificaciones.marcar-todas-leidas');
         Route::post('admin/notificaciones/crear-pruebas', [\App\Http\Controllers\Admin\NotificacionController::class, 'crearPruebas'])->name('admin.notificaciones.crear-pruebas');
+        Route::delete('admin/notificaciones/limpiar-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'limpiarLeidas'])->name('admin.notificaciones.limpiar-leidas');
+        Route::get('admin/notificaciones/{id}', [\App\Http\Controllers\Admin\NotificacionController::class, 'show'])->name('admin.notificaciones.show');
+        Route::post('admin/notificaciones/{id}/marcar-leida', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarLeida'])->name('admin.notificaciones.marcar-leida');
+        Route::delete('admin/notificaciones/{id}', [\App\Http\Controllers\Admin\NotificacionController::class, 'eliminar'])->name('admin.notificaciones.eliminar');
 
         // Mi Perfil
         Route::get('admin/perfil', [\App\Http\Controllers\Admin\PerfilController::class, 'index'])->name('admin.perfil.index');
