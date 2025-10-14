@@ -3,25 +3,104 @@
 @section('title', '- Dashboard Líder')
 @section('page-title', 'Dashboard')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}">
+@endpush
+
 @section('content')
 <div class="container-fluid">
-    <!-- Saludo personalizado -->
+    <!-- Header Hero con Gradiente -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    ¡Hola, {{ auth()->user()->name }}!
+                </h1>
+                <p class="dashboard-subtitle">
+                    Bienvenido de vuelta. Aquí tienes un resumen del rendimiento de tu equipo en tiempo real
+                    <span class="dashboard-realtime-indicator ms-2">
+                        <span class="dashboard-realtime-dot"></span>
+                        En vivo
+                    </span>
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="dashboard-date">
+                    <i class="bi bi-calendar-week me-2"></i>
+                    <span>{{ now()->isoFormat('D [de] MMMM, YYYY') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
-                <div class="card-body p-4 text-white">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <h2 class="mb-2 fw-bold">¡Hola, {{ auth()->user()->name }}!</h2>
-                            <p class="mb-0 opacity-90">
-                                Bienvenido de vuelta. Aquí tienes un resumen del rendimiento de tu equipo.
-                            </p>
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="dashboard-stat-card success">
+                <div class="d-flex align-items-center">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+                        <i class="bi bi-people text-white"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="dashboard-stat-value text-success" data-stat="equipo-total">{{ $stats['equipo_total'] }}</h3>
+                        <p class="dashboard-stat-label mb-0">Miembros Totales</p>
+                        <div class="dashboard-stat-meta text-success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span>{{ $stats['equipo_directo'] }} directos</span>
                         </div>
-                        <div class="col-lg-4 text-lg-end">
-                            <div class="d-inline-flex align-items-center bg-white bg-opacity-20 rounded-pill px-3 py-2">
-                                <i class="bi bi-calendar-week me-2"></i>
-                                <span>{{ now()->format('d M Y') }}</span>
-                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="dashboard-stat-card info">
+                <div class="d-flex align-items-center">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--info), #2563eb);">
+                        <i class="bi bi-cart-check text-white"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="dashboard-stat-value text-info" data-stat="ventas-mes">${{ number_format($stats['ventas_mes_actual'], 0) }}</h3>
+                        <p class="dashboard-stat-label mb-0">Ventas del Mes</p>
+                        <div class="dashboard-stat-meta text-info">
+                            <i class="bi bi-calendar-month"></i>
+                            <span>{{ now()->isoFormat('MMMM YYYY') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="dashboard-stat-card warning">
+                <div class="d-flex align-items-center">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                        <i class="bi bi-currency-dollar text-white"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="dashboard-stat-value text-warning" data-stat="comisiones-mes">${{ number_format($stats['comisiones_mes'], 0) }}</h3>
+                        <p class="dashboard-stat-label mb-0">Comisiones del Mes</p>
+                        <div class="dashboard-stat-meta text-warning">
+                            <i class="bi bi-gem"></i>
+                            <span>Ganadas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 mb-3">
+            <div class="dashboard-stat-card wine">
+                <div class="d-flex align-items-center">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--wine), var(--wine-light));">
+                        <i class="bi bi-target text-white"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="dashboard-stat-value text-wine" data-stat="progreso-meta">{{ number_format($stats['progreso_meta'], 1) }}%</h3>
+                        <p class="dashboard-stat-label mb-0">Progreso Meta</p>
+                        <div class="progress mt-2" style="height: 6px; background: var(--gray-200);">
+                            <div class="progress-bar" style="width: {{ $stats['progreso_meta'] }}%; background: linear-gradient(90deg, var(--wine), var(--wine-light));"></div>
                         </div>
                     </div>
                 </div>
@@ -29,160 +108,60 @@
         </div>
     </div>
 
-    <!-- Estadísticas principales -->
+    <!-- Charts & Top Performers -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #198754, #20c997);">
-                                <i class="bi bi-people fs-2 text-white"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="mb-1 fw-bold text-success">{{ $stats['equipo_total'] }}</h3>
-                            <p class="text-muted mb-0 small">Miembros Totales</p>
-                            <small class="text-success">
-                                <i class="bi bi-arrow-up"></i>
-                                {{ $stats['equipo_directo'] }} directos
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #0d6efd, #6610f2);">
-                                <i class="bi bi-cart-check fs-2 text-white"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="mb-1 fw-bold text-primary">${{ number_format($stats['ventas_mes_actual'], 0) }}</h3>
-                            <p class="text-muted mb-0 small">Ventas del Mes</p>
-                            <small class="text-primary">
-                                <i class="bi bi-calendar-month"></i>
-                                {{ now()->format('M Y') }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffc107, #fd7e14);">
-                                <i class="bi bi-currency-dollar fs-2 text-white"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="mb-1 fw-bold text-warning">${{ number_format($stats['comisiones_mes'], 0) }}</h3>
-                            <p class="text-muted mb-0 small">Comisiones del Mes</p>
-                            <small class="text-warning">
-                                <i class="bi bi-gem"></i>
-                                Ganadas
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                 style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light));">
-                                <i class="bi bi-target fs-2 text-white"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="mb-1 fw-bold" style="color: var(--primary-color);">{{ number_format($stats['progreso_meta'], 1) }}%</h3>
-                            <p class="text-muted mb-0 small">Progreso Meta</p>
-                            <div class="progress mt-2" style="height: 6px;">
-                                <div class="progress-bar"
-                                     style="width: {{ $stats['progreso_meta'] }}%; background: linear-gradient(90deg, var(--primary-color), var(--primary-light));">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Gráfico de ventas -->
+        <!-- Gráfico de Ventas -->
         <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                            <i class="bi bi-graph-up me-2"></i>
-                            Ventas del Equipo (Últimos 30 días)
-                        </h5>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary active">30 días</button>
-                            <button class="btn btn-outline-primary">7 días</button>
-                        </div>
+            <div class="dashboard-chart-card">
+                <div class="dashboard-chart-header">
+                    <h5 class="dashboard-chart-title">
+                        <i class="bi bi-graph-up"></i>
+                        Ventas del Equipo (Últimos 30 días)
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" data-period="30">30 días</button>
+                        <button class="btn btn-outline-primary" data-period="7">7 días</button>
+                        <button class="btn btn-outline-primary" data-action="refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="ventasChart" width="400" height="200"></canvas>
+                <div class="dashboard-chart-body">
+                    <canvas id="ventasChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Top Performers -->
         <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-trophy me-2"></i>
+            <div class="dashboard-chart-card">
+                <div class="dashboard-chart-header">
+                    <h5 class="dashboard-chart-title">
+                        <i class="bi bi-trophy"></i>
                         Top Performers del Mes
                     </h5>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-0">
                     @if($topPerformers->count() > 0)
                         @foreach($topPerformers as $index => $performer)
-                            <div class="d-flex align-items-center p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
-                                <div class="flex-shrink-0">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle"
-                                         style="width: 40px; height: 40px; background: linear-gradient(135deg,
-                                         {{ $index === 0 ? '#ffd700, #ffa500' : ($index === 1 ? '#c0c0c0, #808080' : '#cd7f32, #8b4513') }});">
-                                        <span class="text-white fw-bold">{{ $index + 1 }}</span>
-                                    </div>
+                            <div class="dashboard-performer-item">
+                                <div class="dashboard-performer-badge {{ $index === 0 ? 'gold' : ($index === 1 ? 'silver' : 'bronze') }}">
+                                    {{ $index + 1 }}
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 fw-semibold">{{ $performer['usuario']->name }}</h6>
-                                    <p class="mb-0 text-muted small">
+                                <div class="dashboard-performer-content">
+                                    <h6 class="dashboard-performer-name">{{ $performer['usuario']->name }}</h6>
+                                    <p class="dashboard-performer-stats mb-0">
                                         ${{ number_format($performer['ventas_mes'], 0) }} •
                                         {{ $performer['pedidos_mes'] }} pedidos
                                     </p>
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge bg-success">
-                                        {{ $performer['referidos_mes'] }} ref.
-                                    </span>
+                                    <span class="badge bg-success">{{ $performer['referidos_mes'] }} ref.</span>
                                 </div>
                             </div>
                         @endforeach
                     @else
-                        <div class="text-center py-4">
+                        <div class="text-center py-5">
                             <i class="bi bi-trophy fs-1 text-muted"></i>
                             <p class="text-muted mt-2">No hay datos de rendimiento aún</p>
                         </div>
@@ -192,30 +171,31 @@
         </div>
     </div>
 
-    <div class="row">
-        <!-- Actividad reciente -->
+    <!-- Actividad & Productos -->
+    <div class="row mb-4">
+        <!-- Actividad Reciente -->
         <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-clock-history me-2"></i>
+            <div class="dashboard-activity-card">
+                <div class="dashboard-chart-header">
+                    <h5 class="dashboard-chart-title">
+                        <i class="bi bi-clock-history"></i>
                         Actividad Reciente del Equipo
                     </h5>
+                    <span class="dashboard-realtime-indicator">
+                        <span class="dashboard-realtime-dot"></span>
+                        En vivo
+                    </span>
                 </div>
-                <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                <div class="dashboard-activity-list" style="max-height: 400px; overflow-y: auto;">
                     @if($actividadReciente->count() > 0)
                         @foreach($actividadReciente as $actividad)
-                            <div class="d-flex align-items-center p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
-                                <div class="flex-shrink-0">
-                                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                         style="width: 40px; height: 40px; background: linear-gradient(135deg,
-                                         {{ $actividad['tipo'] === 'pedido' ? 'var(--primary-color), var(--primary-light)' : '#198754, #20c997' }});">
-                                        <i class="bi bi-{{ $actividad['tipo'] === 'pedido' ? 'cart-check' : 'person-plus' }} text-white"></i>
-                                    </div>
+                            <div class="dashboard-activity-item" data-activity-id="{{ $loop->index }}">
+                                <div class="dashboard-activity-icon" style="background: linear-gradient(135deg, {{ $actividad['tipo'] === 'pedido' ? 'var(--wine), var(--wine-light)' : 'var(--success), #059669' }});">
+                                    <i class="bi bi-{{ $actividad['tipo'] === 'pedido' ? 'cart-check' : 'person-plus' }} text-white"></i>
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <p class="mb-1 fw-semibold">{{ $actividad['descripcion'] }}</p>
-                                    <small class="text-muted">
+                                <div class="dashboard-activity-content">
+                                    <p class="dashboard-activity-title">{{ $actividad['descripcion'] }}</p>
+                                    <small class="dashboard-activity-meta">
                                         {{ $actividad['fecha']->diffForHumans() }}
                                         @if(isset($actividad['monto']))
                                             • ${{ number_format($actividad['monto'], 0) }}
@@ -225,7 +205,7 @@
                             </div>
                         @endforeach
                     @else
-                        <div class="text-center py-4">
+                        <div class="text-center py-5">
                             <i class="bi bi-activity fs-1 text-muted"></i>
                             <p class="text-muted mt-2">No hay actividad reciente</p>
                         </div>
@@ -234,41 +214,36 @@
             </div>
         </div>
 
-        <!-- Productos más vendidos -->
+        <!-- Productos Más Vendidos -->
         <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-box-seam me-2"></i>
+            <div class="dashboard-activity-card">
+                <div class="dashboard-chart-header">
+                    <h5 class="dashboard-chart-title">
+                        <i class="bi bi-box-seam"></i>
                         Productos Más Vendidos
                     </h5>
                 </div>
-                <div class="card-body p-0">
+                <div style="max-height: 400px; overflow-y: auto;">
                     @if($productosMasVendidos->count() > 0)
                         @foreach($productosMasVendidos as $producto)
-                            <div class="d-flex align-items-center p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
-                                <div class="flex-shrink-0">
-                                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
-                                         style="width: 40px; height: 40px; background: linear-gradient(135deg, #6610f2, #0d6efd);">
-                                        <i class="bi bi-box text-white"></i>
-                                    </div>
+                            <div class="dashboard-product-item">
+                                <div class="dashboard-product-icon">
+                                    <i class="bi bi-box"></i>
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 fw-semibold">{{ $producto->nombre }}</h6>
-                                    <p class="mb-0 text-muted small">
-                                        {{ $producto->cantidad_vendida }} unidades •
-                                        ${{ number_format($producto->total_ventas, 0) }}
+                                <div class="dashboard-product-content">
+                                    <h6 class="dashboard-product-name">{{ $producto['nombre'] }}</h6>
+                                    <p class="dashboard-product-stats mb-0">
+                                        {{ $producto['cantidad_vendida'] }} unidades •
+                                        ${{ number_format($producto['total_ventas'], 0) }}
                                     </p>
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge bg-primary">
-                                        ${{ number_format($producto->precio, 0) }}
-                                    </span>
+                                    <span class="badge bg-primary">${{ number_format($producto['precio'], 0) }}</span>
                                 </div>
                             </div>
                         @endforeach
                     @else
-                        <div class="text-center py-4">
+                        <div class="text-center py-5">
                             <i class="bi bi-box-seam fs-1 text-muted"></i>
                             <p class="text-muted mt-2">No hay ventas de productos aún</p>
                         </div>
@@ -278,23 +253,23 @@
         </div>
     </div>
 
-    <!-- Metas y objetivos -->
+    <!-- Metas y Objetivos -->
     <div class="row">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0 fw-semibold" style="color: var(--primary-color);">
-                        <i class="bi bi-bullseye me-2"></i>
+            <div class="dashboard-chart-card">
+                <div class="dashboard-chart-header">
+                    <h5 class="dashboard-chart-title">
+                        <i class="bi bi-bullseye"></i>
                         Metas y Objetivos del Mes
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="dashboard-chart-body">
                     <div class="row">
                         @foreach($metas as $tipo => $meta)
                             <div class="col-lg-4 mb-3">
-                                <div class="p-3 rounded-3 border">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="mb-0 fw-semibold">
+                                <div class="dashboard-goal-card" data-goal="{{ $tipo }}">
+                                    <div class="dashboard-goal-header">
+                                        <h6 class="dashboard-goal-title">
                                             @switch($tipo)
                                                 @case('ventas_mes')
                                                     <i class="bi bi-cart-check me-2"></i>Ventas del Mes
@@ -307,20 +282,14 @@
                                                     @break
                                             @endswitch
                                         </h6>
-                                        <span class="badge bg-primary">{{ number_format($meta['progreso'], 1) }}%</span>
+                                        <span class="dashboard-goal-badge">{{ number_format($meta['progreso'], 1) }}%</span>
                                     </div>
-                                    <div class="progress mb-2" style="height: 8px;">
-                                        <div class="progress-bar"
-                                             style="width: {{ $meta['progreso'] }}%; background: linear-gradient(90deg, var(--primary-color), var(--primary-light));">
-                                        </div>
+                                    <div class="dashboard-goal-progress">
+                                        <div class="dashboard-goal-progress-bar" style="width: {{ $meta['progreso'] }}%;"></div>
                                     </div>
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">
-                                            Actual: ${{ number_format($meta['actual'], 0) }}
-                                        </small>
-                                        <small class="text-muted">
-                                            Meta: ${{ number_format($meta['objetivo'], 0) }}
-                                        </small>
+                                    <div class="dashboard-goal-meta">
+                                        <small>Actual: ${{ number_format($meta['actual'], 0) }}</small>
+                                        <small>Meta: ${{ number_format($meta['objetivo'], 0) }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -332,7 +301,15 @@
     </div>
 </div>
 
+<!-- Loading Overlay -->
+<div class="dashboard-loading-overlay">
+    <div class="dashboard-loading-spinner"></div>
+</div>
+@endsection
+
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('js/lider/dashboard-modern.js') }}?v={{ filemtime(public_path('js/lider/dashboard-modern.js')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Datos para el gráfico de ventas
@@ -367,36 +344,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBackgroundColor: 'rgb(114, 47, 55)',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
-                pointRadius: 4
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString();
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 8,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ventas: $' + context.parsed.y.toLocaleString('es-CO');
                         }
                     }
                 }
             },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Ventas: $' + context.parsed.y.toLocaleString();
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('es-CO');
                         }
                     }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
                 }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
             }
         }
     });
 });
 </script>
-@endsection
+@endpush

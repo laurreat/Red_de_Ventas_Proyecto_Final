@@ -392,4 +392,144 @@ class PerfilController extends Controller
         // Simulación
         return rand(30, 120) . ' minutos';
     }
+
+    /**
+     * API: Obtener estadísticas en tiempo real
+     */
+    public function getStatsRealtime()
+    {
+        $user = auth()->user();
+
+        $pedidosCliente = Pedido::where('user_id', $user->_id)->count();
+        $pedidosVendedor = Pedido::where('vendedor_id', $user->_id)->count();
+        $totalReferidos = User::where('referido_por', $user->_id)->count();
+
+        $ventasTotal = to_float(Pedido::where('vendedor_id', $user->_id)
+            ->where('estado', '!=', 'cancelado')
+            ->sum('total_final'));
+
+        $comisionesTotal = to_float($user->comisiones()->sum('monto'));
+
+        $stats = [
+            'pedidos_cliente' => $pedidosCliente,
+            'pedidos_vendedor' => $pedidosVendedor,
+            'total_referidos' => $totalReferidos,
+            'ventas_total' => $ventasTotal,
+            'comisiones_total' => $comisionesTotal,
+            'timestamp' => now()->toIso8601String()
+        ];
+
+        return response()->json([
+            'success' => true,
+            'stats' => $stats
+        ]);
+    }
+
+    /**
+     * API: Obtener actividad en tiempo real
+     */
+    public function getActivityRealtime()
+    {
+        $user = auth()->user();
+        $actividad = [];
+
+        // Pedidos recientes
+        $pedidosRecientes = Pedido::where(function($query) use ($user) {
+            $query->where('user_id', $user->_id)
+                  ->orWhere('vendedor_id', $user->_id);
+        })
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get();
+
+        foreach ($pedidosRecientes as $pedido) {
+            $tipo = $pedido->user_id == $user->_id ? 'cliente' : 'vendedor';
+            $actividad[] = [
+                'id' => $pedido->_id,
+                'tipo' => 'pedido',
+                'descripcion' => 'Pedido ' . ($pedido->numero_pedido ?? '#'.substr($pedido->_id, -6)) . ' como ' . $tipo,
+                'monto' => $pedido->total_final,
+                'tiempo' => $pedido->created_at->diffForHumans()
+            ];
+        }
+
+        // Referidos recientes
+        if (in_array($user->rol, ['administrador', 'lider', 'vendedor'])) {
+            $referidos = User::where('referido_por', $user->_id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            foreach ($referidos as $referido) {
+                $actividad[] = [
+                    'id' => $referido->_id,
+                    'tipo' => 'usuario',
+                    'descripcion' => 'Nuevo referido: ' . $referido->name,
+                    'tiempo' => $referido->created_at->diffForHumans()
+                ];
+            }
+        }
+
+        // Ordenar por más reciente
+        usort($actividad, function($a, $b) {
+            return strcmp($b['tiempo'], $a['tiempo']);
+        });
+
+        return response()->json([
+            'success' => true,
+            'actividad' => array_slice($actividad, 0, 15)
+        ]);
+    }
+
+    /**
+     * API: Obtener nuevas notificaciones
+     */
+    public function getNotificacionesNuevas()
+    {
+        $user = auth()->user();
+        $notificaciones = [];
+
+        // Verificar nuevos pedidos
+        $pedidosNuevos = Pedido::where(function($query) use ($user) {
+            $query->where('user_id', $user->_id)
+                  ->orWhere('vendedor_id', $user->_id);
+        })
+        ->where('created_at', '>=', now()->subMinutes(15))
+        ->orderBy('created_at', 'desc')
+        ->limit(3)
+        ->get();
+
+        foreach ($pedidosNuevos as $pedido) {
+            $notificaciones[] = [
+                'id' => $pedido->_id,
+                'tipo' => 'success',
+                'mensaje' => 'Nuevo pedido #' . ($pedido->numero_pedido ?? substr($pedido->_id, -6)) . ' - $' . number_format($pedido->total_final, 0),
+                'timestamp' => $pedido->created_at->diffForHumans()
+            ];
+        }
+
+        // Verificar nuevos referidos
+        if (in_array($user->rol, ['administrador', 'lider', 'vendedor'])) {
+            $referidosNuevos = User::where('referido_por', $user->_id)
+                ->where('created_at', '>=', now()->subMinutes(15))
+                ->orderBy('created_at', 'desc')
+                ->limit(2)
+                ->get();
+
+            foreach ($referidosNuevos as $referido) {
+                $notificaciones[] = [
+                    'id' => $referido->_id,
+                    'tipo' => 'info',
+                    'mensaje' => 'Nuevo referido: ' . $referido->name . ' se ha unido',
+                    'timestamp' => $referido->created_at->diffForHumans()
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'notificaciones' => $notificaciones,
+            'count' => count($notificaciones)
+        ]);
+    }
 }

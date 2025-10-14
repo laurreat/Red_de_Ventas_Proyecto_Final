@@ -178,6 +178,11 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('admin/perfil/download', [\App\Http\Controllers\Admin\PerfilController::class, 'downloadData'])->name('admin.perfil.download-data');
         Route::get('admin/perfil/activity', [\App\Http\Controllers\Admin\PerfilController::class, 'activity'])->name('admin.perfil.activity');
 
+        // API para Tiempo Real - Perfil Admin
+        Route::get('admin/perfil/stats-realtime', [\App\Http\Controllers\Admin\PerfilController::class, 'getStatsRealtime'])->name('admin.perfil.stats-realtime');
+        Route::get('admin/perfil/activity-realtime', [\App\Http\Controllers\Admin\PerfilController::class, 'getActivityRealtime'])->name('admin.perfil.activity-realtime');
+        Route::get('admin/perfil/notificaciones-nuevas', [\App\Http\Controllers\Admin\PerfilController::class, 'getNotificacionesNuevas'])->name('admin.perfil.notificaciones-nuevas');
+
     });
     
     // Rutas para Líderes y Administradores
@@ -227,6 +232,17 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/capacitacion', [\App\Http\Controllers\Lider\CapacitacionController::class, 'index'])->name('lider.capacitacion.index');
         Route::get('lider/capacitacion/{id}', [\App\Http\Controllers\Lider\CapacitacionController::class, 'show'])->name('lider.capacitacion.show');
         Route::post('lider/capacitacion/asignar', [\App\Http\Controllers\Lider\CapacitacionController::class, 'asignar'])->name('lider.capacitacion.asignar');
+
+        // API para Tiempo Real - Dashboard
+        Route::get('lider/dashboard/stats', [\App\Http\Controllers\Lider\DashboardController::class, 'getStats'])->name('lider.dashboard.stats');
+        Route::get('lider/notificaciones/nuevas', [\App\Http\Controllers\Lider\DashboardController::class, 'getNuevasNotificaciones'])->name('lider.notificaciones.nuevas');
+        Route::get('lider/actividad/reciente', [\App\Http\Controllers\Lider\DashboardController::class, 'getActividadReciente'])->name('lider.actividad.reciente');
+
+        // API para Tiempo Real - Perfil
+        Route::get('lider/perfil/notificaciones', [\App\Http\Controllers\Lider\PerfilController::class, 'getNotificaciones'])->name('lider.perfil.notificaciones');
+        Route::get('lider/perfil/actividad', [\App\Http\Controllers\Lider\PerfilController::class, 'getActividad'])->name('lider.perfil.actividad');
+        Route::get('lider/perfil/estadisticas', [\App\Http\Controllers\Lider\PerfilController::class, 'getEstadisticas'])->name('lider.perfil.estadisticas');
+        Route::post('lider/perfil/notificaciones/{id}/leer', [\App\Http\Controllers\Lider\PerfilController::class, 'marcarNotificacionLeida'])->name('lider.perfil.notificaciones.leer');
     });
     
     // Rutas para Vendedores, Líderes y Administradores

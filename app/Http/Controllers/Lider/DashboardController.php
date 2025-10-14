@@ -299,4 +299,108 @@ class DashboardController extends Controller
             ];
         })->reverse()->values();
     }
+
+    /**
+     * API: Obtener estadísticas en tiempo real
+     */
+    public function getStats()
+    {
+        $user = auth()->user();
+        $equipoDirecto = User::where('referido_por', $user->_id)->get();
+        $equipoTotal = $this->obtenerEquipoCompleto($user);
+
+        $stats = [
+            'equipo_directo' => $equipoDirecto->count(),
+            'equipo_total' => count($equipoTotal),
+            'ventas_mes_actual' => $this->calcularVentasMesActual($equipoTotal),
+            'comisiones_mes' => $this->calcularComisionesMes($user),
+            'progreso_meta' => $this->calcularProgresoMeta($user),
+        ];
+
+        $metas = $this->obtenerMetas($user);
+
+        return response()->json([
+            'success' => true,
+            'stats' => $stats,
+            'metas' => $metas,
+            'timestamp' => now()->toIso8601String()
+        ]);
+    }
+
+    /**
+     * API: Obtener nuevas notificaciones
+     */
+    public function getNuevasNotificaciones()
+    {
+        $user = auth()->user();
+
+        // Simulación de notificaciones (implementar según tu lógica)
+        $notifications = [];
+
+        // Verificar nuevos pedidos del equipo
+        $equipoTotal = $this->obtenerEquipoCompleto($user);
+        $equipoIds = collect($equipoTotal)->pluck('_id')->toArray();
+
+        $pedidosRecientes = Pedido::whereIn('vendedor_id', $equipoIds)
+            ->where('created_at', '>=', Carbon::now()->subMinutes(15))
+            ->where('estado', '!=', 'cancelado')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+
+        foreach ($pedidosRecientes as $pedido) {
+            $notifications[] = [
+                'id' => $pedido->_id,
+                'type' => 'success',
+                'message' => "Nueva venta de {$pedido->vendedor_data['name']}: $" . number_format($pedido->total_final, 0),
+                'timestamp' => $pedido->created_at->diffForHumans()
+            ];
+        }
+
+        // Verificar nuevos referidos
+        $nuevosReferidos = User::whereIn('referido_por', $equipoIds)
+            ->where('created_at', '>=', Carbon::now()->subMinutes(15))
+            ->orderBy('created_at', 'desc')
+            ->limit(2)
+            ->get();
+
+        foreach ($nuevosReferidos as $referido) {
+            $referidor = User::where('_id', $referido->referido_por)->first();
+            $notifications[] = [
+                'id' => $referido->_id,
+                'type' => 'info',
+                'message' => "Nuevo referido de {$referidor->name}: {$referido->name}",
+                'timestamp' => $referido->created_at->diffForHumans()
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'notifications' => $notifications,
+            'count' => count($notifications)
+        ]);
+    }
+
+    /**
+     * API: Obtener actividad reciente en tiempo real
+     */
+    public function getActividadReciente()
+    {
+        $user = auth()->user();
+        $equipoTotal = $this->obtenerEquipoCompleto($user);
+        $actividad = $this->obtenerActividadReciente($equipoTotal);
+
+        return response()->json([
+            'success' => true,
+            'actividad' => $actividad->map(function ($item) {
+                return [
+                    'id' => $item['usuario']->_id ?? uniqid(),
+                    'tipo' => $item['tipo'],
+                    'descripcion' => $item['descripcion'],
+                    'monto' => $item['monto'] ?? null,
+                    'tiempo' => $item['fecha']->diffForHumans()
+                ];
+            })
+        ]);
+    }
 }
