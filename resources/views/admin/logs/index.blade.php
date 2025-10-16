@@ -217,7 +217,7 @@
                                     {{ Str::limit($log['message'], 150) }}
                                 </div>
                                 @if(strlen($log['message']) > 150)
-                                    <button class="logs-message-expand" onclick="mostrarMensajeCompleto({{ json_encode($log['message']) }})">
+                                    <button class="logs-message-expand" data-message="{{ htmlspecialchars($log['message'], ENT_QUOTES, 'UTF-8') }}">
                                         Ver completo <i class="bi bi-arrow-right"></i>
                                     </button>
                                 @endif

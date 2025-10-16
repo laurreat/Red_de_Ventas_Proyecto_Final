@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\Admin\NotificacionController;
 
 class RegisterController extends Controller
 {
@@ -115,6 +117,9 @@ class RegisterController extends Controller
         try {
             $user = $this->create($request->all());
 
+            // Enviar notificación al administrador
+            $this->notifyAdmin($user);
+
             $this->guard()->login($user);
 
             return $this->registered($request, $user)
@@ -201,7 +206,73 @@ class RegisterController extends Controller
         do {
             $codigo = 'REF' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
         } while (User::where('codigo_referido', $codigo)->exists());
-        
+
         return $codigo;
+    }
+
+    /**
+     * Enviar notificación al administrador sobre nuevo registro
+     */
+    private function notifyAdmin(User $user): void
+    {
+        try {
+            // Crear notificación en el sistema para administradores
+            $mensaje = "Nuevo usuario registrado: {$user->name} {$user->apellidos} ({$user->email})";
+
+            if ($user->referido_por) {
+                $referidor = User::find($user->referido_por);
+                if ($referidor) {
+                    $mensaje .= " - Referido por: {$referidor->name} {$referidor->apellidos}";
+                }
+            }
+
+            NotificacionController::enviarAAdministradores(
+                'nuevo_registro',
+                'Nuevo Usuario Registrado',
+                $mensaje,
+                [
+                    'user_id' => $user->_id,
+                    'nombre_completo' => $user->name . ' ' . $user->apellidos,
+                    'email' => $user->email,
+                    'cedula' => $user->cedula,
+                    'telefono' => $user->telefono,
+                    'ciudad' => $user->ciudad,
+                    'departamento' => $user->departamento,
+                    'codigo_referido' => $user->codigo_referido,
+                    'referido_por' => $user->referido_por,
+                    'fecha_registro' => now()->format('d/m/Y H:i:s')
+                ],
+                'normal'
+            );
+
+            Log::info('Notificación de nuevo registro creada en el sistema', [
+                'user_id' => $user->_id,
+                'user_email' => $user->email
+            ]);
+
+            // Enviar correo electrónico al administrador (opcional)
+            $adminEmail = config('mail.admin_email');
+
+            if ($adminEmail) {
+                Mail::send('emails.new-user-notification', [
+                    'user' => $user
+                ], function ($message) use ($adminEmail, $user) {
+                    $message->to($adminEmail)
+                            ->subject('Nuevo Registro de Usuario - ' . $user->name . ' ' . $user->apellidos);
+                });
+
+                Log::info('Correo de notificación enviado al administrador', [
+                    'user_id' => $user->_id,
+                    'admin_email' => $adminEmail
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error al enviar notificación al administrador', [
+                'user_id' => $user->_id,
+                'error' => $e->getMessage()
+            ]);
+            // No lanzamos la excepción para que no afecte el registro del usuario
+        }
     }
 }

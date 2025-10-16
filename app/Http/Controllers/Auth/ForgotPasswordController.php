@@ -69,22 +69,7 @@ class ForgotPasswordController extends Controller
                 $mailSent = false;
             }
 
-            // En modo desarrollo, siempre mostrar información útil
-            if (config('app.debug')) {
-                $resetUrl = url("/password/reset/{$token}?email=" . urlencode($user->email));
-
-                if ($mailSent) {
-                    return back()->with('status', 'Token generado correctamente. El correo se ha guardado en los logs.')
-                                ->with('debug_reset_url', $resetUrl)
-                                ->with('debug_token', $token);
-                } else {
-                    return back()->with('status', 'Token generado correctamente.')
-                                ->with('debug_reset_url', $resetUrl)
-                                ->with('debug_token', $token);
-                }
-            }
-
-            return back()->with('status', 'Si el correo está registrado, recibirás un enlace de restablecimiento.');
+            return back()->with('status', 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.');
 
         } catch (\Exception $e) {
             Log::error('Error enviando correo de restablecimiento', [

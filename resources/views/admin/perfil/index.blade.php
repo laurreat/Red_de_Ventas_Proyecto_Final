@@ -127,30 +127,31 @@
                         <div class="row">
                             {{-- Avatar --}}
                             <div class="col-md-4 text-center mb-4">
-                                <div class="position-relative d-inline-block" id="avatar-container">
+                                <div class="position-relative d-inline-block" id="avatar-container" style="width: 150px; height: 150px;">
                                     @if($user->avatar)
                                     <img src="{{ asset('storage/avatars/' . $user->avatar) }}"
                                         class="perfil-avatar"
                                         width="150" height="150"
-                                        style="object-fit: cover;" alt="Avatar"
+                                        style="object-fit: cover; display: block;" alt="Avatar"
                                         loading="lazy"
                                         id="user-avatar-form">
                                     @else
-                                    <div class="perfil-avatar" id="user-avatar-placeholder-form">
+                                    <div class="perfil-avatar" id="user-avatar-placeholder-form" style="width: 150px; height: 150px;">
                                         {{ strtoupper(substr($user->name, 0, 1)) }}
                                     </div>
                                     @endif
                                     @if($user->avatar)
                                     <button type="button" class="btn btn-sm btn-danger position-absolute rounded-circle"
-                                        style="top: 5px; right: 5px; width: 32px; height: 32px; padding: 0;"
+                                        style="top: 0; right: 0; width: 36px; height: 36px; padding: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"
                                         id="eliminar-avatar-btn" title="Eliminar foto">
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                     @endif
                                 </div>
                                 <div class="mt-3">
-                                    <input type="file" name="avatar" class="form-control" accept="image/*">
-                                    <small class="text-muted">JPG, PNG, GIF - Máx. 2MB</small>
+                                    <input type="file" name="avatar" class="form-control" accept="image/*,image/webp">
+                                    <small class="text-muted d-block mt-1"><i class="bi bi-info-circle me-1"></i>JPG, PNG, GIF, WEBP - Máx. 5MB</small>
+                                    <small class="text-success d-none" id="preview-success"><i class="bi bi-check-circle me-1"></i>Vista previa cargada</small>
                                 </div>
                             </div>
 
@@ -193,11 +194,11 @@
 
                         <div class="collapse" id="editProfile">
                             <div class="border-top pt-3">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-save me-2"></i> Guardar Cambios
                                 </button>
-                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#editProfile">
-                                    <i class="bi bi-x-circle"></i> Cancelar
+                                <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-toggle="collapse" data-bs-target="#editProfile">
+                                    <i class="bi bi-x-circle me-2"></i> Cancelar
                                 </button>
                             </div>
                         </div>
@@ -237,8 +238,8 @@
                                     <input type="password" name="new_password_confirmation" class="form-control" required>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-shield-check"></i> Actualizar Contraseña
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-shield-check me-2"></i> Actualizar Contraseña
                             </button>
                         </form>
                     </div>
@@ -384,8 +385,8 @@
 
                         <div class="collapse" id="notifConfig">
                             <div class="border-top pt-3">
-                                <button type="submit" class="btn btn-primary btn-sm w-100">
-                                    <i class="bi bi-check-circle"></i> Guardar Preferencias
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-bell-fill me-2"></i> Guardar Preferencias
                                 </button>
                             </div>
                         </div>

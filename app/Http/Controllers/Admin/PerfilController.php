@@ -56,8 +56,8 @@ class PerfilController extends Controller
 
         $actividadReciente = [
             'pedidos_recientes' => $pedidosRecientesCliente->concat($pedidosRecientesVendedor)
-                                                          ->sortByDesc('created_at')
-                                                          ->take(5),
+                ->sortByDesc('created_at')
+                ->take(5),
             'usuarios_recientes' => $usuariosReferidos
         ];
 
@@ -85,7 +85,7 @@ class PerfilController extends Controller
             'direccion' => 'nullable|string|max:500',
             'fecha_nacimiento' => 'nullable|date|before:today',
             'bio' => 'nullable|string|max:1000',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
         ]);
 
         try {
@@ -124,9 +124,27 @@ class PerfilController extends Controller
                 'avatar' => $user->avatar
             ]);
 
+            if ($request->expectsJson() || $request->ajax()) {
+                $avatarUrl = null;
+                if ($user->avatar) {
+                    $avatarUrl = asset('storage/avatars/' . $user->avatar) . '?v=' . time();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Perfil actualizado exitosamente.',
+                    'user' => [
+                        'name' => $user->name,
+                        'apellidos' => $user->apellidos,
+                        'email' => $user->email,
+                        'avatar' => $avatarUrl,
+                        'avatar_filename' => $user->avatar
+                    ]
+                ]);
+            }
+
             return redirect()->route('admin.perfil.index')
                 ->with('success', 'Perfil actualizado exitosamente.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
@@ -154,9 +172,15 @@ class PerfilController extends Controller
                 'password' => Hash::make($request->new_password)
             ]);
 
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Contraseña actualizada exitosamente.'
+                ]);
+            }
+
             return redirect()->route('admin.perfil.index')
                 ->with('success', 'Contraseña actualizada exitosamente.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al actualizar contraseña: ' . $e->getMessage());
@@ -176,9 +200,15 @@ class PerfilController extends Controller
                 'notif_push_browser' => $request->has('push_browser')
             ]);
 
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Preferencias de notificaciones actualizadas.'
+                ]);
+            }
+
             return redirect()->route('admin.perfil.index')
                 ->with('success', 'Preferencias de notificaciones actualizadas.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al actualizar notificaciones: ' . $e->getMessage());
@@ -206,7 +236,6 @@ class PerfilController extends Controller
 
             return redirect()->route('admin.perfil.index')
                 ->with('success', 'Configuración de privacidad actualizada.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al actualizar privacidad: ' . $e->getMessage());
@@ -228,7 +257,6 @@ class PerfilController extends Controller
                 'success' => true,
                 'message' => 'Avatar eliminado exitosamente'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -261,8 +289,8 @@ class PerfilController extends Controller
                     'ultimo_acceso' => $user->last_login_at ?? $user->updated_at,
                 ],
                 'pedidos_recientes' => $pedidosCliente->concat($pedidosVendedor)
-                                                     ->sortByDesc('created_at')
-                                                     ->take(10),
+                    ->sortByDesc('created_at')
+                    ->take(10),
                 'referidos_recientes' => $referidos->sortByDesc('created_at')->take(10),
                 'fecha_generacion' => now(),
             ];
@@ -273,7 +301,6 @@ class PerfilController extends Controller
             $filename = 'perfil_' . ($user->name ?? 'usuario') . '_' . now()->format('Y-m-d') . '.pdf';
 
             return $pdf->download($filename);
-
         } catch (\Exception $e) {
             \Log::error('Error al generar PDF del perfil: ' . $e->getMessage());
             return redirect()->back()
@@ -292,7 +319,7 @@ class PerfilController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->take(25)
                 ->get()
-                ->map(function($pedido) {
+                ->map(function ($pedido) {
                     return [
                         'id' => (string)$pedido->_id,
                         'numero_pedido' => $pedido->numero_pedido ?? 'N/A',
@@ -308,7 +335,7 @@ class PerfilController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->take(25)
                 ->get()
-                ->map(function($pedido) {
+                ->map(function ($pedido) {
                     return [
                         'id' => (string)$pedido->_id,
                         'numero_pedido' => $pedido->numero_pedido ?? 'N/A',
@@ -327,7 +354,7 @@ class PerfilController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->take(25)
                     ->get()
-                    ->map(function($referido) {
+                    ->map(function ($referido) {
                         return [
                             'id' => (string)$referido->_id,
                             'name' => $referido->name ?? '',
@@ -363,7 +390,6 @@ class PerfilController extends Controller
                 'success' => true,
                 'data' => $actividad
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Error al obtener actividad del perfil: ' . $e->getMessage());
             return response()->json([
@@ -434,20 +460,20 @@ class PerfilController extends Controller
         $actividad = [];
 
         // Pedidos recientes
-        $pedidosRecientes = Pedido::where(function($query) use ($user) {
+        $pedidosRecientes = Pedido::where(function ($query) use ($user) {
             $query->where('user_id', $user->_id)
-                  ->orWhere('vendedor_id', $user->_id);
+                ->orWhere('vendedor_id', $user->_id);
         })
-        ->orderBy('created_at', 'desc')
-        ->limit(10)
-        ->get();
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
 
         foreach ($pedidosRecientes as $pedido) {
             $tipo = $pedido->user_id == $user->_id ? 'cliente' : 'vendedor';
             $actividad[] = [
                 'id' => $pedido->_id,
                 'tipo' => 'pedido',
-                'descripcion' => 'Pedido ' . ($pedido->numero_pedido ?? '#'.substr($pedido->_id, -6)) . ' como ' . $tipo,
+                'descripcion' => 'Pedido ' . ($pedido->numero_pedido ?? '#' . substr($pedido->_id, -6)) . ' como ' . $tipo,
                 'monto' => $pedido->total_final,
                 'tiempo' => $pedido->created_at->diffForHumans()
             ];
@@ -471,7 +497,7 @@ class PerfilController extends Controller
         }
 
         // Ordenar por más reciente
-        usort($actividad, function($a, $b) {
+        usort($actividad, function ($a, $b) {
             return strcmp($b['tiempo'], $a['tiempo']);
         });
 
@@ -490,14 +516,14 @@ class PerfilController extends Controller
         $notificaciones = [];
 
         // Verificar nuevos pedidos
-        $pedidosNuevos = Pedido::where(function($query) use ($user) {
+        $pedidosNuevos = Pedido::where(function ($query) use ($user) {
             $query->where('user_id', $user->_id)
-                  ->orWhere('vendedor_id', $user->_id);
+                ->orWhere('vendedor_id', $user->_id);
         })
-        ->where('created_at', '>=', now()->subMinutes(15))
-        ->orderBy('created_at', 'desc')
-        ->limit(3)
-        ->get();
+            ->where('created_at', '>=', now()->subMinutes(15))
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
 
         foreach ($pedidosNuevos as $pedido) {
             $notificaciones[] = [
