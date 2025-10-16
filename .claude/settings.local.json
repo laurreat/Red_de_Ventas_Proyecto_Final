@@ -50,7 +50,11 @@
       "Bash(do grep -l \"app-theme.css\" \"$file\")",
       "Bash(git push:*)",
       "Bash(git rm:*)",
-      "Bash(truncate:*)"
+      "Bash(truncate:*)",
+      "Bash(if exist \"public\\js\\modules\\dashboard.js\" del \"public\\js\\modules\\dashboard.js\")",
+      "Bash(if [ -f \"public/js/modules/dashboard.js\" ])",
+      "Bash(then rm \"public/js/modules/dashboard.js\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

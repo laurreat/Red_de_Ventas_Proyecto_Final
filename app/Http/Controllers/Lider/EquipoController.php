@@ -155,6 +155,38 @@ class EquipoController extends Controller
             'meta_mensual' => $request->meta_mensual
         ]);
 
+        // Si es una petición AJAX, devolver JSON
+        if ($request->ajax() || $request->wantsJson()) {
+            // Obtener estadísticas actualizadas
+            $inicioMes = Carbon::now()->startOfMonth();
+            $ventasMes = $miembro->pedidosComoVendedor()
+                ->where('created_at', '>=', $inicioMes)
+                ->where('estado', '!=', 'cancelado')
+                ->sum('total_final');
+
+            $rendimiento = 0;
+            if ($miembro->meta_mensual && $miembro->meta_mensual > 0) {
+                $rendimiento = min(($ventasMes / $miembro->meta_mensual) * 100, 100);
+            }
+
+            $progressColor = $rendimiento >= 80 ? 'success' : ($rendimiento >= 50 ? 'warning' : 'danger');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Meta asignada exitosamente',
+                'data' => [
+                    'meta_mensual' => $miembro->meta_mensual,
+                    'meta_mensual_formateado' => '$' . number_format($miembro->meta_mensual, 0),
+                    'ventas_mes' => $ventasMes,
+                    'rendimiento' => number_format($rendimiento, 1),
+                    'progress_color' => $progressColor,
+                    'falta' => max(0, $miembro->meta_mensual - $ventasMes),
+                    'falta_formateado' => '$' . number_format(max(0, $miembro->meta_mensual - $ventasMes), 0),
+                    'stroke_dashoffset' => 565.48 - (565.48 * $rendimiento / 100)
+                ]
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Meta asignada exitosamente.');
     }
 
@@ -252,6 +284,123 @@ class EquipoController extends Controller
         ];
     }
 
+    public function obtenerHistorialVentasAjax(Request $request, $id)
+    {
+        $lider = auth()->user();
+        $miembro = $lider->referidos()->findOrFail($id);
+
+        // Determinar el rango de fechas
+        if ($request->has('fecha_inicial') && $request->has('fecha_final')) {
+            $fechaInicial = Carbon::createFromFormat('Y-m', $request->fecha_inicial)->startOfMonth();
+            $fechaFinal = Carbon::createFromFormat('Y-m', $request->fecha_final)->endOfMonth();
+        } else {
+            $meses = $request->get('meses', 6);
+            $fechaFinal = Carbon::now();
+            $fechaInicial = Carbon::now()->subMonths($meses - 1)->startOfMonth();
+        }
+
+        // Generar datos para cada mes
+        $ventas = [];
+        $fecha = $fechaInicial->copy();
+
+        while ($fecha <= $fechaFinal) {
+            $ventasMes = $miembro->pedidosComoVendedor()
+                ->whereYear('created_at', $fecha->year)
+                ->whereMonth('created_at', $fecha->month)
+                ->where('estado', '!=', 'cancelado')
+                ->sum('total_final');
+
+            $ventas[] = [
+                'mes' => $fecha->translatedFormat('M Y'),
+                'ventas' => $ventasMes
+            ];
+
+            $fecha->addMonth();
+        }
+
+        // Calcular estadísticas
+        $total = array_sum(array_column($ventas, 'ventas'));
+        $promedio = count($ventas) > 0 ? $total / count($ventas) : 0;
+        $mejorMesData = collect($ventas)->sortByDesc('ventas')->first();
+        $mejorMes = $mejorMesData['mes'] ?? 'N/A';
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'ventas' => $ventas,
+                'total' => $total,
+                'promedio' => $promedio,
+                'mejor_mes' => $mejorMes
+            ]
+        ]);
+    }
+
+    public function exportarHistorial(Request $request, $id)
+    {
+        $lider = auth()->user();
+        $miembro = $lider->referidos()->findOrFail($id);
+
+        // Determinar el rango de fechas
+        if ($request->has('fecha_inicial') && $request->has('fecha_final')) {
+            $fechaInicial = Carbon::createFromFormat('Y-m', $request->fecha_inicial)->startOfMonth();
+            $fechaFinal = Carbon::createFromFormat('Y-m', $request->fecha_final)->endOfMonth();
+        } else {
+            $meses = $request->get('meses', 6);
+            $fechaFinal = Carbon::now();
+            $fechaInicial = Carbon::now()->subMonths($meses - 1)->startOfMonth();
+        }
+
+        // Generar CSV
+        $ventas = [];
+        $fecha = $fechaInicial->copy();
+
+        while ($fecha <= $fechaFinal) {
+            $ventasMes = $miembro->pedidosComoVendedor()
+                ->whereYear('created_at', $fecha->year)
+                ->whereMonth('created_at', $fecha->month)
+                ->where('estado', '!=', 'cancelado')
+                ->sum('total_final');
+
+            $ventas[] = [
+                'mes' => $fecha->translatedFormat('F Y'),
+                'ventas' => $ventasMes
+            ];
+
+            $fecha->addMonth();
+        }
+
+        // Crear archivo CSV
+        $filename = 'historial_ventas_' . $miembro->name . '_' . now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($ventas, $miembro) {
+            $file = fopen('php://output', 'w');
+
+            // BOM para UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Encabezados
+            fputcsv($file, ['Miembro', 'Mes', 'Ventas']);
+
+            // Datos
+            foreach ($ventas as $venta) {
+                fputcsv($file, [
+                    $miembro->name . ' ' . $miembro->apellidos,
+                    $venta['mes'],
+                    '$' . number_format($venta['ventas'], 0)
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     private function obtenerHistorialVentas($miembro)
     {
         return collect(range(0, 5))->map(function($i) use ($miembro) {
@@ -263,7 +412,7 @@ class EquipoController extends Controller
                 ->sum('total_final');
 
             return [
-                'mes' => $fecha->format('M Y'),
+                'mes' => $fecha->translatedFormat('M Y'),
                 'ventas' => $ventas
             ];
         })->reverse()->values();

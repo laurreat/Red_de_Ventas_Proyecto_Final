@@ -194,6 +194,8 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/equipo', [\App\Http\Controllers\Lider\EquipoController::class, 'index'])->name('lider.equipo.index');
         Route::get('lider/equipo/{id}', [\App\Http\Controllers\Lider\EquipoController::class, 'show'])->name('lider.equipo.show');
         Route::post('lider/equipo/{id}/asignar-meta', [\App\Http\Controllers\Lider\EquipoController::class, 'asignarMeta'])->name('lider.equipo.asignar-meta');
+        Route::get('lider/equipo/{id}/historial-ventas', [\App\Http\Controllers\Lider\EquipoController::class, 'obtenerHistorialVentasAjax'])->name('lider.equipo.historial-ventas');
+        Route::get('lider/equipo/{id}/exportar-historial', [\App\Http\Controllers\Lider\EquipoController::class, 'exportarHistorial'])->name('lider.equipo.exportar-historial');
 
         // Red de Referidos del Líder
         Route::get('lider/referidos', [\App\Http\Controllers\Lider\ReferidoController::class, 'index'])->name('lider.referidos.index');
@@ -236,6 +238,9 @@ Route::middleware(['auth', 'role'])->group(function () {
         // API para Tiempo Real - Dashboard
         Route::get('lider/dashboard/stats', [\App\Http\Controllers\Lider\DashboardController::class, 'getStats'])->name('lider.dashboard.stats');
         Route::get('lider/notificaciones/nuevas', [\App\Http\Controllers\Lider\DashboardController::class, 'getNuevasNotificaciones'])->name('lider.notificaciones.nuevas');
+        Route::get('lider/notificaciones', [\App\Http\Controllers\Lider\DashboardController::class, 'getNotificaciones'])->name('lider.notificaciones');
+        Route::post('lider/notificaciones/{id}/leer', [\App\Http\Controllers\Lider\DashboardController::class, 'marcarNotificacionLeida'])->name('lider.notificaciones.leer');
+        Route::post('lider/notificaciones/marcar-todas', [\App\Http\Controllers\Lider\DashboardController::class, 'marcarTodasLeidas'])->name('lider.notificaciones.marcar-todas');
         Route::get('lider/actividad/reciente', [\App\Http\Controllers\Lider\DashboardController::class, 'getActividadReciente'])->name('lider.actividad.reciente');
 
         // API para Tiempo Real - Perfil

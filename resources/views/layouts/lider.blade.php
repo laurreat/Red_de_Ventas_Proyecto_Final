@@ -14,6 +14,9 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
+    <!-- Header Dropdowns CSS -->
+    <link rel="stylesheet" href="{{ asset('css/lider/header-dropdowns.css') }}?v={{ filemtime(public_path('css/lider/header-dropdowns.css')) }}">
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
@@ -406,32 +409,19 @@
             border-color: var(--primary-color);
         }
 
-        /* Dropdown Menu */
-        .dropdown-menu {
-            border: 1px solid var(--border-color);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            border-radius: 0.375rem;
-            z-index: 1070 !important;
-            position: absolute !important;
-        }
-
-        /* Específico para dropdowns del header */
-        .lider-header .dropdown-menu {
-            z-index: 1080 !important;
+        /* Dropdown del sidebar - sin fondo */
+        .lider-sidebar .dropdown-menu {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            position: static;
         }
 
         /* Bootstrap dropdown fix */
         .dropdown-toggle::after {
             margin-left: 0.5rem;
-        }
-
-        /* Forzar z-index para dropdowns activos */
-        .dropdown.show .dropdown-menu {
-            z-index: 1090 !important;
-        }
-
-        .lider-header .dropdown.show .dropdown-menu {
-            z-index: 1100 !important;
         }
 
         .sidebar-overlay {
@@ -579,42 +569,57 @@
             <div class="header-right">
                 <!-- Notifications -->
                 <div class="dropdown">
-                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge">5</span>
+                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
+                        <i class="bi bi-bell-fill"></i>
+                        <span class="notification-badge">3</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;">
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h6 class="mb-0">Notificaciones</h6>
-                            <small class="text-muted">5 nuevas</small>
+                    <div class="dropdown-menu dropdown-menu-end" style="width: 360px;">
+                        <div class="d-flex justify-content-between align-items-center border-bottom">
+                            <h6 class="mb-0">
+                                <i class="bi bi-bell me-2"></i>
+                                Notificaciones
+                            </h6>
+                            <span class="badge bg-danger rounded-pill">3 nuevas</span>
                         </div>
-                        <div class="p-3">
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="bg-success rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 8px; height: 8px; margin-top: 6px;"></div>
-                                <div>
-                                    <div class="fw-medium small">Nueva venta registrada</div>
-                                    <small class="text-muted">Tu equipo ha registrado una nueva venta - hace 5 min</small>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">Nueva venta registrada</div>
+                                    <small class="text-muted d-block">Juan Pérez registró una venta de $150,000</small>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 5 minutos</small>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 8px; height: 8px; margin-top: 6px;"></div>
-                                <div>
-                                    <div class="fw-medium small">Meta mensual alcanzada</div>
-                                    <small class="text-muted">Has alcanzado el 85% de tu meta - hace 2 horas</small>
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">Progreso de meta</div>
+                                    <small class="text-muted d-block">Has alcanzado el 85% de tu meta mensual</small>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 2 horas</small>
                                 </div>
                             </div>
-                            <div class="text-center">
-                                <a href="#" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Centro de Notificaciones')">Ver todas</a>
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">Nuevo miembro en equipo</div>
+                                    <small class="text-muted d-block">María López se unió a tu equipo</small>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 4 horas</small>
+                                </div>
                             </div>
+                        </div>
+                        <div class="text-center p-3 border-top">
+                            <a href="#" class="btn btn-sm btn-outline-primary w-100" onclick="showComingSoon('Centro de Notificaciones')">
+                                <i class="bi bi-eye me-2"></i>Ver todas las notificaciones
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Profile -->
                 <div class="dropdown">
-                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false" role="button" tabindex="0">
                         <div class="profile-avatar">
-                            <i class="bi bi-person"></i>
+                            <i class="bi bi-person-fill"></i>
                         </div>
                         <div class="profile-info">
                             <div class="profile-name">{{ Auth::user()->name }}</div>
@@ -622,29 +627,45 @@
                         </div>
                         <i class="bi bi-chevron-down ms-2"></i>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end" style="z-index: 1090 !important;">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <h6 class="dropdown-header">
+                                <i class="bi bi-person-circle me-2"></i>
                                 {{ Auth::user()->name }}
-                                <small class="text-muted d-block">{{ Auth::user()->email }}</small>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="bi bi-envelope me-1"></i>{{ Auth::user()->email }}
+                                </small>
                             </h6>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
+                            <a class="dropdown-item" href="{{ route('lider.dashboard') }}">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" href="{{ route('lider.perfil.index') }}">
-                                <i class="bi bi-person me-2"></i>
+                                <i class="bi bi-person-gear"></i>
                                 Mi Perfil
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('lider.configuracion.index') }}">
-                                <i class="bi bi-gear me-2"></i>
+                                <i class="bi bi-gear"></i>
                                 Configuración
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Ayuda')">
-                                <i class="bi bi-question-circle me-2"></i>
+                            <a class="dropdown-item" href="{{ route('lider.comisiones.index') }}">
+                                <i class="bi bi-currency-dollar"></i>
+                                Mis Comisiones
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="showComingSoon('Ayuda y Soporte')">
+                                <i class="bi bi-question-circle"></i>
                                 Ayuda
                             </a>
                         </li>
@@ -652,7 +673,7 @@
                         <li>
                             <a class="dropdown-item text-danger" href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right me-2"></i>
+                                <i class="bi bi-box-arrow-right"></i>
                                 Cerrar Sesión
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -672,6 +693,9 @@
 
     @livewireScripts
     @livewire('toast-notifications')
+
+    <!-- Notificaciones en Tiempo Real -->
+    <script src="{{ asset('js/lider/notifications-realtime.js') }}?v={{ filemtime(public_path('js/lider/notifications-realtime.js')) }}" defer></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -4,35 +4,38 @@
 @section('page-title', 'Dashboard')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}" media="all">
+<link rel="preload" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}" as="style">
+<noscript><link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}"></noscript>
 @endpush
 
 @section('content')
+<div role="main" aria-label="Dashboard del Líder">
 <div class="container-fluid">
     <!-- Header Hero con Gradiente -->
-    <div class="dashboard-header">
+    <header class="dashboard-header" role="banner">
         <div class="row align-items-center">
             <div class="col-lg-8">
-                <h1 class="dashboard-title">
-                    <i class="bi bi-speedometer2 me-2"></i>
-                    ¡Hola, {{ auth()->user()->name }}!
+                <h1 class="dashboard-title" id="page-title">
+                    <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>
+                    <span>¡Hola, {{ auth()->user()->name }}!</span>
                 </h1>
                 <p class="dashboard-subtitle">
                     Bienvenido de vuelta. Aquí tienes un resumen del rendimiento de tu equipo en tiempo real
-                    <span class="dashboard-realtime-indicator ms-2">
-                        <span class="dashboard-realtime-dot"></span>
-                        En vivo
+                    <span class="dashboard-realtime-indicator ms-2" role="status" aria-live="polite">
+                        <span class="dashboard-realtime-dot" aria-hidden="true"></span>
+                        <span>En vivo</span>
                     </span>
                 </p>
             </div>
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <div class="dashboard-date">
-                    <i class="bi bi-calendar-week me-2"></i>
-                    <span>{{ now()->isoFormat('D [de] MMMM, YYYY') }}</span>
+                <div class="dashboard-date" role="time" aria-label="Fecha actual">
+                    <i class="bi bi-calendar-week me-2" aria-hidden="true"></i>
+                    <time datetime="{{ now()->toIso8601String() }}">{{ now()->isoFormat('D [de] MMMM, YYYY') }}</time>
                 </div>
             </div>
         </div>
-    </div>
+    </header>
 
     <!-- Stats Cards -->
     <div class="row mb-4">
@@ -55,81 +58,81 @@
         </div>
 
         <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="dashboard-stat-card info">
+            <article class="dashboard-stat-card info" role="article" aria-label="Ventas del mes">
                 <div class="d-flex align-items-center">
-                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--info), #2563eb);">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--info), #2563eb);" aria-hidden="true">
                         <i class="bi bi-cart-check text-white"></i>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="dashboard-stat-value text-info" data-stat="ventas-mes">${{ number_format($stats['ventas_mes_actual'], 0) }}</h3>
+                        <h3 class="dashboard-stat-value text-info" data-stat="ventas-mes" aria-live="polite">${{ number_format($stats['ventas_mes_actual'], 0) }}</h3>
                         <p class="dashboard-stat-label mb-0">Ventas del Mes</p>
                         <div class="dashboard-stat-meta text-info">
-                            <i class="bi bi-calendar-month"></i>
+                            <i class="bi bi-calendar-month" aria-hidden="true"></i>
                             <span>{{ now()->isoFormat('MMMM YYYY') }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
 
         <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="dashboard-stat-card warning">
+            <article class="dashboard-stat-card warning" role="article" aria-label="Comisiones del mes">
                 <div class="d-flex align-items-center">
-                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);" aria-hidden="true">
                         <i class="bi bi-currency-dollar text-white"></i>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="dashboard-stat-value text-warning" data-stat="comisiones-mes">${{ number_format($stats['comisiones_mes'], 0) }}</h3>
+                        <h3 class="dashboard-stat-value text-warning" data-stat="comisiones-mes" aria-live="polite">${{ number_format($stats['comisiones_mes'], 0) }}</h3>
                         <p class="dashboard-stat-label mb-0">Comisiones del Mes</p>
                         <div class="dashboard-stat-meta text-warning">
-                            <i class="bi bi-gem"></i>
+                            <i class="bi bi-gem" aria-hidden="true"></i>
                             <span>Ganadas</span>
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
 
         <div class="col-xl-3 col-lg-6 mb-3">
-            <div class="dashboard-stat-card wine">
+            <article class="dashboard-stat-card wine" role="article" aria-label="Progreso de meta">
                 <div class="d-flex align-items-center">
-                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--wine), var(--wine-light));">
+                    <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, var(--wine), var(--wine-light));" aria-hidden="true">
                         <i class="bi bi-target text-white"></i>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="dashboard-stat-value text-wine" data-stat="progreso-meta">{{ number_format($stats['progreso_meta'], 1) }}%</h3>
+                        <h3 class="dashboard-stat-value text-wine" data-stat="progreso-meta" aria-live="polite">{{ number_format($stats['progreso_meta'], 1) }}%</h3>
                         <p class="dashboard-stat-label mb-0">Progreso Meta</p>
-                        <div class="progress mt-2" style="height: 6px; background: var(--gray-200);">
+                        <div class="progress mt-2" role="progressbar" aria-valuenow="{{ $stats['progreso_meta'] }}" aria-valuemin="0" aria-valuemax="100" style="height: 6px; background: var(--gray-200);">
                             <div class="progress-bar" style="width: {{ $stats['progreso_meta'] }}%; background: linear-gradient(90deg, var(--wine), var(--wine-light));"></div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
-    </div>
+    </section>
 
     <!-- Charts & Top Performers -->
     <div class="row mb-4">
         <!-- Gráfico de Ventas -->
         <div class="col-lg-8 mb-4">
-            <div class="dashboard-chart-card">
+            <section class="dashboard-chart-card" aria-labelledby="chart-title">
                 <div class="dashboard-chart-header">
-                    <h5 class="dashboard-chart-title">
-                        <i class="bi bi-graph-up"></i>
-                        Ventas del Equipo (Últimos 30 días)
-                    </h5>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary active" data-period="30">30 días</button>
-                        <button class="btn btn-outline-primary" data-period="7">7 días</button>
-                        <button class="btn btn-outline-primary" data-action="refresh">
-                            <i class="bi bi-arrow-clockwise"></i>
+                    <h2 class="dashboard-chart-title" id="chart-title">
+                        <i class="bi bi-graph-up" aria-hidden="true"></i>
+                        <span>Ventas del Equipo (Últimos 30 días)</span>
+                    </h2>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Filtros de período">
+                        <button type="button" class="btn btn-outline-primary active" data-period="30" aria-pressed="true">30 días</button>
+                        <button type="button" class="btn btn-outline-primary" data-period="7" aria-pressed="false">7 días</button>
+                        <button type="button" class="btn btn-outline-primary" data-action="refresh" aria-label="Actualizar gráfico">
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
                 <div class="dashboard-chart-body">
-                    <canvas id="ventasChart" style="max-height: 300px;"></canvas>
+                    <canvas id="ventasChart" role="img" aria-label="Gráfico de ventas del equipo" style="max-height: 300px;"></canvas>
                 </div>
-            </div>
+            </section>
         </div>
 
         <!-- Top Performers -->
@@ -302,14 +305,17 @@
 </div>
 
 <!-- Loading Overlay -->
-<div class="dashboard-loading-overlay">
-    <div class="dashboard-loading-spinner"></div>
+<div class="dashboard-loading-overlay" role="alert" aria-live="assertive" aria-label="Cargando datos">
+    <div class="dashboard-loading-spinner" role="status" aria-label="Cargando..."></div>
+    <p class="visually-hidden">Cargando datos del dashboard...</p>
+</div>
 </div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ asset('js/lider/dashboard-modern.js') }}?v={{ filemtime(public_path('js/lider/dashboard-modern.js')) }}"></script>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script">
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
+<script src="{{ asset('js/lider/dashboard-modern.js') }}?v={{ filemtime(public_path('js/lider/dashboard-modern.js')) }}" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Datos para el gráfico de ventas

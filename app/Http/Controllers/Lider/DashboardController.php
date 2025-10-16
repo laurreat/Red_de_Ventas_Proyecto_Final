@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Pedido;
 use App\Models\Producto;
+use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -328,16 +329,20 @@ class DashboardController extends Controller
     }
 
     /**
-     * API: Obtener nuevas notificaciones
+     * API: Obtener nuevas notificaciones REALES
      */
     public function getNuevasNotificaciones()
     {
         $user = auth()->user();
 
-        // Simulación de notificaciones (implementar según tu lógica)
-        $notifications = [];
+        // Obtener notificaciones no leídas de la base de datos
+        $notificacionesDB = Notificacion::where('user_id', $user->_id)
+            ->noLeidas()
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
 
-        // Verificar nuevos pedidos del equipo
+        // Verificar nuevos pedidos del equipo (últimos 15 minutos)
         $equipoTotal = $this->obtenerEquipoCompleto($user);
         $equipoIds = collect($equipoTotal)->pluck('_id')->toArray();
 
@@ -348,36 +353,172 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
-        foreach ($pedidosRecientes as $pedido) {
-            $notifications[] = [
-                'id' => $pedido->_id,
-                'type' => 'success',
-                'message' => "Nueva venta de {$pedido->vendedor_data['name']}: $" . number_format($pedido->total_final, 0),
-                'timestamp' => $pedido->created_at->diffForHumans()
-            ];
-        }
-
-        // Verificar nuevos referidos
+        // Verificar nuevos referidos (últimos 15 minutos)
         $nuevosReferidos = User::whereIn('referido_por', $equipoIds)
             ->where('created_at', '>=', Carbon::now()->subMinutes(15))
             ->orderBy('created_at', 'desc')
             ->limit(2)
             ->get();
 
+        // Combinar notificaciones
+        $notifications = [];
+
+        // Agregar notificaciones de BD
+        foreach ($notificacionesDB as $notif) {
+            $notifications[] = [
+                'id' => $notif->_id,
+                'type' => $this->mapTipoNotificacion($notif->tipo),
+                'message' => $notif->mensaje,
+                'titulo' => $notif->titulo ?? null,
+                'timestamp' => $notif->created_at->diffForHumans(),
+                'leida' => $notif->leida,
+                'datos' => $notif->datos_adicionales
+            ];
+        }
+
+        // Agregar notificaciones de pedidos recientes
+        foreach ($pedidosRecientes as $pedido) {
+            $vendedor = $pedido->vendedor_data['name'] ?? 'Un vendedor';
+            $notifications[] = [
+                'id' => 'pedido_' . $pedido->_id,
+                'type' => 'success',
+                'message' => "Nueva venta de {$vendedor}: $" . number_format($pedido->total_final, 0),
+                'titulo' => 'Nueva Venta',
+                'timestamp' => $pedido->created_at->diffForHumans(),
+                'leida' => false,
+                'datos' => [
+                    'pedido_id' => $pedido->_id,
+                    'vendedor' => $vendedor,
+                    'total' => $pedido->total_final
+                ]
+            ];
+        }
+
+        // Agregar notificaciones de nuevos referidos
         foreach ($nuevosReferidos as $referido) {
             $referidor = User::where('_id', $referido->referido_por)->first();
+            $referidorName = $referidor ? $referidor->name : 'Tu equipo';
             $notifications[] = [
-                'id' => $referido->_id,
+                'id' => 'referido_' . $referido->_id,
                 'type' => 'info',
-                'message' => "Nuevo referido de {$referidor->name}: {$referido->name}",
-                'timestamp' => $referido->created_at->diffForHumans()
+                'message' => "Nuevo miembro: {$referido->name}",
+                'titulo' => 'Equipo Creciendo',
+                'timestamp' => $referido->created_at->diffForHumans(),
+                'leida' => false,
+                'datos' => [
+                    'referido_id' => $referido->_id,
+                    'referidor' => $referidorName,
+                    'nombre' => $referido->name
+                ]
             ];
         }
 
         return response()->json([
             'success' => true,
             'notifications' => $notifications,
-            'count' => count($notifications)
+            'count' => count($notifications),
+            'timestamp' => now()->toIso8601String()
+        ]);
+    }
+
+    /**
+     * Mapear tipo de notificación a clase CSS
+     */
+    private function mapTipoNotificacion($tipo)
+    {
+        $map = [
+            'venta' => 'success',
+            'referido' => 'info',
+            'meta' => 'warning',
+            'comision' => 'success',
+            'alerta' => 'danger',
+            'info' => 'info'
+        ];
+
+        return $map[$tipo] ?? 'info';
+    }
+
+    /**
+     * API: Obtener notificaciones con paginación
+     */
+    public function getNotificaciones(Request $request)
+    {
+        $user = auth()->user();
+        $limit = $request->input('limit', 20);
+        $offset = $request->input('offset', 0);
+
+        $notificaciones = Notificacion::where('user_id', $user->_id)
+            ->orderBy('created_at', 'desc')
+            ->skip($offset)
+            ->take($limit)
+            ->get()
+            ->map(function($notif) {
+                return [
+                    'id' => $notif->_id,
+                    'titulo' => $notif->titulo,
+                    'mensaje' => $notif->mensaje,
+                    'tipo' => $this->mapTipoNotificacion($notif->tipo),
+                    'leida' => $notif->leida,
+                    'created_at' => $notif->created_at->diffForHumans(),
+                    'datos' => $notif->datos_adicionales
+                ];
+            });
+
+        $noLeidas = Notificacion::where('user_id', $user->_id)
+            ->noLeidas()
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'notificaciones' => $notificaciones,
+            'no_leidas' => $noLeidas,
+            'total' => Notificacion::where('user_id', $user->_id)->count()
+        ]);
+    }
+
+    /**
+     * API: Marcar notificación como leída
+     */
+    public function marcarNotificacionLeida($id)
+    {
+        $user = auth()->user();
+
+        $notificacion = Notificacion::where('_id', $id)
+            ->where('user_id', $user->_id)
+            ->first();
+
+        if ($notificacion) {
+            $notificacion->marcarComoLeida();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notificación marcada como leída'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Notificación no encontrada'
+        ], 404);
+    }
+
+    /**
+     * API: Marcar todas las notificaciones como leídas
+     */
+    public function marcarTodasLeidas()
+    {
+        $user = auth()->user();
+
+        Notificacion::where('user_id', $user->_id)
+            ->noLeidas()
+            ->update([
+                'leida' => true,
+                'fecha_lectura' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Todas las notificaciones marcadas como leídas'
         ]);
     }
 

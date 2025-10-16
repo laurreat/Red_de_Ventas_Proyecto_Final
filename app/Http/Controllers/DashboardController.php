@@ -151,7 +151,8 @@ class DashboardController extends Controller
                                               ->sum('monto')),
         ];
 
-        return view('dashboard.lider', compact('stats', 'equipo'));
+        // Redirigir al dashboard moderno del líder
+        return redirect()->route('lider.dashboard');
     }
 
     private function vendedorDashboard()
