@@ -45,10 +45,30 @@ class ClienteDashboardController extends Controller
         // Obtener productos favoritos del cliente
         $productos_favoritos = $this->getProductosFavoritos($user);
 
+        // Obtener productos disponibles del catálogo (cache por 10 minutos)
+        $productos_catalogo = Cache::remember('productos_catalogo', 600, function () {
+            return Producto::where('activo', true)
+                ->where('stock', '>', 0)
+                ->orderBy('destacado', 'desc')
+                ->orderBy('veces_vendido', 'desc')
+                ->orderBy('nombre', 'asc')
+                ->get();
+        });
+
+        // Agrupar productos por categoría
+        $productos_por_categoria = $productos_catalogo->groupBy(function ($producto) {
+            return $producto->categoria_data['nombre'] ?? 'Sin Categoría';
+        });
+
+        // Obtener categorías únicas
+        $categorias = $productos_por_categoria->keys()->sort()->values();
         return view('cliente.dashboard', compact(
             'stats',
             'pedidos_recientes',
-            'productos_favoritos'
+            'productos_favoritos',
+            'productos_catalogo',
+            'productos_por_categoria',
+            'categorias'
         ));
     }
 

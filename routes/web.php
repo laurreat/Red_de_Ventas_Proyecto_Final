@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CatalogoPublicoController;
+use App\Http\Controllers\Cliente\ClienteDashboardController;
 
 // Página principal - Welcome page renovada
 Route::get('/', function () {
@@ -45,7 +46,7 @@ Route::middleware(['auth', 'role'])->group(function () {
  */
 
     // TEMPORALMENTE COMENTADO - Falta crear ClienteDashboardController
-    /*
+    
     Route::prefix('cliente')->name('cliente.')->middleware(['auth', 'verified'])->group(function () {
 
         // Dashboard Principal
@@ -80,7 +81,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('/productos/recomendados', [ClienteDashboardController::class, 'productosRecomendados'])
             ->name('productos.recomendados');
     });
-    */
+    
 
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {

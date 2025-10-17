@@ -619,6 +619,19 @@ function shareReferralCode() {
   clienteDashboard.shareReferralCode(codigo, nombre);
 }
 
+function agregarAlCarrito(id) {
+  const productoCard = document.querySelector(`[data-producto-id="${id}"]`);
+  
+  if (productoCard) {
+    const btn = productoCard.querySelector('.btn-primary');
+    const nombre = btn.dataset.nombre || 'Producto';
+    const precio = parseFloat(btn.dataset.precio) || 0;
+    const imagen = btn.dataset.imagen || null;
+    
+    clienteDashboard.agregarAlCarrito(id, nombre, precio, imagen);
+  }
+}
+
 // PWA: Registrar Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
