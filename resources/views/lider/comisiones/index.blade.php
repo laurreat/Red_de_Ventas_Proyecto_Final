@@ -29,10 +29,6 @@
                                 Solicitar Pago
                             </a>
                         @endif
-                        <button class="comisiones-action-btn" onclick="window.print()">
-                            <i class="bi bi-printer"></i>
-                            Imprimir
-                        </button>
                     </div>
                 </div>
             </div>
@@ -230,11 +226,21 @@
                                 </span>
                             </td>
                             <td class="text-center" data-label="Acciones">
-                                <button class="comisiones-action-btn-icon info btn-ver-detalle"
-                                        data-comision-id="{{ $comision->id }}"
-                                        title="Ver detalles">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button class="comisiones-action-btn-icon info btn-ver-detalle"
+                                            data-comision-id="{{ $comision->_id }}"
+                                            title="Ver detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @if($comision->estado === 'pendiente' || $comision->estado === 'aprobado')
+                                        <button class="comisiones-action-btn-icon warning btn-cambiar-estado"
+                                                data-comision-id="{{ $comision->_id }}"
+                                                data-estado-actual="{{ $comision->estado }}"
+                                                title="Cambiar estado">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -334,6 +340,14 @@
             </div>
         </div>
     @endif
+
+    <!-- Botón de Imprimir al Final -->
+    <div class="text-center mt-4 mb-4">
+        <button class="comisiones-btn comisiones-btn-secondary" onclick="window.print()">
+            <i class="bi bi-printer"></i>
+            Imprimir Reporte Completo
+        </button>
+    </div>
 </div>
 @endsection
 

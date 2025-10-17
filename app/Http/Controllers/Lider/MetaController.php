@@ -30,21 +30,23 @@ class MetaController extends Controller
         // Calcular progreso individual
         $progreso = [];
         foreach ($equipo as $miembro) {
-            $ventasMes = Pedido::where('vendedor_id', $miembro->id)
+            $ventasMes = to_float(Pedido::where('vendedor_id', $miembro->id)
                                ->whereBetween('created_at', [$inicioMes, $finMes])
-                               ->sum('total_final');
+                               ->sum('total_final'));
+
+            $metaMensual = to_float($miembro->meta_mensual ?? 0);
 
             $progreso[] = [
                 'miembro' => $miembro,
-                'meta_actual' => $miembro->meta_mensual ?? 0,
+                'meta_actual' => $metaMensual,
                 'ventas_mes' => $ventasMes,
-                'porcentaje' => $miembro->meta_mensual > 0 ? (to_float($ventasMes) / to_float($miembro->meta_mensual)) * 100 : 0,
-                'diferencia' => to_float($ventasMes) - to_float($miembro->meta_mensual ?? 0)
+                'porcentaje' => $metaMensual > 0 ? ($ventasMes / $metaMensual) * 100 : 0,
+                'diferencia' => $ventasMes - $metaMensual
             ];
         }
 
         // Métricas del equipo
-        $metaEquipo = $equipo->sum('meta_mensual');
+        $metaEquipo = to_float($equipo->sum('meta_mensual'));
         $ventasEquipo = array_sum(array_column($progreso, 'ventas_mes'));
         $progresoEquipo = $metaEquipo > 0 ? ($ventasEquipo / $metaEquipo) * 100 : 0;
 
@@ -157,13 +159,13 @@ class MetaController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $mes = Carbon::now()->subMonths($i);
 
-            $ventas = Pedido::whereIn('vendedor_id', $equipoIds)
+            $ventas = to_float(Pedido::whereIn('vendedor_id', $equipoIds)
                             ->whereYear('created_at', $mes->year)
                             ->whereMonth('created_at', $mes->month)
-                            ->sum('total_final');
+                            ->sum('total_final'));
 
             // Meta del equipo para ese mes (asumimos que la meta actual se mantiene)
-            $metaMes = $equipo->sum('meta_mensual');
+            $metaMes = to_float($equipo->sum('meta_mensual'));
 
             $historial[] = [
                 'mes' => $mes->format('M Y'),
@@ -208,10 +210,10 @@ class MetaController extends Controller
                     $totalVentasAnteriores = 0;
 
                     foreach ($equipo as $miembro) {
-                        $ventas = Pedido::where('vendedor_id', $miembro->id)
+                        $ventas = to_float(Pedido::where('vendedor_id', $miembro->id)
                                         ->whereYear('created_at', $mesAnterior->year)
                                         ->whereMonth('created_at', $mesAnterior->month)
-                                        ->sum('total_final');
+                                        ->sum('total_final'));
                         $ventasAnteriores[$miembro->id] = $ventas;
                         $totalVentasAnteriores += $ventas;
                     }

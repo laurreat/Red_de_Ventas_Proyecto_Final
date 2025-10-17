@@ -24,64 +24,8 @@ class ReporteController extends Controller
         });
     }
 
-    public function ventas(Request $request)
-    {
-        $lider = auth()->user();
-
-        // Filtros
-        $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $fechaFin = $request->get('fecha_fin', Carbon::now()->format('Y-m-d'));
-        $vendedor = $request->get('vendedor');
-        $producto = $request->get('producto');
-        $agrupacion = $request->get('agrupacion', 'dia');
-
-        // Obtener red del líder
-        $redIds = $this->obtenerRedCompleta($lider);
-        $redIds->push($lider->id);
-
-        // Reporte de ventas detallado
-        $reporteVentas = $this->generarReporteVentas($redIds, $fechaInicio, $fechaFin, $vendedor, $producto, $agrupacion);
-
-        // Resumen ejecutivo
-        $resumenEjecutivo = $this->generarResumenEjecutivo($redIds, $fechaInicio, $fechaFin);
-
-        // Análisis de tendencias
-        $analisisTendencias = $this->generarAnalisisTendencias($redIds, $fechaInicio, $fechaFin);
-
-        // Comparación con periodos anteriores
-        $comparacionPeriodos = $this->generarComparacionPeriodos($redIds, $fechaInicio, $fechaFin);
-
-        // Lista de vendedores para filtro
-        $vendedoresEquipo = User::whereIn('id', $redIds)
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
-
-        // Lista de productos para filtro
-        $productos = DB::table('pedido_detalles')
-            ->join('pedidos', 'pedido_detalles.pedido_id', '=', 'pedidos.id')
-            ->join('productos', 'pedido_detalles.producto_id', '=', 'productos.id')
-            ->whereIn('pedidos.vendedor_id', $redIds)
-            ->whereBetween('pedidos.created_at', [$fechaInicio, $fechaFin])
-            ->select('productos.id', 'productos.nombre')
-            ->distinct()
-            ->orderBy('productos.nombre')
-            ->get();
-
-        return view('lider.reportes.ventas', compact(
-            'reporteVentas',
-            'resumenEjecutivo',
-            'analisisTendencias',
-            'comparacionPeriodos',
-            'vendedoresEquipo',
-            'productos',
-            'fechaInicio',
-            'fechaFin',
-            'vendedor',
-            'producto',
-            'agrupacion'
-        ));
-    }
+    // MÉTODO ELIMINADO - USAR lider/ventas EN SU LUGAR
+    // El módulo lider/ventas ya proporciona toda la funcionalidad de ventas con analytics avanzados
 
     public function equipo(Request $request)
     {
@@ -164,7 +108,8 @@ class ReporteController extends Controller
         return $idsRed->unique();
     }
 
-    private function generarReporteVentas($redIds, $fechaInicio, $fechaFin, $vendedor = null, $producto = null, $agrupacion = 'dia')
+    // MÉTODOS ELIMINADOS - Ya no se necesitan
+    private function metodoEliminado_generarReporteVentas($redIds, $fechaInicio, $fechaFin, $vendedor = null, $producto = null, $agrupacion = 'dia')
     {
         $query = Pedido::with(['vendedor', 'cliente', 'detalles.producto'])
             ->whereIn('vendedor_id', $redIds)
@@ -252,32 +197,60 @@ class ReporteController extends Controller
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('estado', '!=', 'cancelado');
 
-        $totalVentas = (clone $baseQuery)->sum('total_final');
+        $totalVentas = to_float((clone $baseQuery)->sum('total_final'));
         $totalPedidos = (clone $baseQuery)->count();
-        $vendedoresActivos = (clone $baseQuery)->distinct('vendedor_id')->count('vendedor_id');
 
-        // Producto más vendido
-        $productoMasVendido = DB::table('pedido_detalles')
-            ->join('pedidos', 'pedido_detalles.pedido_id', '=', 'pedidos.id')
-            ->join('productos', 'pedido_detalles.producto_id', '=', 'productos.id')
-            ->whereIn('pedidos.vendedor_id', $redIds)
-            ->whereBetween('pedidos.created_at', [$fechaInicio, $fechaFin])
-            ->where('pedidos.estado', '!=', 'cancelado')
-            ->select('productos.nombre', DB::raw('SUM(pedido_detalles.cantidad) as total_vendido'))
-            ->groupBy('productos.id', 'productos.nombre')
-            ->orderByDesc('total_vendido')
-            ->first();
+        // Contar vendedores únicos
+        $vendedoresActivos = (clone $baseQuery)->get()->pluck('vendedor_id')->unique()->count();
 
-        // Cliente más valioso
-        $clienteMasValioso = DB::table('pedidos')
-            ->join('users as clientes', 'pedidos.cliente_id', '=', 'clientes.id')
-            ->whereIn('pedidos.vendedor_id', $redIds)
-            ->whereBetween('pedidos.created_at', [$fechaInicio, $fechaFin])
-            ->where('pedidos.estado', '!=', 'cancelado')
-            ->select('clientes.name', DB::raw('SUM(pedidos.total_final) as total_compras'))
-            ->groupBy('clientes.id', 'clientes.name')
-            ->orderByDesc('total_compras')
-            ->first();
+        // Producto más vendido - usando datos embebidos en detalles
+        $pedidos = (clone $baseQuery)->get();
+        $productosContador = [];
+
+        foreach ($pedidos as $pedido) {
+            $detalles = $pedido->getRawDetalles();
+            foreach ($detalles as $detalle) {
+                $productoNombre = $detalle['producto_data']['nombre'] ?? 'Producto sin nombre';
+                $cantidad = $detalle['cantidad'] ?? 0;
+
+                if (!isset($productosContador[$productoNombre])) {
+                    $productosContador[$productoNombre] = 0;
+                }
+                $productosContador[$productoNombre] += $cantidad;
+            }
+        }
+
+        arsort($productosContador);
+        $productoMasVendido = null;
+        if (!empty($productosContador)) {
+            $nombreProducto = array_key_first($productosContador);
+            $productoMasVendido = (object)[
+                'nombre' => $nombreProducto,
+                'total_vendido' => $productosContador[$nombreProducto]
+            ];
+        }
+
+        // Cliente más valioso - usando datos embebidos
+        $clientesCompras = [];
+        foreach ($pedidos as $pedido) {
+            $clienteNombre = $pedido->cliente_data['name'] ?? 'Cliente sin nombre';
+            $totalPedido = to_float($pedido->total_final);
+
+            if (!isset($clientesCompras[$clienteNombre])) {
+                $clientesCompras[$clienteNombre] = 0;
+            }
+            $clientesCompras[$clienteNombre] += $totalPedido;
+        }
+
+        arsort($clientesCompras);
+        $clienteMasValioso = null;
+        if (!empty($clientesCompras)) {
+            $nombreCliente = array_key_first($clientesCompras);
+            $clienteMasValioso = (object)[
+                'name' => $nombreCliente,
+                'total_compras' => $clientesCompras[$nombreCliente]
+            ];
+        }
 
         return [
             'total_ventas' => $totalVentas,
@@ -309,50 +282,56 @@ class ReporteController extends Controller
 
     private function generarTendenciaDiaria($redIds, $fechaInicio, $fechaFin)
     {
-        return DB::table('pedidos')
-            ->whereIn('vendedor_id', $redIds)
+        $pedidos = Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('estado', '!=', 'cancelado')
-            ->select(
-                DB::raw('DATE(created_at) as fecha'),
-                DB::raw('SUM(total_final) as ventas'),
-                DB::raw('COUNT(*) as pedidos')
-            )
-            ->groupBy('fecha')
-            ->orderBy('fecha')
             ->get();
+
+        return $pedidos->groupBy(function($pedido) {
+            return $pedido->created_at->format('Y-m-d');
+        })->map(function($grupo, $fecha) {
+            return (object)[
+                'fecha' => $fecha,
+                'ventas' => to_float($grupo->sum('total_final')),
+                'pedidos' => $grupo->count()
+            ];
+        })->sortBy('fecha')->values();
     }
 
     private function generarTendenciaSemanal($redIds, $fechaInicio, $fechaFin)
     {
-        return DB::table('pedidos')
-            ->whereIn('vendedor_id', $redIds)
+        $pedidos = Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('estado', '!=', 'cancelado')
-            ->select(
-                DB::raw('YEARWEEK(created_at) as semana'),
-                DB::raw('SUM(total_final) as ventas'),
-                DB::raw('COUNT(*) as pedidos')
-            )
-            ->groupBy('semana')
-            ->orderBy('semana')
             ->get();
+
+        return $pedidos->groupBy(function($pedido) {
+            return $pedido->created_at->format('Y-W'); // Año-Semana
+        })->map(function($grupo, $semana) {
+            return (object)[
+                'semana' => $semana,
+                'ventas' => to_float($grupo->sum('total_final')),
+                'pedidos' => $grupo->count()
+            ];
+        })->sortBy('semana')->values();
     }
 
     private function generarTendenciaMensual($redIds, $fechaInicio, $fechaFin)
     {
-        return DB::table('pedidos')
-            ->whereIn('vendedor_id', $redIds)
+        $pedidos = Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('estado', '!=', 'cancelado')
-            ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mes'),
-                DB::raw('SUM(total_final) as ventas'),
-                DB::raw('COUNT(*) as pedidos')
-            )
-            ->groupBy('mes')
-            ->orderBy('mes')
             ->get();
+
+        return $pedidos->groupBy(function($pedido) {
+            return $pedido->created_at->format('Y-m'); // Año-Mes
+        })->map(function($grupo, $mes) {
+            return (object)[
+                'mes' => $mes,
+                'ventas' => to_float($grupo->sum('total_final')),
+                'pedidos' => $grupo->count()
+            ];
+        })->sortBy('mes')->values();
     }
 
     private function generarComparacionPeriodos($redIds, $fechaInicio, $fechaFin)
@@ -365,15 +344,15 @@ class ReporteController extends Controller
         $fechaInicioAnterior = $fechaInicioCarbon->copy()->subDays($diasPeriodo);
         $fechaFinAnterior = $fechaInicioCarbon->copy()->subDay();
 
-        $ventasActual = Pedido::whereIn('vendedor_id', $redIds)
+        $ventasActual = to_float(Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
-        $ventasAnterior = Pedido::whereIn('vendedor_id', $redIds)
+        $ventasAnterior = to_float(Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', [$fechaInicioAnterior, $fechaFinAnterior])
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
         $crecimiento = $ventasAnterior > 0 ? (($ventasActual - $ventasAnterior) / $ventasAnterior) * 100 : 0;
 

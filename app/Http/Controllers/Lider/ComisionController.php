@@ -277,4 +277,104 @@ class ComisionController extends Controller
                           ->orderBy('created_at', 'desc')
                           ->get();
     }
+
+    /**
+     * Ver detalles de una comisión específica (API para AJAX)
+     */
+    public function show($id)
+    {
+        $lider = auth()->user();
+
+        $comision = Comision::where('_id', $id)
+                           ->where('user_id', $lider->_id)
+                           ->with(['pedido', 'referido'])
+                           ->first();
+
+        if (!$comision) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Comisión no encontrada'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'id' => $comision->_id,
+            'tipo' => $comision->tipo,
+            'tipo_formatted' => ucfirst(str_replace('_', ' ', $comision->tipo)),
+            'monto' => to_float($comision->monto),
+            'porcentaje' => $comision->porcentaje ?? 0,
+            'estado' => $comision->estado,
+            'estado_formatted' => ucfirst($comision->estado),
+            'created_at' => $comision->created_at->toIso8601String(),
+            'fecha_pago' => $comision->fecha_pago ? $comision->fecha_pago->toIso8601String() : null,
+            'referido' => $comision->referido ? [
+                'id' => $comision->referido->_id,
+                'name' => $comision->referido->name,
+                'email' => $comision->referido->email
+            ] : null,
+            'pedido' => $comision->pedido ? [
+                'id' => $comision->pedido->_id,
+                'numero_pedido' => $comision->pedido->numero_pedido,
+                'total_final' => to_float($comision->pedido->total_final)
+            ] : null,
+            'detalles_calculo' => $comision->detalles_calculo ?? []
+        ]);
+    }
+
+    /**
+     * Cambiar estado de una comisión (solo para admin)
+     */
+    public function cambiarEstado(Request $request, $id)
+    {
+        $user = auth()->user();
+
+        // Solo administradores pueden cambiar el estado
+        if (!$user->esAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos para cambiar el estado de comisiones'
+            ], 403);
+        }
+
+        $request->validate([
+            'estado' => 'required|in:pendiente,aprobado,pagado,rechazado'
+        ]);
+
+        $comision = Comision::find($id);
+
+        if (!$comision) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Comisión no encontrada'
+            ], 404);
+        }
+
+        $estadoAnterior = $comision->estado;
+        $nuevoEstado = $request->estado;
+
+        // Actualizar el estado
+        $comision->update([
+            'estado' => $nuevoEstado,
+            'fecha_pago' => $nuevoEstado === 'pagado' ? now() : $comision->fecha_pago
+        ]);
+
+        // Actualizar comisiones disponibles del usuario si cambia a "aprobado" o "pagado"
+        $usuario = User::find($comision->user_id);
+        if ($usuario) {
+            if ($nuevoEstado === 'aprobado' && $estadoAnterior !== 'aprobado') {
+                // Incrementar comisiones disponibles
+                $usuario->increment('comisiones_disponibles', to_float($comision->monto));
+            } elseif ($estadoAnterior === 'aprobado' && $nuevoEstado !== 'aprobado') {
+                // Decrementar comisiones disponibles
+                $usuario->decrement('comisiones_disponibles', to_float($comision->monto));
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado exitosamente',
+            'nuevo_estado' => $nuevoEstado
+        ]);
+    }
 }

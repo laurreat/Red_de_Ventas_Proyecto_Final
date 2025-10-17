@@ -245,6 +245,39 @@
             text-align: center;
         }
 
+        .notification-badge-animated {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background: #dc3545;
+            color: white;
+            font-size: 0.6rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.75rem;
+            min-width: 1.25rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+            }
+        }
+
+        /* Badge en sidebar */
+        .nav-link .badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+            font-weight: 600;
+        }
+
         .header-profile {
             display: flex;
             align-items: center;
@@ -520,23 +553,6 @@
                 </a>
             </div>
 
-            <!-- Reportes -->
-            <div class="nav-section">Reportes</div>
-
-            <div class="nav-item">
-                <a href="{{ route('lider.reportes.ventas') }}" class="nav-link {{ request()->routeIs('lider.reportes.*') ? 'active' : '' }}">
-                    <i class="bi bi-bar-chart"></i>
-                    Reportes de Ventas
-                </a>
-            </div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Dashboard Analítico')">
-                    <i class="bi bi-pie-chart"></i>
-                    Dashboard Analítico
-                </a>
-            </div>
-
             <!-- Configuración -->
             <div class="nav-section">Configuración</div>
 
@@ -548,9 +564,17 @@
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Notificaciones')">
+                <a href="{{ route('lider.notificaciones.index') }}" class="nav-link {{ request()->routeIs('lider.notificaciones.*') ? 'active' : '' }}">
                     <i class="bi bi-bell-fill"></i>
                     Notificaciones
+                    <span class="badge bg-danger ms-auto" id="sidebarNotifBadge" style="display: none;">0</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.ayuda.index') }}" class="nav-link {{ request()->routeIs('lider.ayuda.*') ? 'active' : '' }}">
+                    <i class="bi bi-question-circle"></i>
+                    Centro de Ayuda
                 </a>
             </div>
         </div>
@@ -715,7 +739,7 @@
                                 <i class="bi bi-gear"></i>
                                 <span class="menu-item-text">Configuración</span>
                             </a>
-                            <a href="#" class="profile-menu-item" onclick="showComingSoon('Centro de Ayuda'); return false;">
+                            <a href="{{ route('lider.ayuda.index') }}" class="profile-menu-item">
                                 <i class="bi bi-question-circle"></i>
                                 <span class="menu-item-text">Ayuda</span>
                             </a>
@@ -805,16 +829,16 @@
         window.notificationsSystem = {
             init: function() {
                 this.loadNotifications();
-                // Actualizar cada 60 segundos
-                setInterval(() => this.loadNotifications(), 60000);
+                // Actualizar cada 30 segundos para tiempo real
+                setInterval(() => this.loadNotifications(), 30000);
             },
 
             loadNotifications: function() {
-                fetch('{{ route("lider.notificaciones.nuevas") }}')
+                fetch('{{ route("lider.notificaciones.dropdown") }}')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            this.updateNotificationUI(data.notifications, data.count);
+                            this.updateNotificationUI(data.notificaciones, data.total_no_leidas);
                         }
                     })
                     .catch(error => console.error('Error loading notifications:', error));
@@ -822,19 +846,28 @@
 
             updateNotificationUI: function(notificaciones, total) {
                 const badge = document.getElementById('notificationBadge');
+                const sidebarBadge = document.getElementById('sidebarNotifBadge');
                 const count = document.getElementById('notificationCount');
                 const list = document.getElementById('notificationsList');
 
                 // Actualizar badges
                 if (total > 0) {
-                    badge.textContent = total > 99 ? '99+' : total;
+                    const badgeText = total > 99 ? '99+' : total;
+                    badge.textContent = badgeText;
                     badge.style.display = 'flex';
+                    if (sidebarBadge) {
+                        sidebarBadge.textContent = badgeText;
+                        sidebarBadge.style.display = 'inline-block';
+                    }
                 } else {
                     badge.style.display = 'none';
+                    if (sidebarBadge) {
+                        sidebarBadge.style.display = 'none';
+                    }
                 }
 
                 // Actualizar contador
-                count.textContent = total + ' nuevas';
+                count.textContent = total > 0 ? `${total} nueva${total > 1 ? 's' : ''}` : 'Sin nuevas';
 
                 // Actualizar lista
                 if (notificaciones.length > 0) {
@@ -857,21 +890,25 @@
             createNotificationItem: function(notif) {
                 const div = document.createElement('div');
                 div.className = 'notification-item' + (!notif.leida ? ' unread' : '');
+
+                // Formatear fecha
+                const fecha = notif.created_at ? this.formatearFecha(notif.created_at) : 'Hace un momento';
+
                 div.innerHTML = `
                     <div class="notification-content">
-                        <div class="notification-icon ${notif.type || 'sistema'}">
-                            ${this.getNotificationIcon(notif.type || 'sistema')}
+                        <div class="notification-icon ${notif.tipo || 'sistema'}">
+                            ${this.getNotificationIcon(notif.tipo || 'sistema')}
                         </div>
                         <div class="notification-body">
-                            <div class="notification-title">${notif.titulo || 'Notificación'}</div>
-                            <div class="notification-message">${notif.message}</div>
+                            <div class="notification-title">${this.escapeHtml(notif.titulo || 'Notificación')}</div>
+                            <div class="notification-message">${this.escapeHtml(notif.mensaje || '')}</div>
                             <div class="notification-time">
                                 <i class="bi bi-clock"></i>
-                                ${notif.timestamp}
+                                ${fecha}
                             </div>
                             ${!notif.leida ? `
                             <div class="notification-actions">
-                                <button class="btn btn-notification-action btn-mark-read" onclick="marcarLeidaDropdown('${notif.id}')">
+                                <button class="btn btn-notification-action btn-mark-read" onclick="marcarLeidaDropdown('${notif._id || notif.id}')">
                                     <i class="bi bi-check"></i> Marcar como leída
                                 </button>
                             </div>
@@ -884,23 +921,45 @@
 
             getNotificationIcon: function(tipo) {
                 const icons = {
-                    'success': '<i class="bi bi-check-circle"></i>',
-                    'info': '<i class="bi bi-info-circle"></i>',
-                    'warning': '<i class="bi bi-exclamation-triangle"></i>',
-                    'danger': '<i class="bi bi-x-circle"></i>',
+                    'pedido': '<i class="bi bi-cart"></i>',
+                    'venta': '<i class="bi bi-currency-dollar"></i>',
+                    'usuario': '<i class="bi bi-person"></i>',
+                    'comision': '<i class="bi bi-wallet"></i>',
+                    'meta': '<i class="bi bi-target"></i>',
+                    'equipo': '<i class="bi bi-people"></i>',
                     'sistema': '<i class="bi bi-gear"></i>'
                 };
                 return icons[tipo] || '<i class="bi bi-bell"></i>';
+            },
+
+            formatearFecha: function(fecha) {
+                if (!fecha) return 'Hace un momento';
+                const now = new Date();
+                const notifDate = new Date(fecha);
+                const diff = Math.floor((now - notifDate) / 1000); // diferencia en segundos
+
+                if (diff < 60) return 'Hace un momento';
+                if (diff < 3600) return `Hace ${Math.floor(diff / 60)} minutos`;
+                if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
+                if (diff < 604800) return `Hace ${Math.floor(diff / 86400)} días`;
+
+                return notifDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+            },
+
+            escapeHtml: function(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             }
         };
 
         // Funciones globales para notificaciones
         window.verTodasLasNotificaciones = function() {
-            showComingSoon('Centro de Notificaciones');
+            window.location.href = '{{ route("lider.notificaciones.index") }}';
         };
 
         window.marcarLeidaDropdown = function(id) {
-            fetch(`{{ url('lider/notificaciones') }}/${id}/leer`, {
+            fetch(`{{ route('lider.notificaciones.marcar-leida', ':id') }}`.replace(':id', id), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -912,11 +971,12 @@
                 if (data.success) {
                     notificationsSystem.loadNotifications();
                 }
-            });
+            })
+            .catch(error => console.error('Error:', error));
         };
 
         window.marcarTodasLeidasDropdown = function() {
-            fetch('{{ route("lider.notificaciones.marcar-todas") }}', {
+            fetch('{{ route("lider.notificaciones.marcar-todas-leidas") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -928,7 +988,8 @@
                 if (data.success) {
                     notificationsSystem.loadNotifications();
                 }
-            });
+            })
+            .catch(error => console.error('Error:', error));
         };
 
         // Inicializar notificaciones cuando el DOM esté listo

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arepa-llanerita-v1.0.2';
+const CACHE_NAME = 'arepa-llanerita-v1.0.3';
 const urlsToCache = [
   '/manifest.json',
   '/build/assets/app-HM29PgAA.js',
@@ -10,6 +10,10 @@ const urlsToCache = [
   '/',
   '/css/pages/cliente-dashboard-modern.css',
   '/js/pages/cliente-dashboard-modern.js',
+  '/css/lider/notificaciones-modern.css',
+  '/js/lider/notificaciones-modern.js',
+  '/css/admin/notificaciones-modern.css',
+  '/js/admin/notificaciones-modern.js',
   '/offline.html'
 ];
 

@@ -223,6 +223,8 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/comisiones', [\App\Http\Controllers\Lider\ComisionController::class, 'index'])->name('lider.comisiones.index');
         Route::get('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'solicitar'])->name('lider.comisiones.solicitar');
         Route::post('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'procesarSolicitud'])->name('lider.comisiones.procesar');
+        Route::get('lider/comisiones/{id}', [\App\Http\Controllers\Lider\ComisionController::class, 'show'])->name('lider.comisiones.show');
+        Route::post('lider/comisiones/{id}/cambiar-estado', [\App\Http\Controllers\Lider\ComisionController::class, 'cambiarEstado'])->name('lider.comisiones.cambiar-estado');
 
         // Metas y Objetivos
         Route::get('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'index'])->name('lider.metas.index');
@@ -231,7 +233,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('lider/metas/asignar-equipo', [\App\Http\Controllers\Lider\MetaController::class, 'asignarMetaEquipo'])->name('lider.metas.asignar-equipo');
 
         // Reportes del Líder
-        Route::get('lider/reportes/ventas', [\App\Http\Controllers\Lider\ReporteController::class, 'ventas'])->name('lider.reportes.ventas');
+        // NOTA: Para reportes de ventas usar lider/ventas que tiene analytics completos
         Route::get('lider/reportes/equipo', [\App\Http\Controllers\Lider\ReporteController::class, 'equipo'])->name('lider.reportes.equipo');
         Route::post('lider/reportes/exportar', [\App\Http\Controllers\Lider\ReporteController::class, 'exportar'])->name('lider.reportes.exportar');
 
@@ -240,6 +242,8 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::put('lider/perfil', [\App\Http\Controllers\Lider\PerfilController::class, 'update'])->name('lider.perfil.update');
         Route::get('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'index'])->name('lider.configuracion.index');
         Route::put('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'update'])->name('lider.configuracion.update');
+        Route::post('lider/configuracion/update-realtime', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'updateRealtime'])->name('lider.configuracion.update-realtime');
+        Route::post('lider/configuracion/reset', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'reset'])->name('lider.configuracion.reset');
 
         // Capacitación del Equipo - CRUD Completo
         Route::get('lider/capacitacion', [\App\Http\Controllers\Lider\CapacitacionController::class, 'index'])->name('lider.capacitacion.index');
@@ -266,6 +270,22 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/perfil/actividad', [\App\Http\Controllers\Lider\PerfilController::class, 'getActividad'])->name('lider.perfil.actividad');
         Route::get('lider/perfil/estadisticas', [\App\Http\Controllers\Lider\PerfilController::class, 'getEstadisticas'])->name('lider.perfil.estadisticas');
         Route::post('lider/perfil/notificaciones/{id}/leer', [\App\Http\Controllers\Lider\PerfilController::class, 'marcarNotificacionLeida'])->name('lider.perfil.notificaciones.leer');
+
+        // Notificaciones del Líder (Centro completo de notificaciones)
+        Route::get('lider/notificaciones', [\App\Http\Controllers\Lider\NotificacionController::class, 'index'])->name('lider.notificaciones.index');
+        Route::get('lider/notificaciones/dropdown', [\App\Http\Controllers\Lider\NotificacionController::class, 'dropdown'])->name('lider.notificaciones.dropdown');
+        Route::get('lider/notificaciones/contar-no-leidas', [\App\Http\Controllers\Lider\NotificacionController::class, 'contarNoLeidas'])->name('lider.notificaciones.contar-no-leidas');
+        Route::post('lider/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Lider\NotificacionController::class, 'marcarTodasLeidas'])->name('lider.notificaciones.marcar-todas-leidas');
+        Route::post('lider/notificaciones/crear-pruebas', [\App\Http\Controllers\Lider\NotificacionController::class, 'crearPruebas'])->name('lider.notificaciones.crear-pruebas');
+        Route::delete('lider/notificaciones/limpiar-leidas', [\App\Http\Controllers\Lider\NotificacionController::class, 'limpiarLeidas'])->name('lider.notificaciones.limpiar-leidas');
+        Route::get('lider/notificaciones/{id}', [\App\Http\Controllers\Lider\NotificacionController::class, 'show'])->name('lider.notificaciones.show');
+        Route::post('lider/notificaciones/{id}/marcar-leida', [\App\Http\Controllers\Lider\NotificacionController::class, 'marcarLeida'])->name('lider.notificaciones.marcar-leida');
+        Route::delete('lider/notificaciones/{id}', [\App\Http\Controllers\Lider\NotificacionController::class, 'eliminar'])->name('lider.notificaciones.eliminar');
+
+        // Centro de Ayuda del Líder
+        Route::get('lider/ayuda', [\App\Http\Controllers\Lider\AyudaController::class, 'index'])->name('lider.ayuda.index');
+        Route::get('lider/ayuda/buscar', [\App\Http\Controllers\Lider\AyudaController::class, 'buscar'])->name('lider.ayuda.buscar');
+        Route::post('lider/ayuda/ticket', [\App\Http\Controllers\Lider\AyudaController::class, 'enviarTicket'])->name('lider.ayuda.ticket');
     });
     
     // Rutas para Vendedores, Líderes y Administradores

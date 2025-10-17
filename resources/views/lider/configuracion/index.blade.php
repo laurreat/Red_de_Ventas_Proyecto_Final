@@ -3,143 +3,171 @@
 @section('title', '- Configuración')
 @section('page-title', 'Configuración')
 
+@push('styles')
+    <link href="{{ asset('css/lider/configuracion-modern.css') }}?v={{ filemtime(public_path('css/lider/configuracion-modern.css')) }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-gear me-2"></i>
-                        Configuraciones del Dashboard
-                    </h5>
+    <!-- Hero Header -->
+    <div class="config-header fade-in-up">
+        <div class="config-header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="config-title">
+                        <i class="bi bi-gear-fill me-2"></i>
+                        Configuración
+                    </h1>
+                    <p class="config-subtitle mb-0">
+                        Personaliza tu experiencia y gestiona las preferencias de tu cuenta
+                    </p>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ route('lider.configuracion.update') }}">
-                        @csrf
-                        @method('PUT')
+            </div>
+        </div>
+    </div>
 
-                        <div class="mb-4">
-                            <h6 class="text-primary">Notificaciones</h6>
-                            <hr>
-
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notificaciones_email"
-                                       name="notificaciones_email" value="1"
-                                       {{ $configuraciones['notificaciones_email'] ? 'checked' : '' }}>
-                                <label class="form-check-label" for="notificaciones_email">
-                                    <strong>Notificaciones por Email</strong>
-                                    <div class="small text-muted">Recibir notificaciones importantes por correo electrónico</div>
-                                </label>
-                            </div>
-
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notificaciones_push"
-                                       name="notificaciones_push" value="1"
-                                       {{ $configuraciones['notificaciones_push'] ? 'checked' : '' }}>
-                                <label class="form-check-label" for="notificaciones_push">
-                                    <strong>Notificaciones Push</strong>
-                                    <div class="small text-muted">Recibir notificaciones emergentes en el navegador</div>
+    <div class="row">
+            <div class="col-lg-8">
+                <!-- Notificaciones -->
+                <div class="config-section scale-in">
+                    <div class="config-section-header">
+                        <i class="bi bi-bell"></i>
+                        <h2 class="config-section-title">Notificaciones</h2>
+                    </div>
+                    <div class="config-section-body">
+                        <div class="config-item">
+                            <div class="config-item-header">
+                                <div>
+                                    <h3 class="config-item-title">Notificaciones por Email</h3>
+                                    <p class="config-item-description">Recibe notificaciones importantes de ventas, comisiones y alertas del equipo por correo electrónico</p>
+                                </div>
+                                <label class="form-switch-modern">
+                                    <input type="checkbox" name="notificaciones_email" value="1"
+                                           {{ $configuraciones['notificaciones_email'] ? 'checked' : '' }}>
+                                    <span class="slider"></span>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <h6 class="text-primary">Dashboard</h6>
-                            <hr>
-
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="mostrar_rendimiento"
-                                       name="mostrar_rendimiento" value="1"
-                                       {{ $configuraciones['mostrar_rendimiento'] ? 'checked' : '' }}>
-                                <label class="form-check-label" for="mostrar_rendimiento">
-                                    <strong>Mostrar Métricas de Rendimiento</strong>
-                                    <div class="small text-muted">Mostrar gráficos y estadísticas detalladas en el dashboard</div>
+                        <div class="config-item">
+                            <div class="config-item-header">
+                                <div>
+                                    <h3 class="config-item-title">Notificaciones Push</h3>
+                                    <p class="config-item-description">Recibe notificaciones emergentes en tiempo real mientras navegas en el sistema</p>
+                                </div>
+                                <label class="form-switch-modern">
+                                    <input type="checkbox" name="notificaciones_push" value="1"
+                                           {{ $configuraciones['notificaciones_push'] ? 'checked' : '' }}>
+                                    <span class="slider"></span>
                                 </label>
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="tema_dashboard" class="form-label">Tema del Dashboard</label>
-                                    <select class="form-select" id="tema_dashboard" name="tema_dashboard">
-                                        <option value="claro" {{ $configuraciones['tema_dashboard'] == 'claro' ? 'selected' : '' }}>Claro</option>
-                                        <option value="oscuro" {{ $configuraciones['tema_dashboard'] == 'oscuro' ? 'selected' : '' }}>Oscuro</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="zona_horaria" class="form-label">Zona Horaria</label>
-                                    <select class="form-select" id="zona_horaria" name="zona_horaria">
-                                        <option value="America/Bogota" {{ $configuraciones['zona_horaria'] == 'America/Bogota' ? 'selected' : '' }}>Colombia (GMT-5)</option>
-                                        <option value="America/New_York" {{ $configuraciones['zona_horaria'] == 'America/New_York' ? 'selected' : '' }}>New York (GMT-5/-4)</option>
-                                        <option value="America/Mexico_City" {{ $configuraciones['zona_horaria'] == 'America/Mexico_City' ? 'selected' : '' }}>México (GMT-6)</option>
-                                        <option value="America/Argentina/Buenos_Aires" {{ $configuraciones['zona_horaria'] == 'America/Argentina/Buenos_Aires' ? 'selected' : '' }}>Argentina (GMT-3)</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="mb-4">
-                            <h6 class="text-primary">Información de Cuenta</h6>
-                            <hr>
+                <!-- Zona Peligrosa -->
+                <div class="danger-zone scale-in animate-delay-1">
+                    <div class="danger-zone-header">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <h2 class="config-section-title">Zona Peligrosa</h2>
+                    </div>
+                    <div class="danger-zone-body">
+                        <p class="text-muted mb-4">Las siguientes acciones requieren confirmación y pueden ser irreversibles.</p>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>Usuario:</strong> {{ $user->name }}</p>
-                                    <p class="mb-1"><strong>Email:</strong> {{ $user->email }}</p>
-                                    <p class="mb-1"><strong>Rol:</strong> {{ ucfirst($user->rol) }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>Miembro desde:</strong> {{ $user->created_at->format('d/m/Y') }}</p>
-                                    <p class="mb-1"><strong>Última actividad:</strong> {{ $user->updated_at->diffForHumans() }}</p>
-                                    @if($user->lider_id)
-                                        <p class="mb-1"><strong>Líder asignado:</strong> ID #{{ $user->lider_id }}</p>
-                                    @endif
-                                </div>
+                        <div class="danger-action">
+                            <div class="danger-action-info">
+                                <h6>Exportar Mis Datos</h6>
+                                <small>Descarga todos tus datos personales y configuraciones en formato JSON</small>
                             </div>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-1"></i>
-                                Guardar Configuración
+                            <button type="button" class="config-btn config-btn-secondary" onclick="exportarDatos()">
+                                <i class="bi bi-download"></i>
+                                Exportar
                             </button>
                         </div>
-                    </form>
+
+                        <div class="danger-action" style="border-color: var(--danger);">
+                            <div class="danger-action-info">
+                                <h6 style="color: var(--danger);">Restablecer Configuración</h6>
+                                <small>Vuelve a los valores predeterminados de todas las configuraciones</small>
+                            </div>
+                            <button type="button" class="config-btn config-btn-outline-danger" onclick="resetearConfiguracion()">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                Restablecer
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Acciones Adicionales -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0 text-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        Zona Peligrosa
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Las siguientes acciones son irreversibles.</p>
-
-                    <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
-                        <div>
-                            <h6 class="mb-1">Exportar Datos</h6>
-                            <small class="text-muted">Descarga todos tus datos en formato JSON</small>
-                        </div>
-                        <button class="btn btn-outline-secondary" onclick="showComingSoon('Exportar Datos')">
-                            <i class="bi bi-download me-1"></i>
-                            Exportar
-                        </button>
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Información de Cuenta -->
+                <div class="config-section scale-in animate-delay-1">
+                    <div class="config-section-header">
+                        <i class="bi bi-person-circle"></i>
+                        <h2 class="config-section-title">Tu Cuenta</h2>
                     </div>
-
-                    <div class="d-flex justify-content-between align-items-center p-3 border border-danger rounded">
-                        <div>
-                            <h6 class="mb-1 text-danger">Eliminar Cuenta</h6>
-                            <small class="text-muted">Esta acción eliminará permanentemente tu cuenta</small>
+                    <div class="config-section-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Usuario</div>
+                                <div class="info-value">{{ $user->name }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Email</div>
+                                <div class="info-value" style="font-size: 0.813rem;">{{ $user->email }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Rol</div>
+                                <div class="info-value">
+                                    <span class="badge" style="background: var(--wine); font-size: 0.813rem;">
+                                        {{ ucfirst($user->rol) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Miembro desde</div>
+                                <div class="info-value">{{ $user->created_at->format('d/m/Y') }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Última actividad</div>
+                                <div class="info-value" style="font-size: 0.813rem;">{{ $user->updated_at->diffForHumans() }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Estado</div>
+                                <div class="info-value">
+                                    <span class="badge bg-success" style="font-size: 0.813rem;">
+                                        <i class="bi bi-check-circle"></i> Activo
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-outline-danger" onclick="showComingSoon('Eliminar Cuenta')">
-                            <i class="bi bi-trash me-1"></i>
-                            Eliminar
-                        </button>
+
+                        <div class="mt-3 pt-3 border-top">
+                            <a href="{{ route('lider.perfil.index') }}" class="config-btn config-btn-secondary" style="width: 100%; justify-content: center;">
+                                <i class="bi bi-person-gear"></i>
+                                Editar Perfil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado de Guardado -->
+                <div class="config-section scale-in animate-delay-2">
+                    <div class="config-section-body" style="padding: 1.5rem; text-align: center;">
+                        <div id="saveStatus" style="display: none;">
+                            <i class="bi bi-check-circle" style="font-size: 2rem; color: var(--success);"></i>
+                            <p class="text-success fw-bold mt-2 mb-1">Guardado Automático</p>
+                            <p class="text-muted mb-0" style="font-size: 0.813rem;">
+                                Tus cambios se guardan automáticamente
+                            </p>
+                        </div>
+                        <div id="savingStatus" style="display: none;">
+                            <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
+                                <span class="visually-hidden">Guardando...</span>
+                            </div>
+                            <p class="text-primary fw-bold mt-2 mb-0">Guardando...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,8 +178,10 @@
 
 @push('scripts')
 <script>
-function showComingSoon(feature) {
-    alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
-}
+window.configRoutes = {
+    updateRealtime: '{{ route("lider.configuracion.update-realtime") }}',
+    reset: '{{ route("lider.configuracion.reset") }}'
+};
 </script>
+<script src="{{ asset('js/lider/configuracion-realtime.js') }}?v={{ filemtime(public_path('js/lider/configuracion-realtime.js')) }}"></script>
 @endpush
