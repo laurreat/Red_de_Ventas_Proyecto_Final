@@ -46,20 +46,25 @@
     <!-- Estadísticas del Cliente -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100 animate-delay-1">
-                <div class="card-body text-center">
-                    <i class="bi bi-cart-check text-success fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_pedidos']) }}</div>
-                    <div class="metric-label">Pedidos Realizados</div>
+            <a href="{{ route('cliente.pedidos.index') }}" class="text-decoration-none">
+                <div class="card metric-card h-100 animate-delay-1">
+                    <div class="card-body text-center">
+                        <i class="bi bi-cart-check text-success fs-1 mb-3"></i>
+                        <div class="metric-value">{{ number_format($stats['total_pedidos'] ?? 0) }}</div>
+                        <div class="metric-label">Pedidos Realizados</div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Ver todos
+                        </small>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
         
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <div class="card metric-card h-100 animate-delay-2">
                 <div class="card-body text-center">
                     <i class="bi bi-currency-dollar text-primary fs-1 mb-3"></i>
-                    <div class="metric-value">${{ number_format($stats['total_gastado'], 0) }}</div>
+                    <div class="metric-value">${{ number_format($stats['total_gastado'] ?? 0, 0) }}</div>
                     <div class="metric-label">Total Comprado</div>
                 </div>
             </div>
@@ -79,9 +84,9 @@
             <div class="card metric-card h-100 animate-delay-4">
                 <div class="card-body text-center">
                     <i class="bi bi-people text-info fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_referidos']) }}</div>
+                    <div class="metric-value">{{ number_format($stats['total_referidos'] ?? 0) }}</div>
                     <div class="metric-label">Amigos Referidos</div>
-                    @if($stats['total_referidos'] > 0)
+                    @if(($stats['total_referidos'] ?? 0) > 0)
                     <small class="text-success">¡Gracias por recomendarnos!</small>
                     @endif
                 </div>
@@ -103,24 +108,24 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="javascript:void(0)" class="quick-action" onclick="clienteDashboard.toggleCarrito()">
+                            <a href="{{ route('cliente.pedidos.create') }}" class="quick-action">
                                 <i class="bi bi-cart-plus fs-2 mb-2 d-block"></i>
-                                <div class="fw-bold">Ver Carrito</div>
-                                <small>Productos seleccionados</small>
+                                <div class="fw-bold">Hacer Pedido</div>
+                                <small>Crear nuevo pedido</small>
                             </a>
                         </div>
                         <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="javascript:void(0)" class="quick-action" onclick="showComingSoon('Ver Menú')">
-                                <i class="bi bi-book fs-2 mb-2 d-block"></i>
-                                <div class="fw-bold">Ver Menú</div>
-                                <small>Productos disponibles</small>
-                            </a>
-                        </div>
-                        <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="javascript:void(0)" class="quick-action" onclick="showComingSoon('Mis Pedidos')">
+                            <a href="{{ route('cliente.pedidos.index') }}" class="quick-action">
                                 <i class="bi bi-clock-history fs-2 mb-2 d-block"></i>
                                 <div class="fw-bold">Mis Pedidos</div>
-                                <small>Historial completo</small>
+                                <small>Ver historial completo</small>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <a href="javascript:void(0)" class="quick-action" onclick="clienteDashboard.toggleCarrito()">
+                                <i class="bi bi-cart3 fs-2 mb-2 d-block"></i>
+                                <div class="fw-bold">Ver Carrito</div>
+                                <small>Productos seleccionados</small>
                             </a>
                         </div>
                     </div>
@@ -335,7 +340,8 @@
                         <i class="bi bi-bag-check me-2"></i>
                         Mis Últimos Pedidos
                     </h5>
-                    <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Historial Completo')">
+                    <a href="{{ route('cliente.pedidos.index') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-list-ul me-1"></i>
                         Ver todos
                     </a>
                 </div>
@@ -372,9 +378,10 @@
                                                 <small class="text-muted">Total pagado</small>
                                                 <div class="fw-bold text-success fs-5">${{ number_format($pedido->total_final, 0) }}</div>
                                             </div>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="showComingSoon('Detalles del Pedido')">
+                                            <a href="{{ route('cliente.pedidos.show', $pedido->_id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>
                                                 Ver detalles
-                                            </button>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -386,10 +393,10 @@
                             <i class="bi bi-cart-x fs-1 text-muted"></i>
                             <h6 class="text-muted mt-3">No tienes pedidos aún</h6>
                             <p class="text-muted mb-3">¡Haz tu primer pedido y disfruta de nuestras deliciosas arepas!</p>
-                            <button class="btn btn-primary" onclick="clienteDashboard.toggleCarrito()">
+                            <a href="{{ route('cliente.pedidos.create') }}" class="btn btn-primary">
                                 <i class="bi bi-cart-plus me-2"></i>
                                 Hacer mi primer pedido
-                            </button>
+                            </a>
                         </div>
                     @endif
                 </div>
@@ -434,7 +441,7 @@
                     </div>
                     @endif
                     
-                    <button class="btn btn-outline-primary btn-sm w-100" onclick="showComingSoon('Actualizar Perfil')">
+                    <button class="btn btn-outline-primary btn-sm w-100" onclick="mostrarEditarPerfil()">
                         <i class="bi bi-pencil me-1"></i>
                         Actualizar información
                     </button>
@@ -455,7 +462,7 @@
                     
                     <div class="row text-center mb-3">
                         <div class="col-6">
-                            <div class="fw-bold text-success">{{ $stats['total_referidos'] }}</div>
+                            <div class="fw-bold text-success">{{ $stats['total_referidos'] ?? 0 }}</div>
                             <small class="text-muted">Referidos</small>
                         </div>
                         <div class="col-6">
@@ -491,7 +498,9 @@
                                 <div class="fw-medium">{{ $producto->nombre }}</div>
                                 <small class="text-muted">${{ number_format($producto->precio, 0) }}</small>
                             </div>
-                            <button class="btn btn-sm btn-outline-primary" onclick="agregarAlCarrito({{ $producto->id }})">
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="agregarAlCarrito('{{ $producto->_id }}')"
+                                    data-producto-id="{{ $producto->_id }}">
                                 <i class="bi bi-cart-plus"></i>
                             </button>
                         </div>

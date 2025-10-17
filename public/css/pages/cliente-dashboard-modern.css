@@ -723,3 +723,58 @@
   .welcome-card{margin-top:1rem}
   body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 }
+
+/* ========================================
+   METRIC CARD CLICKEABLE
+======================================== */
+a .metric-card{
+  cursor:pointer;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+
+a .metric-card:hover{
+  transform:translateY(-10px) scale(1.02);
+  box-shadow:0 12px 24px rgba(114,47,55,.2);
+}
+
+a .metric-card:active{
+  transform:translateY(-8px) scale(1.01);
+}
+
+a .metric-card small{
+  opacity:0;
+  transform:translateY(10px);
+  transition:all .3s ease;
+  color:var(--wine);
+  font-weight:600;
+}
+
+a:hover .metric-card small{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* ========================================
+   ORDER CARD ENHANCED
+======================================== */
+.order-card{
+  transition:all .3s ease;
+  border:1px solid var(--gray-200);
+}
+
+.order-card:hover{
+  box-shadow:var(--shadow-md);
+  border-color:var(--wine-light);
+  transform:translateY(-2px);
+}
+
+.order-card .btn-outline-primary{
+  transition:all .3s ease;
+}
+
+.order-card:hover .btn-outline-primary{
+  background:var(--wine);
+  color:#fff;
+  border-color:var(--wine);
+  transform:scale(1.05);
+}

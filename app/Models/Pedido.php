@@ -222,7 +222,21 @@ class Pedido extends Model
 
     public function totalItems(): int
     {
-        return array_sum(array_column($this->detalles, 'cantidad'));
+        // Verificar si detalles existe y no está vacío
+        if (!isset($this->detalles) || empty($this->detalles)) {
+            // Intentar con 'items' en su lugar
+            if (!isset($this->items) || empty($this->items)) {
+                return 0;
+            }
+            
+            // Si items es un array, usarlo
+            $items = is_array($this->items) ? $this->items : $this->items->toArray();
+            return array_sum(array_column($items, 'cantidad'));
+        }
+        
+        // Convertir detalles a array si es necesario
+        $detalles = is_array($this->detalles) ? $this->detalles : $this->detalles->toArray();
+        return array_sum(array_column($detalles, 'cantidad'));
     }
 
     public function cambiarEstado($nuevoEstado, $motivo = null, $usuarioId = null)
