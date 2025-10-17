@@ -10,6 +10,25 @@ class ProductosSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crear categorías si no existen
+        $categorias = [
+            ['nombre' => 'Arepas Tradicionales', 'descripcion' => 'Arepas tradicionales llaneras', 'activo' => true],
+            ['nombre' => 'Arepas con Carne', 'descripcion' => 'Arepas con diferentes tipos de carne', 'activo' => true],
+            ['nombre' => 'Arepas con Pollo', 'descripcion' => 'Arepas con pollo en diferentes preparaciones', 'activo' => true],
+            ['nombre' => 'Arepas Especiales', 'descripcion' => 'Arepas con preparaciones especiales', 'activo' => true],
+            ['nombre' => 'Arepas Combinadas', 'descripcion' => 'Arepas con múltiples ingredientes', 'activo' => true],
+            ['nombre' => 'Bebidas Tradicionales', 'descripcion' => 'Bebidas típicas de los llanos', 'activo' => true],
+            ['nombre' => 'Bebidas Frías', 'descripcion' => 'Jugos y bebidas refrescantes', 'activo' => true],
+            ['nombre' => 'Postres', 'descripcion' => 'Postres tradicionales llaneros', 'activo' => true],
+        ];
+
+        foreach ($categorias as $categoria) {
+            Categoria::firstOrCreate(
+                ['nombre' => $categoria['nombre']],
+                $categoria
+            );
+        }
+
         // Obtener las categorías
         $arepasTradicionales = Categoria::where('nombre', 'Arepas Tradicionales')->first();
         $arepasCarne = Categoria::where('nombre', 'Arepas con Carne')->first();
@@ -219,7 +238,12 @@ class ProductosSeeder extends Seeder
         ];
 
         foreach ($productos as $producto) {
-            Producto::create($producto);
+            Producto::firstOrCreate(
+                ['nombre' => $producto['nombre']],
+                $producto
+            );
         }
+
+        $this->command->info('✓ Productos y categorías creados/actualizados exitosamente');
     }
 }

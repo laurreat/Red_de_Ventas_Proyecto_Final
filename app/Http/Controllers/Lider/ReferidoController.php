@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Lider;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Pedido;
+use App\Models\MensajeLider;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -160,10 +161,10 @@ class ReferidoController extends Controller
     {
         $fechaInicio = $this->obtenerFechaInicioPeriodo($periodo);
 
-        $ventasPeriodo = $referido->pedidosComoVendedor()
+        $ventasPeriodo = to_float($referido->pedidosComoVendedor()
             ->where('created_at', '>=', $fechaInicio)
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
         $pedidosPeriodo = $referido->pedidosComoVendedor()
             ->where('created_at', '>=', $fechaInicio)
@@ -232,21 +233,34 @@ class ReferidoController extends Controller
     private function calcularCrecimientoMensual($lider)
     {
         $mesActual = Carbon::now()->startOfMonth();
-        $mesAnterior = Carbon::now()->subMonth()->startOfMonth();
+        $finMesAnterior = Carbon::now()->subMonth()->endOfMonth();
+        $inicioMesAnterior = Carbon::now()->subMonth()->startOfMonth();
 
         $redActual = $this->obtenerRedCompleta($lider);
+
+        // Nuevos miembros este mes
         $nuevosEsteMes = User::whereIn('id', $redActual)
             ->where('created_at', '>=', $mesActual)
             ->count();
 
+        // Total de miembros al final del mes anterior
         $totalMesAnterior = User::whereIn('id', $redActual)
-            ->where('created_at', '<', $mesActual)
+            ->where('created_at', '<=', $finMesAnterior)
             ->count();
 
+        // Si no hay base de comparación, retornar 0
         if ($totalMesAnterior == 0) {
+            // Si hay nuevos este mes pero no había nadie antes, es crecimiento infinito
+            // Pero si tampoco hay nuevos este mes, es 0
             return $nuevosEsteMes > 0 ? 100 : 0;
         }
 
+        // Si no hay nuevos este mes, el crecimiento es 0%
+        if ($nuevosEsteMes == 0) {
+            return 0;
+        }
+
+        // Calcular porcentaje de crecimiento
         return round(($nuevosEsteMes / $totalMesAnterior) * 100, 2);
     }
 
@@ -313,10 +327,10 @@ class ReferidoController extends Controller
     {
         if ($nivelActual === $nivelObjetivo) {
             foreach ($usuario->referidos as $referido) {
-                $ventasReferido = $referido->pedidosComoVendedor()
+                $ventasReferido = to_float($referido->pedidosComoVendedor()
                     ->where('created_at', '>=', Carbon::now()->startOfMonth())
                     ->where('estado', '!=', 'cancelado')
-                    ->sum('total_final');
+                    ->sum('total_final'));
 
                 $ventas += $ventasReferido;
 
@@ -334,17 +348,17 @@ class ReferidoController extends Controller
     private function calcularVolumenRed($lider)
     {
         $redIds = $this->obtenerRedCompleta($lider);
-        return Pedido::whereIn('vendedor_id', $redIds)
+        return to_float(Pedido::whereIn('vendedor_id', $redIds)
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
     }
 
     private function calcularComisionesRed($lider)
     {
-        return $lider->comisiones()
+        return to_float($lider->comisiones()
             ->whereMonth('created_at', Carbon::now()->month)
-            ->sum('monto');
+            ->sum('monto'));
     }
 
     private function calcularTasaActividad($lider)
@@ -421,22 +435,37 @@ class ReferidoController extends Controller
 
     private function calcularRendimientoReferido($referido)
     {
-        $ventasMes = $referido->pedidosComoVendedor()
+        // Si no hay actividad reciente, rendimiento es 0
+        $ventasMes = to_float($referido->pedidosComoVendedor()
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
         $referidosMes = $referido->referidos()
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->count();
 
+        // Si no hay ventas ni referidos este mes, rendimiento es 0
+        if ($ventasMes == 0 && $referidosMes == 0) {
+            return 0;
+        }
+
         $consistencia = $this->calcularConsistenciaVentas($referido);
 
+        // Cálculo de score (máximo 100)
+        // Ventas: hasta 50 puntos (meta: $500,000/mes)
         $scoreVentas = min(($ventasMes / 500000) * 50, 50);
-        $scoreReferidos = min($referidosMes * 20, 30);
+
+        // Referidos: hasta 30 puntos (1 referido = 20 puntos, máximo en 2)
+        $scoreReferidos = min($referidosMes * 15, 30);
+
+        // Consistencia: hasta 20 puntos
         $scoreConsistencia = $consistencia * 20;
 
-        return min($scoreVentas + $scoreReferidos + $scoreConsistencia, 100);
+        $rendimientoTotal = $scoreVentas + $scoreReferidos + $scoreConsistencia;
+
+        // Si el rendimiento es muy bajo (menos de 5), redondear a 0
+        return $rendimientoTotal < 5 ? 0 : min($rendimientoTotal, 100);
     }
 
     private function calcularConsistenciaVentas($referido)
@@ -445,11 +474,11 @@ class ReferidoController extends Controller
 
         for ($i = 0; $i < 3; $i++) {
             $mes = Carbon::now()->subMonths($i);
-            $ventasMes = $referido->pedidosComoVendedor()
+            $ventasMes = to_float($referido->pedidosComoVendedor()
                 ->whereYear('created_at', $mes->year)
                 ->whereMonth('created_at', $mes->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $ultimosTresMeses->push($ventasMes);
         }
@@ -462,5 +491,49 @@ class ReferidoController extends Controller
         })->avg();
 
         return max(0, 1 - $variacion);
+    }
+
+    /**
+     * Enviar mensaje a un vendedor
+     */
+    public function enviarMensaje(Request $request)
+    {
+        $request->validate([
+            'vendedor_id' => 'required|exists:users,_id',
+            'mensaje' => 'required|string|max:1000',
+            'tipo_mensaje' => 'required|in:motivacion,recomendacion,alerta,felicitacion,otro'
+        ]);
+
+        $lider = auth()->user();
+        $vendedor = User::findOrFail($request->vendedor_id);
+
+        // Verificar que el vendedor pertenezca a la red del líder
+        $redCompleta = $this->obtenerRedCompleta($lider);
+        if (!$redCompleta->contains($vendedor->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para enviar mensajes a este vendedor.'
+            ], 403);
+        }
+
+        // Crear el mensaje
+        $mensaje = MensajeLider::create([
+            'lider_id' => $lider->id,
+            'vendedor_id' => $vendedor->id,
+            'mensaje' => $request->mensaje,
+            'tipo_mensaje' => $request->tipo_mensaje,
+            'leido' => false,
+            'metadata' => [
+                'lider_nombre' => $lider->name,
+                'vendedor_nombre' => $vendedor->name,
+                'enviado_desde' => 'red_referidos'
+            ]
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mensaje enviado exitosamente a ' . $vendedor->name,
+            'data' => $mensaje
+        ]);
     }
 }

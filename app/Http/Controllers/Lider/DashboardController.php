@@ -115,8 +115,20 @@ class DashboardController extends Controller
             return 0;
         }
 
-        $ventasActuales = $user->ventas_mes_actual ?? 0;
-        return min(($ventasActuales / $user->meta_mensual) * 100, 100);
+        // Calcular ventas del equipo completo (incluye al líder y sus referidos)
+        $inicioMes = Carbon::now()->startOfMonth();
+        $equipoTotal = $this->obtenerEquipoCompleto($user);
+        $equipoIds = collect($equipoTotal)->pluck('_id')->toArray();
+
+        // Incluir también al líder
+        $equipoIds[] = $user->_id;
+
+        $ventasActuales = to_float(Pedido::whereIn('vendedor_id', $equipoIds)
+            ->where('created_at', '>=', $inicioMes)
+            ->where('estado', '!=', 'cancelado')
+            ->sum('total_final'));
+
+        return min(($ventasActuales / to_float($user->meta_mensual)) * 100, 100);
     }
 
     private function obtenerVentasPorDia($equipo)
@@ -262,10 +274,23 @@ class DashboardController extends Controller
                                 ->whereYear('created_at', Carbon::now()->year)
                                 ->count();
 
+        // Calcular ventas del equipo completo (incluye al líder y sus referidos)
+        $inicioMes = Carbon::now()->startOfMonth();
+        $equipoTotal = $this->obtenerEquipoCompleto($user);
+        $equipoIds = collect($equipoTotal)->pluck('_id')->toArray();
+
+        // Incluir también al líder
+        $equipoIds[] = $user->_id;
+
+        $ventasActuales = to_float(Pedido::whereIn('vendedor_id', $equipoIds)
+            ->where('created_at', '>=', $inicioMes)
+            ->where('estado', '!=', 'cancelado')
+            ->sum('total_final'));
+
         return [
             'ventas_mes' => [
                 'objetivo' => $user->meta_mensual ?? 0,
-                'actual' => $user->ventas_mes_actual ?? 0,
+                'actual' => $ventasActuales,
                 'progreso' => $this->calcularProgresoMeta($user)
             ],
             'equipo_mes' => [

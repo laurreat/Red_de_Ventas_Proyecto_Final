@@ -39,7 +39,7 @@
                     <i class="bi bi-bullseye"></i>
                     Asignar Meta
                 </button>
-                <a href="{{ route('lider.equipo.index') }}" class="equipo-detail-btn equipo-detail-btn-outline">
+                <a href="/lider/equipo" class="equipo-detail-btn equipo-detail-btn-outline">
                     <i class="bi bi-arrow-left"></i>
                     Volver
                 </a>

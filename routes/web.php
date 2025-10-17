@@ -44,8 +44,10 @@ Route::middleware(['auth', 'role'])->group(function () {
  * Protegidas con middleware auth y verified
  */
 
+    // TEMPORALMENTE COMENTADO - Falta crear ClienteDashboardController
+    /*
     Route::prefix('cliente')->name('cliente.')->middleware(['auth', 'verified'])->group(function () {
-        
+
         // Dashboard Principal
         Route::get('/dashboard', [ClienteDashboardController::class, 'index'])
             ->name('dashboard');
@@ -53,7 +55,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Favoritos
         Route::post('/favoritos/agregar', [ClienteDashboardController::class, 'agregarFavorito'])
             ->name('favoritos.agregar');
-        
+
         Route::post('/favoritos/eliminar', [ClienteDashboardController::class, 'eliminarFavorito'])
             ->name('favoritos.eliminar');
 
@@ -64,13 +66,13 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Pedidos
         Route::post('/pedidos/crear', [ClienteDashboardController::class, 'crearPedido'])
             ->name('pedidos.crear');
-        
+
         Route::get('/pedidos/historial', [ClienteDashboardController::class, 'historialPedidos'])
             ->name('pedidos.historial');
-        
+
         Route::get('/pedidos/{id}', [ClienteDashboardController::class, 'verPedido'])
             ->name('pedidos.ver');
-        
+
         Route::post('/pedidos/{id}/cancelar', [ClienteDashboardController::class, 'cancelarPedido'])
             ->name('pedidos.cancelar');
 
@@ -78,6 +80,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('/productos/recomendados', [ClienteDashboardController::class, 'productosRecomendados'])
             ->name('productos.recomendados');
     });
+    */
 
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {
@@ -178,6 +181,11 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('admin/perfil/download', [\App\Http\Controllers\Admin\PerfilController::class, 'downloadData'])->name('admin.perfil.download-data');
         Route::get('admin/perfil/activity', [\App\Http\Controllers\Admin\PerfilController::class, 'activity'])->name('admin.perfil.activity');
 
+        // Centro de Ayuda
+        Route::get('admin/ayuda', [\App\Http\Controllers\Admin\AyudaController::class, 'index'])->name('admin.ayuda.index');
+        Route::get('admin/ayuda/buscar', [\App\Http\Controllers\Admin\AyudaController::class, 'buscar'])->name('admin.ayuda.buscar');
+        Route::post('admin/ayuda/ticket', [\App\Http\Controllers\Admin\AyudaController::class, 'enviarTicket'])->name('admin.ayuda.ticket');
+
         // API para Tiempo Real - Perfil Admin
         Route::get('admin/perfil/stats-realtime', [\App\Http\Controllers\Admin\PerfilController::class, 'getStatsRealtime'])->name('admin.perfil.stats-realtime');
         Route::get('admin/perfil/activity-realtime', [\App\Http\Controllers\Admin\PerfilController::class, 'getActivityRealtime'])->name('admin.perfil.activity-realtime');
@@ -200,12 +208,15 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Red de Referidos del Líder
         Route::get('lider/referidos', [\App\Http\Controllers\Lider\ReferidoController::class, 'index'])->name('lider.referidos.index');
         Route::get('lider/referidos/red', [\App\Http\Controllers\Lider\ReferidoController::class, 'red'])->name('lider.referidos.red');
+        Route::post('lider/referidos/enviar-mensaje', [\App\Http\Controllers\Lider\ReferidoController::class, 'enviarMensaje'])->name('lider.referidos.enviar-mensaje');
 
         // Rendimiento del Equipo
         Route::get('lider/rendimiento', [\App\Http\Controllers\Lider\RendimientoController::class, 'index'])->name('lider.rendimiento.index');
+        Route::get('lider/rendimiento/exportar', [\App\Http\Controllers\Lider\RendimientoController::class, 'exportarRendimiento'])->name('lider.rendimiento.exportar');
 
         // Ventas del Equipo
         Route::get('lider/ventas', [\App\Http\Controllers\Lider\VentaController::class, 'index'])->name('lider.ventas.index');
+        Route::get('lider/ventas/exportar/datos', [\App\Http\Controllers\Lider\VentaController::class, 'exportar'])->name('lider.ventas.exportar');
         Route::get('lider/ventas/{id}', [\App\Http\Controllers\Lider\VentaController::class, 'show'])->name('lider.ventas.show');
 
         // Comisiones del Líder
@@ -230,10 +241,17 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'index'])->name('lider.configuracion.index');
         Route::put('lider/configuracion', [\App\Http\Controllers\Lider\ConfiguracionController::class, 'update'])->name('lider.configuracion.update');
 
-        // Capacitación del Equipo
+        // Capacitación del Equipo - CRUD Completo
         Route::get('lider/capacitacion', [\App\Http\Controllers\Lider\CapacitacionController::class, 'index'])->name('lider.capacitacion.index');
+        Route::get('lider/capacitacion/create', [\App\Http\Controllers\Lider\CapacitacionController::class, 'create'])->name('lider.capacitacion.create');
+        Route::post('lider/capacitacion', [\App\Http\Controllers\Lider\CapacitacionController::class, 'store'])->name('lider.capacitacion.store');
         Route::get('lider/capacitacion/{id}', [\App\Http\Controllers\Lider\CapacitacionController::class, 'show'])->name('lider.capacitacion.show');
+        Route::get('lider/capacitacion/{id}/edit', [\App\Http\Controllers\Lider\CapacitacionController::class, 'edit'])->name('lider.capacitacion.edit');
+        Route::put('lider/capacitacion/{id}', [\App\Http\Controllers\Lider\CapacitacionController::class, 'update'])->name('lider.capacitacion.update');
+        Route::delete('lider/capacitacion/{id}', [\App\Http\Controllers\Lider\CapacitacionController::class, 'destroy'])->name('lider.capacitacion.destroy');
         Route::post('lider/capacitacion/asignar', [\App\Http\Controllers\Lider\CapacitacionController::class, 'asignar'])->name('lider.capacitacion.asignar');
+        Route::post('lider/capacitacion/{id}/actualizar-progreso', [\App\Http\Controllers\Lider\CapacitacionController::class, 'actualizarProgreso'])->name('lider.capacitacion.actualizar-progreso');
+        Route::post('lider/capacitacion/{id}/marcar-completada', [\App\Http\Controllers\Lider\CapacitacionController::class, 'marcarCompletada'])->name('lider.capacitacion.marcar-completada');
 
         // API para Tiempo Real - Dashboard
         Route::get('lider/dashboard/stats', [\App\Http\Controllers\Lider\DashboardController::class, 'getStats'])->name('lider.dashboard.stats');
@@ -325,6 +343,11 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Configuración del Vendedor
         Route::get('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'configuracion'])->name('vendedor.configuracion.index');
         Route::put('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'updateConfiguracion'])->name('vendedor.configuracion.update');
+
+        // Mensajes del Líder
+        Route::get('vendedor/mensajes', [\App\Http\Controllers\Vendedor\MensajeController::class, 'index'])->name('vendedor.mensajes.index');
+        Route::post('vendedor/mensajes/{id}/marcar-leido', [\App\Http\Controllers\Vendedor\MensajeController::class, 'marcarLeido'])->name('vendedor.mensajes.marcar-leido');
+        Route::get('vendedor/mensajes/no-leidos', [\App\Http\Controllers\Vendedor\MensajeController::class, 'contarNoLeidos'])->name('vendedor.mensajes.no-leidos');
     });
 });
 

@@ -295,7 +295,7 @@
                                 </td>
                                 <td>
                                     <span class="referidos-badge-success">
-                                        {{ $usuario->referidos->count() }}
+                                        {{ $usuario->referidos_count_real ?? 0 }}
                                     </span>
                                 </td>
                                 <td>
@@ -360,7 +360,7 @@
                                 <small class="text-muted">{{ ucfirst($usuario->rol) }}</small>
                             </div>
                         </div>
-                        <div class="referidos-top-value">{{ $usuario->total_referidos ?? 0 }}</div>
+                        <div class="referidos-top-value">{{ $usuario->referidos_reales ?? 0 }}</div>
                     </div>
                     @endforeach
                     @else

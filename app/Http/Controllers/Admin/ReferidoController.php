@@ -114,22 +114,71 @@ class ReferidoController extends Controller
 
         $usuarios = $usuariosQuery->orderBy('created_at', 'desc')->paginate(20);
 
-        // Estadísticas generales
+        // Agregar conteo real de referidos a cada usuario paginado
+        $usuarios->getCollection()->transform(function($usuario) {
+            // Calcular referidos reales desde la base de datos
+            $usuario->referidos_count_real = User::where('referido_por', $usuario->_id)->count();
+            return $usuario;
+        });
+
+        // Estadísticas generales - Calcular datos reales
+        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider'])->get();
+
+        // Contar usuarios con referidos reales
+        $usuariosConReferidos = $todosUsuarios->filter(function($usuario) {
+            return User::where('referido_por', $usuario->_id)->count() > 0;
+        })->count();
+
+        // Calcular promedio real de referidos
+        $totalReferidos = 0;
+        $usuariosQueRefineron = 0;
+        foreach ($todosUsuarios as $usuario) {
+            $countReferidos = User::where('referido_por', $usuario->_id)->count();
+            if ($countReferidos > 0) {
+                $totalReferidos += $countReferidos;
+                $usuariosQueRefineron++;
+            }
+        }
+        $promedioReferidos = $usuariosQueRefineron > 0 ? round($totalReferidos / $usuariosQueRefineron, 2) : 0;
+
+        // Encontrar la red más grande (real)
+        $usuarioConMasReferidos = null;
+        $maxReferidos = 0;
+        foreach ($todosUsuarios as $usuario) {
+            $countReferidos = User::where('referido_por', $usuario->_id)->count();
+            if ($countReferidos > $maxReferidos) {
+                $maxReferidos = $countReferidos;
+                $usuarioConMasReferidos = $usuario;
+            }
+        }
+
         $stats = [
             'total_vendedores' => User::where('rol', 'vendedor')->count(),
             'total_lideres' => User::where('rol', 'lider')->count(),
-            'usuarios_con_referidos' => User::where('total_referidos', '>', 0)->count(),
+            'usuarios_con_referidos' => $usuariosConReferidos,
             'usuarios_sin_referidor' => User::whereNull('referido_por')->whereIn('rol', ['vendedor', 'lider'])->count(),
-            'promedio_referidos' => $this->calcularPromedioReferidos(),
-            'red_mas_grande' => $this->obtenerRedMasGrande()
+            'promedio_referidos' => $promedioReferidos,
+            'red_mas_grande' => $usuarioConMasReferidos ? [
+                'usuario' => $usuarioConMasReferidos->name,
+                'referidos' => $maxReferidos
+            ] : null
         ];
 
-        // Redes más activas (top 10)
+        // Redes más activas (top 10) - Calcular referidos reales
         $redesActivas = User::whereIn('rol', ['vendedor', 'lider'])
-            ->where('total_referidos', '>', 0)
-            ->orderBy('total_referidos', 'desc')
+            ->get()
+            ->map(function($usuario) {
+                // Contar referidos directos reales
+                $referidosDirectos = User::where('referido_por', $usuario->_id)->count();
+                $usuario->referidos_reales = $referidosDirectos;
+                return $usuario;
+            })
+            ->filter(function($usuario) {
+                return $usuario->referidos_reales > 0;
+            })
+            ->sortByDesc('referidos_reales')
             ->take(10)
-            ->get();
+            ->values();
 
         // Estructura jerárquica para visualización
         if ($usuarioSeleccionado) {
@@ -279,25 +328,6 @@ class ReferidoController extends Controller
 
     // Métodos privados auxiliares
 
-    private function calcularPromedioReferidos()
-    {
-        $usuarios_con_referidos = User::where('total_referidos', '>', 0)->count();
-        $total_referidos = User::whereNotNull('referido_por')->count();
-
-        return $usuarios_con_referidos > 0 ? round($total_referidos / $usuarios_con_referidos, 2) : 0;
-    }
-
-    private function obtenerRedMasGrande()
-    {
-        $usuario = User::whereIn('rol', ['vendedor', 'lider'])
-            ->orderBy('total_referidos', 'desc')
-            ->first();
-
-        return $usuario ? [
-            'usuario' => $usuario->name,
-            'referidos' => $usuario->total_referidos ?? 0
-        ] : null;
-    }
 
     private function construirRedJerarquica()
     {
@@ -450,12 +480,18 @@ class ReferidoController extends Controller
                 }
                 // Incluir también algunos de sus referidos
                 $subReferidos = $this->obtenerTodosLosDescendentes($otroReferido);
-                $todosLosUsuarios = $todosLosUsuarios->merge($subReferidos);
+                foreach ($subReferidos as $subRef) {
+                    if (!$todosLosUsuarios->contains('_id', $subRef->_id)) {
+                        $todosLosUsuarios->push($subRef);
+                    }
+                }
             }
         }
 
-        // Quitar duplicados
-        $todosLosUsuarios = $todosLosUsuarios->unique('_id');
+        // Quitar duplicados usando unique con _id como string para MongoDB
+        $todosLosUsuarios = $todosLosUsuarios->unique(function($user) {
+            return (string) $user->_id;
+        });
 
         \Log::info('📊 RESUMEN USUARIOS RECOPILADOS:', [
             'total_usuarios' => $todosLosUsuarios->count(),
@@ -513,11 +549,13 @@ class ReferidoController extends Controller
             }
         }
 
-        // 4. Combinar todos los usuarios (sin duplicados)
+        // 4. Combinar todos los usuarios (sin duplicados) usando conversión a string
         $todosLosUsuarios = $ascendentes
             ->merge($descendentes)
             ->merge($hermanos)
-            ->unique('_id');
+            ->unique(function($user) {
+                return (string) $user->_id;
+            });
 
         // 5. Encontrar el usuario raíz de la línea
         $usuarioRaiz = $ascendentes->whereNull('referido_por')->first();
@@ -584,7 +622,7 @@ class ReferidoController extends Controller
             ]);
 
             $nodoData = [
-                'id' => $usuario->_id,
+                'id' => (string) $usuario->_id, // Convertir a string para asegurar unicidad
                 'name' => $usuario->name,
                 'email' => $usuario->email,
                 'cedula' => $usuario->cedula ?? 'N/A',
@@ -612,7 +650,7 @@ class ReferidoController extends Controller
             $referidos = User::where('referido_por', $usuario->_id)->get();
 
             return [
-                'id' => $usuario->_id,
+                'id' => (string) $usuario->_id, // Convertir a string para unicidad en D3.js
                 'name' => $usuario->name,
                 'email' => $usuario->email,
                 'tipo' => $usuario->rol,
@@ -747,11 +785,20 @@ class ReferidoController extends Controller
 
     private function obtenerTopReferidores()
     {
+        // Calcular top referidores con datos reales
         return User::whereIn('rol', ['vendedor', 'lider'])
-            ->where('total_referidos', '>', 0)
-            ->orderBy('total_referidos', 'desc')
+            ->get()
+            ->map(function($usuario) {
+                $referidosDirectos = User::where('referido_por', $usuario->_id)->count();
+                $usuario->referidos_reales = $referidosDirectos;
+                return $usuario;
+            })
+            ->filter(function($usuario) {
+                return $usuario->referidos_reales > 0;
+            })
+            ->sortByDesc('referidos_reales')
             ->take(10)
-            ->get();
+            ->values();
     }
 
     public function exportar(Request $request)
@@ -858,8 +905,13 @@ class ReferidoController extends Controller
 
     private function calcularConversionReferidos()
     {
-        $total_usuarios = User::whereIn('rol', ['vendedor', 'lider'])->count();
-        $usuarios_con_referidos = User::where('total_referidos', '>', 0)->count();
+        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider'])->get();
+        $total_usuarios = $todosUsuarios->count();
+
+        // Contar usuarios con referidos reales
+        $usuarios_con_referidos = $todosUsuarios->filter(function($usuario) {
+            return User::where('referido_por', $usuario->_id)->count() > 0;
+        })->count();
 
         return $total_usuarios > 0 ? round(($usuarios_con_referidos / $total_usuarios) * 100, 2) : 0;
     }

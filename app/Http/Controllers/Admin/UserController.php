@@ -67,18 +67,16 @@ class UserController extends Controller
                              ->paginate(20)
                              ->withQueryString();
 
-            // Estadísticas optimizadas con cache
-            $stats = cache()->remember('user_stats', 300, function() {
-                return [
-                    'total' => User::count(),
-                    'administradores' => User::where('rol', 'administrador')->count(),
-                    'lideres' => User::where('rol', 'lider')->count(),
-                    'vendedores' => User::where('rol', 'vendedor')->count(),
-                    'clientes' => User::where('rol', 'cliente')->count(),
-                    'activos' => User::where('activo', true)->count(),
-                    'inactivos' => User::where('activo', false)->count(),
-                ];
-            });
+            // Estadísticas en tiempo real sin cache
+            $stats = [
+                'total' => User::count(),
+                'administradores' => User::where('rol', 'administrador')->count(),
+                'lideres' => User::where('rol', 'lider')->count(),
+                'vendedores' => User::where('rol', 'vendedor')->count(),
+                'clientes' => User::where('rol', 'cliente')->count(),
+                'activos' => User::where('activo', true)->count(),
+                'inactivos' => User::where('activo', false)->count(),
+            ];
 
             return view('admin.users.index', compact('usuarios', 'stats'));
 
@@ -168,9 +166,6 @@ class UserController extends Controller
                     ->increment('total_referidos');
             }
 
-            // Limpiar cache de estadísticas
-            cache()->forget('user_stats');
-
             return redirect()->route('admin.users.index')
                             ->with('success', 'Usuario creado exitosamente.');
 
@@ -209,7 +204,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $posibles_referidores = User::where('id', '!=', $user->id)
+        $posibles_referidores = User::where('_id', '!=', $user->_id)
                                    ->whereIn('rol', ['administrador', 'lider', 'vendedor'])
                                    ->get();
 
@@ -234,7 +229,7 @@ class UserController extends Controller
             'fecha_nacimiento' => 'required|date|before:today',
             'rol' => 'required|in:administrador,lider,vendedor,cliente',
             'activo' => 'boolean',
-            'referido_por' => 'nullable|exists:users,id',
+            'referido_por' => 'nullable|exists:users,_id',
             'meta_mensual' => 'nullable|numeric|min:0',
             'ventas_mes_actual' => 'nullable|numeric|min:0',
             'comisiones_ganadas' => 'nullable|numeric|min:0',
@@ -252,11 +247,11 @@ class UserController extends Controller
         if ($referidor_anterior != $request->referido_por) {
             // Decrementar contador del referidor anterior
             if ($referidor_anterior) {
-                User::where('id', $referidor_anterior)->decrement('total_referidos');
+                User::where('_id', $referidor_anterior)->decrement('total_referidos');
             }
             // Incrementar contador del nuevo referidor
             if ($request->referido_por) {
-                User::where('id', $request->referido_por)->increment('total_referidos');
+                User::where('_id', $request->referido_por)->increment('total_referidos');
             }
         }
 
@@ -292,7 +287,7 @@ class UserController extends Controller
 
         // Actualizar contador de referidos del referidor
         if ($user->referido_por) {
-            User::where('id', $user->referido_por)->decrement('total_referidos');
+            User::where('_id', $user->referido_por)->decrement('total_referidos');
         }
 
         $user->delete();

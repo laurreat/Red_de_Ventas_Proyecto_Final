@@ -155,9 +155,9 @@ class PerfilController extends Controller
             // Meta mensual
             'meta_mensual' => $vendedor->meta_mensual ?? 0,
             'porcentaje_meta' => $vendedor->meta_mensual > 0 ?
-                (Pedido::where('vendedor_id', $vendedor->id)
+                (to_float(Pedido::where('vendedor_id', $vendedor->id)
                        ->whereBetween('created_at', [$inicioMes, $finMes])
-                       ->sum('total_final') / $vendedor->meta_mensual) * 100 : 0
+                       ->sum('total_final')) / to_float($vendedor->meta_mensual)) * 100 : 0
         ];
     }
 

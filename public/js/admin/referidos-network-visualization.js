@@ -110,9 +110,16 @@ function processData() {
 
     // Convertir datos jerárquicos a formato de nodos y enlaces
     const nodeMap = new Map();
+    const processedIds = new Set(); // Para detectar duplicados
 
     function processNode(nodeData, level = 0, parentId = null) {
         const nodeId = nodeData.id;
+
+        // ⚠️ PREVENIR DUPLICADOS - Si ya se procesó este nodo, saltar
+        if (processedIds.has(nodeId)) {
+            console.warn(`⚠️ NODO DUPLICADO DETECTADO Y OMITIDO: ${nodeId} (${nodeData.name})`);
+            return;
+        }
 
         // Procesar cada nodo
         console.log(`Procesando nodo nivel ${level}:`, {
@@ -137,6 +144,7 @@ function processData() {
 
         nodes.push(node);
         nodeMap.set(nodeId, node);
+        processedIds.add(nodeId); // Marcar como procesado
 
         // Crear enlace con el padre si existe
         if (parentId) {

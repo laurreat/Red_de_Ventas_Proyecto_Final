@@ -1,30 +1,60 @@
 @extends('layouts.lider')
 
-@section('title', ' - Solicitar Pago')
-@section('page-title', 'Solicitar Pago')
+@section('title', ' - Solicitar Pago de Comisiones')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/lider/comisiones-modern.css') }}?v={{ filemtime(public_path('css/lider/comisiones-modern.css')) }}">
+@endpush
 
 @section('content')
-    <!-- Action Buttons -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <p class="text-muted mb-0">Solicita el pago de tus comisiones disponibles</p>
-        </div>
-        <div>
-            <a href="{{ route('lider.comisiones.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>
-                Volver a Comisiones
-            </a>
+<div class="container-fluid">
+    <!-- Header Hero -->
+    <div class="comisiones-header fade-in-up">
+        <div class="comisiones-header-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="comisiones-title">
+                        <i class="bi bi-send-fill"></i>
+                        Solicitar Pago de Comisiones
+                    </h1>
+                    <p class="comisiones-subtitle">
+                        Solicita el retiro de tus comisiones disponibles de manera rápida y segura
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <div class="comisiones-actions">
+                        <a href="{{ route('lider.comisiones.index') }}" class="comisiones-action-btn">
+                            <i class="bi bi-arrow-left"></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="row">
         <!-- Formulario de Solicitud -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Datos de la Solicitud</h6>
+        <div class="col-lg-8 mb-4">
+            <div class="comisiones-filter-card fade-in-up">
+                <h3 class="comisiones-filter-title">
+                    <i class="bi bi-cash-stack"></i>
+                    Datos de la Solicitud
+                </h3>
+
+                <!-- Alerta Informativa -->
+                <div class="comisiones-alert info">
+                    <i class="bi bi-info-circle-fill comisiones-alert-icon"></i>
+                    <div class="comisiones-alert-content">
+                        <div class="comisiones-alert-title">Información Importante</div>
+                        <div class="comisiones-alert-message">
+                            El monto mínimo para solicitar es de <strong>$50,000 COP</strong>.
+                            El procesamiento de la solicitud toma entre <strong>24 a 48 horas hábiles</strong>.
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
+
+                <div class="comisiones-filter-card-body">
                     @if($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">

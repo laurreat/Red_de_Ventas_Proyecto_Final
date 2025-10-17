@@ -63,8 +63,8 @@ class ComisionController extends Controller
 
         // Estadísticas de comisiones
         $stats = [
-            'total_ganado' => $lider->comisiones_ganadas ?? 0,
-            'disponible' => $lider->comisiones_disponibles ?? 0,
+            'total_ganado' => to_float($lider->comisiones_ganadas ?? 0),
+            'disponible' => to_float($lider->comisiones_disponibles ?? 0),
             'cobrado' => $this->calcularComisionesCobradas($lider),
             'mes_actual' => $this->calcularComisionesMes($lider),
             'promedio_mensual' => $this->calcularPromedioMensual($lider),
@@ -163,25 +163,25 @@ class ComisionController extends Controller
 
     private function calcularComisionesCobradas($lider)
     {
-        return SolicitudPago::where('user_id', $lider->id)
+        return to_float(SolicitudPago::where('user_id', $lider->id)
                           ->where('estado', 'pagado')
-                          ->sum('monto');
+                          ->sum('monto'));
     }
 
     private function calcularComisionesMes($lider)
     {
-        return $lider->comisiones()
+        return to_float($lider->comisiones()
                     ->whereMonth('created_at', Carbon::now()->month)
                     ->whereYear('created_at', Carbon::now()->year)
-                    ->sum('monto');
+                    ->sum('monto'));
     }
 
     private function calcularPromedioMensual($lider)
     {
         $meses = 6;
-        $total = $lider->comisiones()
+        $total = to_float($lider->comisiones()
                       ->where('created_at', '>=', Carbon::now()->subMonths($meses))
-                      ->sum('monto');
+                      ->sum('monto'));
 
         return $total / $meses;
     }
@@ -190,20 +190,20 @@ class ComisionController extends Controller
     {
         $equipoIds = $lider->referidos->pluck('id');
 
-        return Comision::whereIn('user_id', $equipoIds)
+        return to_float(Comision::whereIn('user_id', $equipoIds)
                       ->whereMonth('created_at', Carbon::now()->month)
                       ->whereYear('created_at', Carbon::now()->year)
-                      ->sum('monto');
+                      ->sum('monto'));
     }
 
     private function obtenerEvolucionComisiones($lider)
     {
         return collect(range(0, 5))->map(function($i) use ($lider) {
             $fecha = Carbon::now()->subMonths($i);
-            $total = $lider->comisiones()
+            $total = to_float($lider->comisiones()
                           ->whereYear('created_at', $fecha->year)
                           ->whereMonth('created_at', $fecha->month)
-                          ->sum('monto');
+                          ->sum('monto'));
 
             return [
                 'mes' => $fecha->format('M Y'),
@@ -235,24 +235,39 @@ class ComisionController extends Controller
                 break;
         }
 
-        return $query->selectRaw('tipo, SUM(monto) as total')
-                    ->groupBy('tipo')
-                    ->get()
-                    ->keyBy('tipo');
+        // Obtener comisiones y agrupar por tipo usando colecciones
+        $comisiones = $query->get();
+
+        return $comisiones->groupBy('tipo')->map(function($items, $tipo) {
+            return (object)[
+                'tipo' => $tipo,
+                'total' => to_float($items->sum('monto'))
+            ];
+        });
     }
 
     private function obtenerTopGeneradores($lider)
     {
         // Top 5 miembros que más comisiones han generado para el líder
-        return $lider->comisiones()
+        $comisiones = $lider->comisiones()
                     ->with('referido')
                     ->whereNotNull('referido_id')
                     ->whereMonth('created_at', Carbon::now()->month)
-                    ->selectRaw('referido_id, SUM(monto) as total_generado')
-                    ->groupBy('referido_id')
-                    ->orderByDesc('total_generado')
-                    ->take(5)
                     ->get();
+
+        // Agrupar por referido_id y sumar montos
+        return $comisiones->groupBy('referido_id')
+                         ->map(function($items, $referidoId) {
+                             $referido = $items->first()->referido;
+                             return (object)[
+                                 'referido_id' => $referidoId,
+                                 'referido' => $referido,
+                                 'total_generado' => to_float($items->sum('monto'))
+                             ];
+                         })
+                         ->sortByDesc('total_generado')
+                         ->take(5)
+                         ->values();
     }
 
     private function obtenerSolicitudesPendientes($lider)

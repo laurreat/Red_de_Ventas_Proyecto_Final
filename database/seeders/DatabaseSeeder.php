@@ -14,7 +14,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            CompleteArepasSeeder::class,    // Seeder completo basado en BdArepas.sql
+            RolesSeeder::class,           // Roles y permisos
+            UserSeeder::class,             // Usuarios del sistema
+            ProductosSeeder::class,        // Productos
+            ConfiguracionSeeder::class,    // Configuraciones
+            CapacitacionSeeder::class,     // Módulos de capacitación para líderes
         ]);
     }
 }

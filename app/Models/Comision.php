@@ -17,6 +17,8 @@ class Comision extends Model
         'user_data',
         'pedido_id',
         'pedido_data',
+        'referido_id',
+        'referido_data',
         'tipo',
         'porcentaje',
         'monto',
@@ -33,6 +35,7 @@ class Comision extends Model
         'fecha_pago' => 'datetime',
         'user_data' => 'array',
         'pedido_data' => 'array',
+        'referido_data' => 'array',
         'detalles_calculo' => 'array'
     ];
 
@@ -44,6 +47,11 @@ class Comision extends Model
     public function pedido()
     {
         return $this->belongsTo(Pedido::class);
+    }
+
+    public function referido()
+    {
+        return $this->belongsTo(User::class, 'referido_id');
     }
 
     public function scopePorEstado($query, $estado)

@@ -51,10 +51,10 @@ class EquipoController extends Controller
         $equipoConStats = $equipo->map(function($miembro) {
             $inicioMes = Carbon::now()->startOfMonth();
 
-            $ventasMes = $miembro->pedidosComoVendedor()
+            $ventasMes = to_float($miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $pedidosMes = $miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
@@ -67,7 +67,7 @@ class EquipoController extends Controller
 
             $progresoMeta = 0;
             if ($miembro->meta_mensual && $miembro->meta_mensual > 0) {
-                $progresoMeta = min(($ventasMes / $miembro->meta_mensual) * 100, 100);
+                $progresoMeta = min((to_float($ventasMes) / to_float($miembro->meta_mensual)) * 100, 100);
             }
 
             return [
@@ -159,14 +159,14 @@ class EquipoController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             // Obtener estadísticas actualizadas
             $inicioMes = Carbon::now()->startOfMonth();
-            $ventasMes = $miembro->pedidosComoVendedor()
+            $ventasMes = to_float($miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $rendimiento = 0;
             if ($miembro->meta_mensual && $miembro->meta_mensual > 0) {
-                $rendimiento = min(($ventasMes / $miembro->meta_mensual) * 100, 100);
+                $rendimiento = min((to_float($ventasMes) / to_float($miembro->meta_mensual)) * 100, 100);
             }
 
             $progressColor = $rendimiento >= 80 ? 'success' : ($rendimiento >= 50 ? 'warning' : 'danger');
@@ -195,23 +195,36 @@ class EquipoController extends Controller
         $inicioMes = Carbon::now()->startOfMonth();
 
         // Factores de rendimiento
-        $ventasMes = $miembro->pedidosComoVendedor()
+        $ventasMes = to_float($miembro->pedidosComoVendedor()
             ->where('created_at', '>=', $inicioMes)
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
         $referidosMes = $miembro->referidos()
             ->where('created_at', '>=', $inicioMes)
             ->count();
 
+        // Si no hay actividad reciente, rendimiento es 0
+        if ($ventasMes == 0 && $referidosMes == 0) {
+            return 0;
+        }
+
         $consistencia = $this->calcularConsistencia($miembro);
 
         // Cálculo de rendimiento (0-100)
-        $scoreVentas = min(($ventasMes / 1000000) * 40, 40); // Máximo 40 puntos por ventas
-        $scoreReferidos = min($referidosMes * 10, 30); // Máximo 30 puntos por referidos
-        $scoreConsistencia = $consistencia * 30; // Máximo 30 puntos por consistencia
+        // Ventas: hasta 50 puntos (meta: $1,000,000/mes)
+        $scoreVentas = min(($ventasMes / 1000000) * 50, 50);
 
-        return min($scoreVentas + $scoreReferidos + $scoreConsistencia, 100);
+        // Referidos: hasta 30 puntos (1 referido = 15 puntos, máximo en 2)
+        $scoreReferidos = min($referidosMes * 15, 30);
+
+        // Consistencia: hasta 20 puntos
+        $scoreConsistencia = $consistencia * 20;
+
+        $rendimientoTotal = $scoreVentas + $scoreReferidos + $scoreConsistencia;
+
+        // Si el rendimiento es muy bajo (menos de 5), redondear a 0
+        return $rendimientoTotal < 5 ? 0 : min($rendimientoTotal, 100);
     }
 
     private function calcularConsistencia($miembro)
@@ -220,11 +233,11 @@ class EquipoController extends Controller
 
         for ($i = 0; $i < 3; $i++) {
             $mes = Carbon::now()->subMonths($i);
-            $ventasMes = $miembro->pedidosComoVendedor()
+            $ventasMes = to_float($miembro->pedidosComoVendedor()
                 ->whereYear('created_at', $mes->year)
                 ->whereMonth('created_at', $mes->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $ultimosTresMeses->push($ventasMes);
         }
@@ -246,15 +259,15 @@ class EquipoController extends Controller
         $inicioAno = Carbon::now()->startOfYear();
 
         return [
-            'ventas_mes' => $miembro->pedidosComoVendedor()
+            'ventas_mes' => to_float($miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final'),
+                ->sum('total_final')),
 
-            'ventas_ano' => $miembro->pedidosComoVendedor()
+            'ventas_ano' => to_float($miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioAno)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final'),
+                ->sum('total_final')),
 
             'pedidos_mes' => $miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
@@ -267,14 +280,14 @@ class EquipoController extends Controller
 
             'referidos_totales' => $miembro->referidos->count(),
 
-            'ticket_promedio' => $miembro->pedidosComoVendedor()
+            'ticket_promedio' => to_float($miembro->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->avg('total_final') ?? 0,
+                ->avg('total_final')) ?? 0,
 
-            'comisiones_mes' => $miembro->comisiones()
+            'comisiones_mes' => to_float($miembro->comisiones()
                 ->whereMonth('created_at', Carbon::now()->month)
-                ->sum('monto'),
+                ->sum('monto')),
 
             'dias_activo' => $miembro->created_at->diffInDays(now()),
 
@@ -304,11 +317,11 @@ class EquipoController extends Controller
         $fecha = $fechaInicial->copy();
 
         while ($fecha <= $fechaFinal) {
-            $ventasMes = $miembro->pedidosComoVendedor()
+            $ventasMes = to_float($miembro->pedidosComoVendedor()
                 ->whereYear('created_at', $fecha->year)
                 ->whereMonth('created_at', $fecha->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $ventas[] = [
                 'mes' => $fecha->translatedFormat('M Y'),
@@ -355,11 +368,11 @@ class EquipoController extends Controller
         $fecha = $fechaInicial->copy();
 
         while ($fecha <= $fechaFinal) {
-            $ventasMes = $miembro->pedidosComoVendedor()
+            $ventasMes = to_float($miembro->pedidosComoVendedor()
                 ->whereYear('created_at', $fecha->year)
                 ->whereMonth('created_at', $fecha->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $ventas[] = [
                 'mes' => $fecha->translatedFormat('F Y'),
@@ -405,11 +418,11 @@ class EquipoController extends Controller
     {
         return collect(range(0, 5))->map(function($i) use ($miembro) {
             $fecha = Carbon::now()->subMonths($i);
-            $ventas = $miembro->pedidosComoVendedor()
+            $ventas = to_float($miembro->pedidosComoVendedor()
                 ->whereYear('created_at', $fecha->year)
                 ->whereMonth('created_at', $fecha->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             return [
                 'mes' => $fecha->translatedFormat('M Y'),
@@ -424,10 +437,10 @@ class EquipoController extends Controller
             return [
                 'usuario' => $referido,
                 'referidos_propios' => $referido->referidos->count(),
-                'ventas_mes' => $referido->pedidosComoVendedor()
+                'ventas_mes' => to_float($referido->pedidosComoVendedor()
                     ->where('created_at', '>=', Carbon::now()->startOfMonth())
                     ->where('estado', '!=', 'cancelado')
-                    ->sum('total_final')
+                    ->sum('total_final'))
             ];
         });
     }
@@ -446,7 +459,7 @@ class EquipoController extends Controller
                 return [
                     'tipo' => 'venta',
                     'descripcion' => "Venta a {$pedido->cliente->name}",
-                    'monto' => $pedido->total_final,
+                    'monto' => to_float($pedido->total_final),
                     'fecha' => $pedido->created_at
                 ];
             });

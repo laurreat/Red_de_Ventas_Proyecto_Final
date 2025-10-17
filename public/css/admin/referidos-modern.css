@@ -265,17 +265,18 @@
 }
 
 .referidos-table-container thead{
-  background:var(--wine);
+  background:var(--wine) !important;
 }
 
 .referidos-table-container thead th{
-  color:var(--white);
-  font-weight:600;
+  color:var(--white) !important;
+  font-weight:700 !important;
   text-transform:uppercase;
-  font-size:.8rem;
+  font-size:.85rem;
   letter-spacing:.5px;
   padding:1rem;
-  border:0;
+  border:0 !important;
+  background:transparent !important;
 }
 
 .referidos-table-container tbody tr{

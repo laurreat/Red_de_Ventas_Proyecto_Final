@@ -38,8 +38,8 @@ class MetaController extends Controller
                 'miembro' => $miembro,
                 'meta_actual' => $miembro->meta_mensual ?? 0,
                 'ventas_mes' => $ventasMes,
-                'porcentaje' => $miembro->meta_mensual > 0 ? ($ventasMes / $miembro->meta_mensual) * 100 : 0,
-                'diferencia' => $ventasMes - ($miembro->meta_mensual ?? 0)
+                'porcentaje' => $miembro->meta_mensual > 0 ? (to_float($ventasMes) / to_float($miembro->meta_mensual)) * 100 : 0,
+                'diferencia' => to_float($ventasMes) - to_float($miembro->meta_mensual ?? 0)
             ];
         }
 

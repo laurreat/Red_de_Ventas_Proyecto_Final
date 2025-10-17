@@ -192,35 +192,37 @@ class VentaController extends Controller
         }
 
         // Ventas del periodo
-        $ventasPeriodo = (clone $baseQuery)->where('estado', '!=', 'cancelado')->sum('total_final');
+        $ventasPeriodo = to_float((clone $baseQuery)->where('estado', '!=', 'cancelado')->sum('total_final'));
         $pedidosPeriodo = (clone $baseQuery)->where('estado', '!=', 'cancelado')->count();
 
         // Comparación con periodo anterior
         $periodoAnterior = $this->obtenerPeriodoAnterior($periodo);
-        $ventasPeriodoAnterior = Pedido::whereIn('vendedor_id', $redIds)
+        $ventasPeriodoAnterior = to_float(Pedido::whereIn('vendedor_id', $redIds)
             ->whereBetween('created_at', $periodoAnterior)
             ->where('estado', '!=', 'cancelado')
-            ->sum('total_final');
+            ->sum('total_final'));
 
         $crecimiento = 0;
         if ($ventasPeriodoAnterior > 0) {
             $crecimiento = (($ventasPeriodo - $ventasPeriodoAnterior) / $ventasPeriodoAnterior) * 100;
         }
 
-        // Estados de pedidos
-        $estadosPedidos = (clone $baseQuery)
-            ->select('estado', DB::raw('count(*) as total'))
-            ->groupBy('estado')
-            ->pluck('total', 'estado');
+        // Estados de pedidos - Compatible con MongoDB
+        $pedidosPorEstado = (clone $baseQuery)->get()->groupBy('estado');
+        $estadosPedidos = $pedidosPorEstado->map(function($pedidos) {
+            return $pedidos->count();
+        });
 
         // Ticket promedio
         $ticketPromedio = $pedidosPeriodo > 0 ? $ventasPeriodo / $pedidosPeriodo : 0;
 
-        // Ventas por vendedor activo
+        // Ventas por vendedor activo - Compatible con MongoDB
         $vendedoresActivos = (clone $baseQuery)
             ->where('estado', '!=', 'cancelado')
-            ->distinct('vendedor_id')
-            ->count('vendedor_id');
+            ->get()
+            ->pluck('vendedor_id')
+            ->unique()
+            ->count();
 
         return [
             'ventas_periodo' => $ventasPeriodo,
@@ -261,30 +263,38 @@ class VentaController extends Controller
     {
         $fechaInicio = $this->obtenerFechaInicioPeriodo($periodo);
 
-        $ranking = User::whereIn('id', $redIds)
-            ->withCount(['pedidosComoVendedor as total_pedidos' => function($q) use ($fechaInicio) {
-                $q->where('estado', '!=', 'cancelado');
-                if ($fechaInicio) {
-                    $q->where('created_at', '>=', $fechaInicio);
-                }
-            }])
-            ->withSum(['pedidosComoVendedor as total_ventas' => function($q) use ($fechaInicio) {
-                $q->where('estado', '!=', 'cancelado');
-                if ($fechaInicio) {
-                    $q->where('created_at', '>=', $fechaInicio);
-                }
-            }], 'total_final')
-            ->having('total_ventas', '>', 0)
-            ->orderByDesc('total_ventas')
-            ->take(10)
-            ->get()
-            ->map(function($vendedor, $index) {
-                $vendedor->posicion = $index + 1;
-                $vendedor->ticket_promedio = $vendedor->total_pedidos > 0
-                    ? $vendedor->total_ventas / $vendedor->total_pedidos
-                    : 0;
-                return $vendedor;
-            });
+        // Obtener vendedores
+        $vendedores = User::whereIn('id', $redIds)->get();
+
+        // Calcular estadísticas para cada vendedor
+        $ranking = $vendedores->map(function($vendedor) use ($fechaInicio) {
+            $query = $vendedor->pedidosComoVendedor()
+                ->where('estado', '!=', 'cancelado');
+
+            if ($fechaInicio) {
+                $query->where('created_at', '>=', $fechaInicio);
+            }
+
+            $pedidos = $query->get();
+
+            $vendedor->total_pedidos = $pedidos->count();
+            $vendedor->total_ventas = to_float($pedidos->sum('total_final'));
+
+            return $vendedor;
+        })
+        ->filter(function($vendedor) {
+            return $vendedor->total_ventas > 0;
+        })
+        ->sortByDesc('total_ventas')
+        ->take(10)
+        ->values()
+        ->map(function($vendedor, $index) {
+            $vendedor->posicion = $index + 1;
+            $vendedor->ticket_promedio = $vendedor->total_pedidos > 0
+                ? $vendedor->total_ventas / $vendedor->total_pedidos
+                : 0;
+            return $vendedor;
+        });
 
         return $ranking;
     }
@@ -293,37 +303,61 @@ class VentaController extends Controller
     {
         $fechaInicio = $this->obtenerFechaInicioPeriodo($periodo);
 
-        $query = DB::table('pedido_detalles')
-            ->join('pedidos', 'pedido_detalles.pedido_id', '=', 'pedidos.id')
-            ->join('productos', 'pedido_detalles.producto_id', '=', 'productos.id')
-            ->whereIn('pedidos.vendedor_id', $redIds)
-            ->where('pedidos.estado', '!=', 'cancelado');
+        // Obtener pedidos del periodo
+        $query = Pedido::whereIn('vendedor_id', $redIds)
+            ->where('estado', '!=', 'cancelado');
 
         if ($fechaInicio) {
-            $query->where('pedidos.created_at', '>=', $fechaInicio);
+            $query->where('created_at', '>=', $fechaInicio);
         }
 
-        return $query->select(
-                'productos.nombre',
-                'productos.precio',
-                DB::raw('SUM(pedido_detalles.cantidad) as total_vendido'),
-                DB::raw('SUM(pedido_detalles.cantidad * pedido_detalles.precio_unitario) as total_ingresos')
-            )
-            ->groupBy('productos.id', 'productos.nombre', 'productos.precio')
-            ->orderByDesc('total_vendido')
-            ->take(10)
-            ->get();
+        $pedidos = $query->get();
+
+        // Agrupar productos manualmente
+        $productosVendidos = [];
+
+        foreach ($pedidos as $pedido) {
+            if (isset($pedido->detalles) && is_array($pedido->detalles)) {
+                foreach ($pedido->detalles as $detalle) {
+                    $productoId = $detalle['producto_id'] ?? null;
+                    $cantidad = $detalle['cantidad'] ?? 0;
+                    $precioUnitario = $detalle['precio_unitario'] ?? 0;
+
+                    if (!$productoId) continue;
+
+                    if (!isset($productosVendidos[$productoId])) {
+                        $productosVendidos[$productoId] = (object)[
+                            'nombre' => $detalle['producto_data']['nombre'] ?? 'Producto sin nombre',
+                            'precio' => $detalle['producto_data']['precio'] ?? $precioUnitario,
+                            'total_vendido' => 0,
+                            'total_ingresos' => 0
+                        ];
+                    }
+
+                    $productosVendidos[$productoId]->total_vendido += $cantidad;
+                    $productosVendidos[$productoId]->total_ingresos += ($cantidad * $precioUnitario);
+                }
+            }
+        }
+
+        // Ordenar por cantidad vendida
+        $productosArray = array_values($productosVendidos);
+        usort($productosArray, function($a, $b) {
+            return $b->total_vendido <=> $a->total_vendido;
+        });
+
+        return collect(array_slice($productosArray, 0, 10));
     }
 
     private function obtenerEvolucionVentas($redIds)
     {
         return collect(range(0, 11))->map(function($i) use ($redIds) {
             $fecha = Carbon::now()->subMonths($i);
-            $ventas = Pedido::whereIn('vendedor_id', $redIds)
+            $ventas = to_float(Pedido::whereIn('vendedor_id', $redIds)
                 ->whereYear('created_at', $fecha->year)
                 ->whereMonth('created_at', $fecha->month)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final');
+                ->sum('total_final'));
 
             $pedidos = Pedido::whereIn('vendedor_id', $redIds)
                 ->whereYear('created_at', $fecha->year)
@@ -351,31 +385,41 @@ class VentaController extends Controller
             $query->where('created_at', '>=', $fechaInicio);
         }
 
-        $ventasPorDia = $query->select(
-                DB::raw('DAYOFWEEK(created_at) as dia_semana'),
-                DB::raw('SUM(total_final) as total_ventas'),
-                DB::raw('COUNT(*) as total_pedidos')
-            )
-            ->groupBy('dia_semana')
-            ->get();
+        $pedidos = $query->get();
+
+        // Agrupar por día de la semana
+        $ventasPorDia = [];
+
+        foreach ($pedidos as $pedido) {
+            $diaSemana = $pedido->created_at->dayOfWeek; // 0=Domingo, 6=Sábado
+
+            if (!isset($ventasPorDia[$diaSemana])) {
+                $ventasPorDia[$diaSemana] = [
+                    'total_ventas' => 0,
+                    'total_pedidos' => 0
+                ];
+            }
+
+            $ventasPorDia[$diaSemana]['total_ventas'] += to_float($pedido->total_final ?? 0);
+            $ventasPorDia[$diaSemana]['total_pedidos']++;
+        }
 
         $diasSemana = [
-            1 => 'Domingo',
-            2 => 'Lunes',
-            3 => 'Martes',
-            4 => 'Miércoles',
-            5 => 'Jueves',
-            6 => 'Viernes',
-            7 => 'Sábado'
+            0 => 'Domingo',
+            1 => 'Lunes',
+            2 => 'Martes',
+            3 => 'Miércoles',
+            4 => 'Jueves',
+            5 => 'Viernes',
+            6 => 'Sábado'
         ];
 
         $resultado = [];
-        for ($i = 1; $i <= 7; $i++) {
-            $venta = $ventasPorDia->firstWhere('dia_semana', $i);
+        for ($i = 0; $i <= 6; $i++) {
             $resultado[] = [
                 'dia' => $diasSemana[$i],
-                'ventas' => $venta ? $venta->total_ventas : 0,
-                'pedidos' => $venta ? $venta->total_pedidos : 0
+                'ventas' => $ventasPorDia[$i]['total_ventas'] ?? 0,
+                'pedidos' => $ventasPorDia[$i]['total_pedidos'] ?? 0
             ];
         }
 
@@ -416,7 +460,7 @@ class VentaController extends Controller
             $query->where('created_at', '>=', $fechaInicio);
         }
 
-        $pedidos = $query->with('detalles.producto')->get();
+        $pedidos = $query->get();
 
         if ($pedidos->isEmpty()) {
             return 0;
@@ -427,10 +471,15 @@ class VentaController extends Controller
 
         foreach ($pedidos as $pedido) {
             $costoTotal = 0;
-            $ventaTotal = $pedido->total_final;
+            $ventaTotal = to_float($pedido->total_final ?? 0);
 
-            foreach ($pedido->detalles as $detalle) {
-                $costoTotal += ($detalle->producto->costo ?? 0) * $detalle->cantidad;
+            // Calcular costo desde los detalles embebidos
+            if (isset($pedido->detalles) && is_array($pedido->detalles)) {
+                foreach ($pedido->detalles as $detalle) {
+                    $costo = $detalle['producto_data']['costo'] ?? 0;
+                    $cantidad = $detalle['cantidad'] ?? 0;
+                    $costoTotal += $costo * $cantidad;
+                }
             }
 
             if ($ventaTotal > 0) {
@@ -448,37 +497,49 @@ class VentaController extends Controller
     private function obtenerHistorialEstados($venta)
     {
         // Simular historial de estados - en una implementación real esto vendría de una tabla de auditoría
-        return collect([
-            [
-                'estado' => 'pendiente',
-                'fecha' => $venta->created_at,
-                'usuario' => $venta->vendedor->name,
-                'observaciones' => 'Pedido creado'
-            ],
-            [
+        $historial = [];
+
+        // Estado inicial
+        $historial[] = [
+            'estado' => 'pendiente',
+            'fecha' => $venta->created_at,
+            'usuario' => $venta->vendedor->name ?? 'Sistema',
+            'observaciones' => 'Pedido creado'
+        ];
+
+        // Estado actual (si es diferente)
+        if ($venta->estado !== 'pendiente') {
+            $historial[] = [
                 'estado' => $venta->estado,
                 'fecha' => $venta->updated_at,
-                'usuario' => $venta->vendedor->name,
-                'observaciones' => 'Estado actual'
-            ]
-        ]);
+                'usuario' => $venta->vendedor->name ?? 'Sistema',
+                'observaciones' => 'Estado actual: ' . ucfirst($venta->estado)
+            ];
+        }
+
+        return collect($historial);
     }
 
     private function obtenerComisionesVenta($venta)
     {
-        return $venta->vendedor->comisiones()
-            ->where('pedido_id', $venta->id)
-            ->with('user')
-            ->get();
+        // Obtener comisiones relacionadas con este pedido usando el ID correcto
+        $pedidoId = $venta->_id ?? $venta->id;
+
+        return \App\Models\Comision::where('pedido_id', $pedidoId)->get();
     }
 
     private function calcularRentabilidad($venta)
     {
         $costoTotal = 0;
-        $ventaTotal = $venta->total_final;
+        $ventaTotal = to_float($venta->total_final ?? 0);
 
-        foreach ($venta->detalles as $detalle) {
-            $costoTotal += ($detalle->producto->costo ?? 0) * $detalle->cantidad;
+        // Calcular costo desde los detalles embebidos
+        if (isset($venta->detalles) && is_array($venta->detalles)) {
+            foreach ($venta->detalles as $detalle) {
+                $costo = $detalle['producto_data']['costo'] ?? 0;
+                $cantidad = $detalle['cantidad'] ?? 0;
+                $costoTotal += $costo * $cantidad;
+            }
         }
 
         $utilidad = $ventaTotal - $costoTotal;
@@ -497,26 +558,200 @@ class VentaController extends Controller
         $inicioMes = Carbon::now()->startOfMonth();
 
         return [
-            'ventas_mes' => $vendedor->pedidosComoVendedor()
+            'ventas_mes' => to_float($vendedor->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->sum('total_final'),
+                ->sum('total_final')),
 
             'pedidos_mes' => $vendedor->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
                 ->count(),
 
-            'ticket_promedio_mes' => $vendedor->pedidosComoVendedor()
+            'ticket_promedio_mes' => to_float($vendedor->pedidosComoVendedor()
                 ->where('created_at', '>=', $inicioMes)
                 ->where('estado', '!=', 'cancelado')
-                ->avg('total_final') ?? 0,
+                ->avg('total_final')) ?? 0,
 
-            'total_comisiones' => $vendedor->comisiones_ganadas ?? 0,
+            'total_comisiones' => to_float($vendedor->comisiones_ganadas ?? 0),
 
             'referidos_totales' => $vendedor->referidos->count(),
 
             'dias_activo' => $vendedor->created_at->diffInDays(now())
         ];
+    }
+
+    public function exportar(Request $request)
+    {
+        $lider = auth()->user();
+        $formato = $request->get('formato', 'csv'); // csv o pdf
+
+        // Filtros
+        $periodo = $request->get('periodo', 'mes_actual');
+        $vendedor = $request->get('vendedor');
+        $estado = $request->get('estado');
+
+        // Obtener IDs de la red del líder
+        $redIds = $this->obtenerRedCompleta($lider);
+        $redIds->push($lider->id);
+
+        // Consulta de ventas con filtros
+        $ventasQuery = Pedido::whereIn('vendedor_id', $redIds);
+
+        $fechaInicio = $this->obtenerFechaInicioPeriodo($periodo);
+        if ($fechaInicio) {
+            $ventasQuery->where('created_at', '>=', $fechaInicio);
+        }
+
+        if ($vendedor) {
+            $ventasQuery->where('vendedor_id', $vendedor);
+        }
+
+        if ($estado) {
+            $ventasQuery->where('estado', $estado);
+        }
+
+        $ventas = $ventasQuery->orderBy('created_at', 'desc')->get();
+
+        // Estadísticas
+        $stats = $this->calcularEstadisticasVentas($redIds, $periodo);
+
+        if ($formato === 'pdf') {
+            return $this->exportarPDF($ventas, $stats, $periodo);
+        }
+
+        return $this->exportarCSV($ventas, $stats, $periodo);
+    }
+
+    private function exportarCSV($ventas, $stats, $periodo)
+    {
+        $filename = 'ventas_equipo_' . $periodo . '_' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($ventas, $stats, $periodo) {
+            $file = fopen('php://output', 'w');
+
+            // BOM para UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // ENCABEZADO PRINCIPAL
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, ['                    REPORTE DE VENTAS DEL EQUIPO'], ',');
+            fputcsv($file, ['                    Arepa la Llanerita - Sistema de Ventas'], ',');
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, [''], ',');
+            fputcsv($file, ['Fecha de Generación:', date('d/m/Y H:i:s')], ',');
+            fputcsv($file, ['Período:', ucfirst(str_replace('_', ' ', $periodo))], ',');
+            fputcsv($file, ['Líder:', auth()->user()->name], ',');
+            fputcsv($file, [''], ',');
+
+            // RESUMEN ESTADÍSTICO
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, ['                    RESUMEN ESTADÍSTICO'], ',');
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, [''], ',');
+            fputcsv($file, ['Métrica', 'Valor'], ',');
+            fputcsv($file, ['───────────────────────────────────────────────────────────────────────────'], ',');
+            fputcsv($file, ['Total de Ventas', '$' . number_format($stats['ventas_periodo'], 2)], ',');
+            fputcsv($file, ['Total de Pedidos', $stats['pedidos_periodo']], ',');
+            fputcsv($file, ['Ticket Promedio', '$' . number_format($stats['ticket_promedio'], 2)], ',');
+            fputcsv($file, ['Vendedores Activos', $stats['vendedores_activos']], ',');
+            fputcsv($file, ['Crecimiento vs Período Anterior', $stats['crecimiento'] . '%'], ',');
+            fputcsv($file, ['Tasa de Conversión', $stats['conversion'] . '%'], ',');
+            fputcsv($file, ['Rentabilidad Promedio', $stats['rentabilidad_promedio'] . '%'], ',');
+            fputcsv($file, [''], ',');
+            fputcsv($file, [''], ',');
+
+            // DETALLE DE VENTAS
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, ['                    DETALLE DE VENTAS'], ',');
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, [''], ',');
+            fputcsv($file, [
+                'Fecha',
+                'Pedido #',
+                'Vendedor',
+                'Cliente',
+                'Email Cliente',
+                'Estado',
+                'Subtotal',
+                'Descuento',
+                'Impuestos',
+                'Total',
+                'Productos',
+                'Cant. Items'
+            ], ',');
+            fputcsv($file, ['───────────────────────────────────────────────────────────────────────────'], ',');
+
+            foreach ($ventas as $venta) {
+                $cantidadItems = 0;
+                $productos = [];
+
+                if (isset($venta->detalles) && is_array($venta->detalles)) {
+                    foreach ($venta->detalles as $detalle) {
+                        $cantidadItems += $detalle['cantidad'] ?? 0;
+                        $productos[] = $detalle['producto_data']['nombre'] ?? 'Producto';
+                    }
+                }
+
+                fputcsv($file, [
+                    $venta->created_at->format('d/m/Y H:i'),
+                    '#' . str_pad($venta->id, 6, '0', STR_PAD_LEFT),
+                    $venta->vendedor->name ?? 'N/A',
+                    $venta->cliente->name ?? 'Cliente',
+                    $venta->cliente->email ?? 'Sin email',
+                    ucfirst($venta->estado),
+                    '$' . number_format($venta->subtotal ?? 0, 2),
+                    '$' . number_format($venta->descuento ?? 0, 2),
+                    '$' . number_format($venta->impuestos ?? 0, 2),
+                    '$' . number_format($venta->total_final, 2),
+                    implode(', ', $productos),
+                    $cantidadItems
+                ], ',');
+            }
+
+            fputcsv($file, [''], ',');
+            fputcsv($file, ['───────────────────────────────────────────────────────────────────────────'], ',');
+            fputcsv($file, [
+                'TOTAL',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '$' . number_format($ventas->sum('total_final'), 2),
+                '',
+                ''
+            ], ',');
+            fputcsv($file, [''], ',');
+            fputcsv($file, [''], ',');
+
+            // PIE DE PÁGINA
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+            fputcsv($file, ['                    Fin del Reporte'], ',');
+            fputcsv($file, ['                    Generado por Sistema Arepa la Llanerita'], ',');
+            fputcsv($file, ['═══════════════════════════════════════════════════════════════════════════'], ',');
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function exportarPDF($ventas, $stats, $periodo)
+    {
+        // TODO: Implementar exportación PDF con librería DOMPDF o similar
+        // Por ahora retornamos el CSV
+        return $this->exportarCSV($ventas, $stats, $periodo);
     }
 }

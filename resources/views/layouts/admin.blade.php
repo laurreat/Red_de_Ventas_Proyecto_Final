@@ -27,6 +27,9 @@
     <!-- Mobile Optimizations -->
     <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
 
+    <!-- Header Dropdowns CSS -->
+    <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
+
     <style>
         :root {
             --primary-color: #722F37;
@@ -707,27 +710,36 @@
                 <div class="dropdown">
                     <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" id="notificationsDropdown">
                         <i class="bi bi-bell"></i>
-                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                        <span class="notification-badge-animated" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;" id="notificationsDropdownMenu">
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h6 class="mb-0">Notificaciones</h6>
-                            <div>
-                                <small class="text-muted me-2" id="notificationCount">0 nuevas</small>
-                                <button class="btn btn-sm btn-outline-primary" onclick="verTodasLasNotificaciones()">
+                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu notifications-dropdown" id="notificationsDropdownMenu">
+                        <!-- Header -->
+                        <div class="dropdown-header-modern">
+                            <h6>
+                                <i class="bi bi-bell me-2"></i>
+                                Notificaciones
+                            </h6>
+                            <div class="dropdown-header-actions">
+                                <span class="notification-count-badge" id="notificationCount">0 nuevas</span>
+                                <button class="btn btn-view-all" onclick="verTodasLasNotificaciones()">
                                     Ver todas
                                 </button>
                             </div>
                         </div>
-                        <div id="notificationsList" style="max-height: 300px; overflow-y: auto;">
-                            <div class="notification-item text-center text-muted p-3">
-                                <i class="bi bi-bell-slash fs-4"></i>
-                                <p class="mb-0 mt-2">No hay notificaciones nuevas</p>
+
+                        <!-- Notifications List -->
+                        <div class="notifications-list" id="notificationsList">
+                            <div class="notifications-empty">
+                                <i class="bi bi-bell-slash"></i>
+                                <h6>Sin notificaciones</h6>
+                                <p>No tienes notificaciones nuevas en este momento</p>
                             </div>
                         </div>
-                        <div class="border-top p-2">
-                            <button class="btn btn-sm btn-outline-success w-100" onclick="marcarTodasLeidasDropdown()">
-                                <i class="bi bi-check-all me-1"></i>
+
+                        <!-- Footer -->
+                        <div class="dropdown-footer">
+                            <button class="btn btn-mark-all-read" onclick="marcarTodasLeidasDropdown()">
+                                <i class="bi bi-check-all"></i>
                                 Marcar todas como leídas
                             </button>
                         </div>
@@ -740,8 +752,7 @@
                         <div class="profile-avatar">
                             @if(Auth::user()->avatar)
                                 <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
-                                     alt="Avatar" class="rounded-circle" width="40" height="40"
-                                     style="object-fit: cover;">
+                                     alt="Avatar">
                             @else
                                 <div class="avatar-placeholder">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
@@ -754,32 +765,100 @@
                         </div>
                         <i class="bi bi-chevron-down ms-2"></i>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end" style="z-index: 1090 !important;">
-                        <li>
-                            <h6 class="dropdown-header">
-                                {{ Auth::user()->name }}
-                                <small class="text-muted d-block">{{ Auth::user()->email }}</small>
-                            </h6>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('admin.perfil.index') }}">
-                                <i class="bi bi-person me-2"></i>
-                                Mi Perfil
+                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu profile-dropdown">
+                        <!-- Profile Header -->
+                        <div class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
+                                         alt="Avatar">
+                                @else
+                                    <div class="avatar-initial">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="profile-dropdown-name">{{ Auth::user()->name }}</div>
+                            <div class="profile-dropdown-email">{{ Auth::user()->email }}</div>
+                            <span class="profile-dropdown-role">
+                                <i class="bi bi-shield-check me-1"></i>
+                                {{ ucfirst(Auth::user()->rol) }}
+                            </span>
+                        </div>
+
+                        <!-- Stats Section -->
+                        @php
+                            $stats = [
+                                'pedidos' => \App\Models\Pedido::count(),
+                                'usuarios' => \App\Models\User::count(),
+                                'ventas' => \App\Models\Pedido::sum('total_final')
+                            ];
+                        @endphp
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">{{ $stats['pedidos'] }}</span>
+                                <span class="profile-stat-label">Pedidos</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">{{ $stats['usuarios'] }}</span>
+                                <span class="profile-stat-label">Usuarios</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">${{ format_currency($stats['ventas']) }}</span>
+                                <span class="profile-stat-label">Ventas</span>
+                            </div>
+                        </div>
+
+                        <!-- Menu Items -->
+                        <div class="profile-menu-section">
+                            <a href="{{ route('admin.perfil.index') }}" class="profile-menu-item">
+                                <i class="bi bi-person"></i>
+                                <span class="menu-item-text">Mi Perfil</span>
                             </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                            <a href="{{ route('admin.configuracion.index') }}" class="profile-menu-item">
+                                <i class="bi bi-gear"></i>
+                                <span class="menu-item-text">Configuración</span>
+                            </a>
+                            <a href="{{ route('admin.notificaciones.index') }}" class="profile-menu-item">
+                                <i class="bi bi-bell"></i>
+                                <span class="menu-item-text">Notificaciones</span>
+                                @php
+                                    $unreadCount = \App\Models\Notificacion::where('user_id', Auth::id())
+                                        ->where('leida', false)
+                                        ->count();
+                                @endphp
+                                @if($unreadCount > 0)
+                                    <span class="menu-item-badge">{{ $unreadCount }}</span>
+                                @endif
+                            </a>
+                        </div>
+
+                        <hr class="profile-menu-divider">
+
+                        <div class="profile-menu-section">
+                            <a href="{{ route('admin.perfil.index') }}#actividad" class="profile-menu-item">
+                                <i class="bi bi-clock-history"></i>
+                                <span class="menu-item-text">Actividad</span>
+                            </a>
+                            <a href="{{ route('admin.ayuda.index') }}" class="profile-menu-item">
+                                <i class="bi bi-question-circle"></i>
+                                <span class="menu-item-text">Ayuda</span>
+                            </a>
+                        </div>
+
+                        <hr class="profile-menu-divider">
+
+                        <div class="profile-menu-section">
+                            <a href="{{ route('logout') }}" class="profile-menu-item danger"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right me-2"></i>
-                                Cerrar Sesión
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="menu-item-text">Cerrar Sesión</span>
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
                             </form>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -882,7 +961,7 @@
                 // Actualizar badges
                 if (totalNoLeidas > 0) {
                     badge.textContent = totalNoLeidas;
-                    badge.style.display = 'inline';
+                    badge.style.display = 'flex';
                     sidebarBadge.textContent = totalNoLeidas;
                     sidebarBadge.style.display = 'inline';
                 } else {
@@ -902,9 +981,10 @@
                     });
                 } else {
                     list.innerHTML = `
-                        <div class="notification-item text-center text-muted p-3">
-                            <i class="bi bi-bell-slash fs-4"></i>
-                            <p class="mb-0 mt-2">No hay notificaciones nuevas</p>
+                        <div class="notifications-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h6>Sin notificaciones</h6>
+                            <p>No tienes notificaciones nuevas en este momento</p>
                         </div>
                     `;
                 }
@@ -912,20 +992,27 @@
 
             createNotificationItem: function(notif) {
                 const div = document.createElement('div');
-                div.className = 'notification-item p-2 border-bottom';
+                div.className = 'notification-item' + (!notif.leida ? ' unread' : '');
                 div.innerHTML = `
-                    <div class="d-flex align-items-start">
-                        <div class="me-2">
+                    <div class="notification-content">
+                        <div class="notification-icon ${notif.tipo}">
                             ${this.getNotificationIcon(notif.tipo)}
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-semibold small">${notif.titulo}</h6>
-                            <p class="mb-1 small text-muted">${notif.mensaje}</p>
-                            <small class="text-muted">${this.timeAgo(notif.created_at)}</small>
+                        <div class="notification-body">
+                            <div class="notification-title">${notif.titulo}</div>
+                            <div class="notification-message">${notif.mensaje}</div>
+                            <div class="notification-time">
+                                <i class="bi bi-clock"></i>
+                                ${this.timeAgo(notif.created_at)}
+                            </div>
+                            ${!notif.leida ? `
+                            <div class="notification-actions">
+                                <button class="btn btn-notification-action btn-mark-read" onclick="marcarLeidaDropdown('${notif._id}')">
+                                    <i class="bi bi-check"></i> Marcar como leída
+                                </button>
+                            </div>
+                            ` : ''}
                         </div>
-                        <button class="btn btn-sm btn-outline-success" onclick="marcarLeidaDropdown('${notif._id}')">
-                            <i class="bi bi-check"></i>
-                        </button>
                     </div>
                 `;
                 return div;
@@ -933,13 +1020,13 @@
 
             getNotificationIcon: function(tipo) {
                 const icons = {
-                    'pedido': '<i class="bi bi-cart text-primary"></i>',
-                    'venta': '<i class="bi bi-currency-dollar text-success"></i>',
-                    'usuario': '<i class="bi bi-person text-info"></i>',
-                    'comision': '<i class="bi bi-wallet text-warning"></i>',
-                    'sistema': '<i class="bi bi-gear text-secondary"></i>'
+                    'pedido': '<i class="bi bi-cart"></i>',
+                    'venta': '<i class="bi bi-currency-dollar"></i>',
+                    'usuario': '<i class="bi bi-person"></i>',
+                    'comision': '<i class="bi bi-wallet"></i>',
+                    'sistema': '<i class="bi bi-gear"></i>'
                 };
-                return icons[tipo] || '<i class="bi bi-bell text-muted"></i>';
+                return icons[tipo] || '<i class="bi bi-bell"></i>';
             },
 
             timeAgo: function(dateString) {
@@ -1049,8 +1136,8 @@
     {{-- Incluir funciones JavaScript para pedidos --}}
     {{-- <script src="{{ asset('js/admin/pedidos-functions.js') }}"></script> --}}
 
-    {{-- Sistema de notificaciones en tiempo real mejorado --}}
-    <script src="{{ asset('js/admin/notifications-realtime.js') }}?v={{ filemtime(public_path('js/admin/notifications-realtime.js')) }}"></script>
+    {{-- Sistema de notificaciones en tiempo real mejorado - Temporalmente deshabilitado para evitar conflictos --}}
+    {{-- <script src="{{ asset('js/admin/notifications-realtime.js') }}?v={{ filemtime(public_path('js/admin/notifications-realtime.js')) }}"></script> --}}
 
     @stack('scripts')
 </body>

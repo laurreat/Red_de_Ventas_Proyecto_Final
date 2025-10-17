@@ -54,7 +54,8 @@
       "Bash(if exist \"public\\js\\modules\\dashboard.js\" del \"public\\js\\modules\\dashboard.js\")",
       "Bash(if [ -f \"public/js/modules/dashboard.js\" ])",
       "Bash(then rm \"public/js/modules/dashboard.js\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

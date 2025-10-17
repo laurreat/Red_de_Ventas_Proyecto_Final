@@ -117,7 +117,8 @@ class DashboardController extends Controller
 
                          $miembro->ventas_mes_actual = $ventasMes;
                          $miembro->meta_mensual = $miembro->meta_mensual ?? 0;
-                         $miembro->total_referidos = $miembro->total_referidos ?? 0;
+                         // Calcular referidos reales de la base de datos
+                         $miembro->total_referidos = User::where('referido_por', $miembro->_id)->count();
                          return $miembro;
                      });
 
@@ -197,12 +198,13 @@ class DashboardController extends Controller
             'meta_mensual' => $user->meta_mensual ?? 0,
             'comisiones_ganadas' => $comisionesGanadas,
             'comisiones_disponibles' => $comisionesDisponibles,
-            'total_referidos' => $user->total_referidos ?? 0,
+            // Calcular referidos reales de la base de datos
+            'total_referidos' => User::where('referido_por', $user->_id)->count(),
             'nuevos_referidos_mes' => $nuevosReferidosMes,
             'pedidos_mes' => $pedidosMes,
             'referidos_activos' => $referidosActivos,
             'progreso_meta' => $user->meta_mensual > 0 ?
-                             round(($ventasMes / $user->meta_mensual) * 100, 2) : 0,
+                             round((to_float($ventasMes) / to_float($user->meta_mensual)) * 100, 2) : 0,
         ];
 
         // Pedidos recientes reales

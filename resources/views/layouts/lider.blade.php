@@ -569,57 +569,56 @@
             <div class="header-right">
                 <!-- Notifications -->
                 <div class="dropdown">
-                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
-                        <i class="bi bi-bell-fill"></i>
-                        <span class="notification-badge">3</span>
+                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" id="notificationsDropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge-animated" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="width: 360px;">
-                        <div class="d-flex justify-content-between align-items-center border-bottom">
-                            <h6 class="mb-0">
+                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu notifications-dropdown" id="notificationsDropdownMenu">
+                        <!-- Header -->
+                        <div class="dropdown-header-modern">
+                            <h6>
                                 <i class="bi bi-bell me-2"></i>
                                 Notificaciones
                             </h6>
-                            <span class="badge bg-danger rounded-pill">3 nuevas</span>
-                        </div>
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            <div class="d-flex align-items-start">
-                                <div class="bg-success rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">Nueva venta registrada</div>
-                                    <small class="text-muted d-block">Juan Pérez registró una venta de $150,000</small>
-                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 5 minutos</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start">
-                                <div class="bg-primary rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">Progreso de meta</div>
-                                    <small class="text-muted d-block">Has alcanzado el 85% de tu meta mensual</small>
-                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 2 horas</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start">
-                                <div class="bg-warning rounded-circle me-3" style="width: 10px; height: 10px; margin-top: 6px; flex-shrink: 0;"></div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">Nuevo miembro en equipo</div>
-                                    <small class="text-muted d-block">María López se unió a tu equipo</small>
-                                    <small class="text-muted"><i class="bi bi-clock"></i> Hace 4 horas</small>
-                                </div>
+                            <div class="dropdown-header-actions">
+                                <span class="notification-count-badge" id="notificationCount">0 nuevas</span>
+                                <button class="btn btn-view-all" onclick="verTodasLasNotificaciones()">
+                                    Ver todas
+                                </button>
                             </div>
                         </div>
-                        <div class="text-center p-3 border-top">
-                            <a href="#" class="btn btn-sm btn-outline-primary w-100" onclick="showComingSoon('Centro de Notificaciones')">
-                                <i class="bi bi-eye me-2"></i>Ver todas las notificaciones
-                            </a>
+
+                        <!-- Notifications List -->
+                        <div class="notifications-list" id="notificationsList">
+                            <div class="notifications-empty">
+                                <i class="bi bi-bell-slash"></i>
+                                <h6>Sin notificaciones</h6>
+                                <p>No tienes notificaciones nuevas en este momento</p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="dropdown-footer">
+                            <button class="btn btn-mark-all-read" onclick="marcarTodasLeidasDropdown()">
+                                <i class="bi bi-check-all"></i>
+                                Marcar todas como leídas
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Profile -->
                 <div class="dropdown">
-                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false" role="button" tabindex="0">
+                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="profile-avatar">
-                            <i class="bi bi-person-fill"></i>
+                            @if(Auth::user()->avatar)
+                                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
+                                     alt="Avatar">
+                            @else
+                                <div class="avatar-placeholder">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </div>
+                            @endif
                         </div>
                         <div class="profile-info">
                             <div class="profile-name">{{ Auth::user()->name }}</div>
@@ -627,60 +626,114 @@
                         </div>
                         <i class="bi bi-chevron-down ms-2"></i>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <h6 class="dropdown-header">
-                                <i class="bi bi-person-circle me-2"></i>
-                                {{ Auth::user()->name }}
-                                <small class="text-muted d-block mt-1">
-                                    <i class="bi bi-envelope me-1"></i>{{ Auth::user()->email }}
-                                </small>
-                            </h6>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('lider.dashboard') }}">
+                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu profile-dropdown">
+                        <!-- Profile Header -->
+                        <div class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
+                                         alt="Avatar">
+                                @else
+                                    <div class="avatar-initial">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="profile-dropdown-name">{{ Auth::user()->name }}</div>
+                            <div class="profile-dropdown-email">{{ Auth::user()->email }}</div>
+                            <span class="profile-dropdown-role">
+                                <i class="bi bi-person-badge me-1"></i>
+                                {{ ucfirst(Auth::user()->rol) }}
+                            </span>
+                        </div>
+
+                        <!-- Stats Section -->
+                        @php
+                            // Obtener miembros del equipo directo (referidos directos)
+                            $equipoDirecto = \App\Models\User::where('referido_por', Auth::user()->_id)->get();
+                            $totalEquipo = $equipoDirecto->count();
+
+                            // Obtener total de ventas del líder y su equipo
+                            $idsEquipo = $equipoDirecto->pluck('_id')->toArray();
+                            $idsEquipo[] = Auth::user()->_id; // Incluir al líder
+
+                            $totalVentas = \App\Models\Pedido::whereIn('vendedor_id', $idsEquipo)
+                                ->whereIn('estado', ['completado', 'entregado'])
+                                ->count();
+
+                            // Obtener comisiones reales del líder desde la colección de comisiones
+                            // Suma de comisiones aprobadas y pendientes (que aún no han sido pagadas)
+                            $comisionesDisponibles = \App\Models\Comision::where('user_id', Auth::user()->_id)
+                                ->whereIn('estado', ['aprobada', 'pendiente'])
+                                ->sum('monto');
+
+                            $liderStats = [
+                                'equipo' => $totalEquipo,
+                                'ventas' => $totalVentas,
+                                'comisiones' => $comisionesDisponibles
+                            ];
+                        @endphp
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">{{ $liderStats['equipo'] }}</span>
+                                <span class="profile-stat-label">Equipo</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">{{ $liderStats['ventas'] }}</span>
+                                <span class="profile-stat-label">Ventas</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="profile-stat-value">${{ format_currency($liderStats['comisiones']) }}</span>
+                                <span class="profile-stat-label">Comisiones</span>
+                            </div>
+                        </div>
+
+                        <!-- Menu Items -->
+                        <div class="profile-menu-section">
+                            <a href="{{ route('lider.dashboard') }}" class="profile-menu-item">
                                 <i class="bi bi-speedometer2"></i>
-                                Dashboard
+                                <span class="menu-item-text">Dashboard</span>
                             </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('lider.perfil.index') }}">
-                                <i class="bi bi-person-gear"></i>
-                                Mi Perfil
+                            <a href="{{ route('lider.perfil.index') }}" class="profile-menu-item">
+                                <i class="bi bi-person"></i>
+                                <span class="menu-item-text">Mi Perfil</span>
                             </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('lider.configuracion.index') }}">
-                                <i class="bi bi-gear"></i>
-                                Configuración
+                            <a href="{{ route('lider.equipo.index') }}" class="profile-menu-item">
+                                <i class="bi bi-people"></i>
+                                <span class="menu-item-text">Mi Equipo</span>
                             </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('lider.comisiones.index') }}">
+                            <a href="{{ route('lider.comisiones.index') }}" class="profile-menu-item">
                                 <i class="bi bi-currency-dollar"></i>
-                                Mis Comisiones
+                                <span class="menu-item-text">Comisiones</span>
                             </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Ayuda y Soporte')">
+                        </div>
+
+                        <hr class="profile-menu-divider">
+
+                        <div class="profile-menu-section">
+                            <a href="{{ route('lider.configuracion.index') }}" class="profile-menu-item">
+                                <i class="bi bi-gear"></i>
+                                <span class="menu-item-text">Configuración</span>
+                            </a>
+                            <a href="#" class="profile-menu-item" onclick="showComingSoon('Centro de Ayuda'); return false;">
                                 <i class="bi bi-question-circle"></i>
-                                Ayuda
+                                <span class="menu-item-text">Ayuda</span>
                             </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                        </div>
+
+                        <hr class="profile-menu-divider">
+
+                        <div class="profile-menu-section">
+                            <a href="{{ route('logout') }}" class="profile-menu-item danger"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="bi bi-box-arrow-right"></i>
-                                Cerrar Sesión
+                                <span class="menu-item-text">Cerrar Sesión</span>
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
                             </form>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -694,8 +747,8 @@
     @livewireScripts
     @livewire('toast-notifications')
 
-    <!-- Notificaciones en Tiempo Real -->
-    <script src="{{ asset('js/lider/notifications-realtime.js') }}?v={{ filemtime(public_path('js/lider/notifications-realtime.js')) }}" defer></script>
+    <!-- Notificaciones en Tiempo Real - Temporalmente deshabilitado para evitar conflictos -->
+    {{-- <script src="{{ asset('js/lider/notifications-realtime.js') }}?v={{ filemtime(public_path('js/lider/notifications-realtime.js')) }}" defer></script> --}}
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -747,6 +800,141 @@
         function showComingSoon(feature) {
             alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
+
+        // Sistema de notificaciones con datos reales
+        window.notificationsSystem = {
+            init: function() {
+                this.loadNotifications();
+                // Actualizar cada 60 segundos
+                setInterval(() => this.loadNotifications(), 60000);
+            },
+
+            loadNotifications: function() {
+                fetch('{{ route("lider.notificaciones.nuevas") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.updateNotificationUI(data.notifications, data.count);
+                        }
+                    })
+                    .catch(error => console.error('Error loading notifications:', error));
+            },
+
+            updateNotificationUI: function(notificaciones, total) {
+                const badge = document.getElementById('notificationBadge');
+                const count = document.getElementById('notificationCount');
+                const list = document.getElementById('notificationsList');
+
+                // Actualizar badges
+                if (total > 0) {
+                    badge.textContent = total > 99 ? '99+' : total;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Actualizar contador
+                count.textContent = total + ' nuevas';
+
+                // Actualizar lista
+                if (notificaciones.length > 0) {
+                    list.innerHTML = '';
+                    notificaciones.forEach(notif => {
+                        const item = this.createNotificationItem(notif);
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.innerHTML = `
+                        <div class="notifications-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h6>Sin notificaciones</h6>
+                            <p>No tienes notificaciones nuevas en este momento</p>
+                        </div>
+                    `;
+                }
+            },
+
+            createNotificationItem: function(notif) {
+                const div = document.createElement('div');
+                div.className = 'notification-item' + (!notif.leida ? ' unread' : '');
+                div.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-icon ${notif.type || 'sistema'}">
+                            ${this.getNotificationIcon(notif.type || 'sistema')}
+                        </div>
+                        <div class="notification-body">
+                            <div class="notification-title">${notif.titulo || 'Notificación'}</div>
+                            <div class="notification-message">${notif.message}</div>
+                            <div class="notification-time">
+                                <i class="bi bi-clock"></i>
+                                ${notif.timestamp}
+                            </div>
+                            ${!notif.leida ? `
+                            <div class="notification-actions">
+                                <button class="btn btn-notification-action btn-mark-read" onclick="marcarLeidaDropdown('${notif.id}')">
+                                    <i class="bi bi-check"></i> Marcar como leída
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            getNotificationIcon: function(tipo) {
+                const icons = {
+                    'success': '<i class="bi bi-check-circle"></i>',
+                    'info': '<i class="bi bi-info-circle"></i>',
+                    'warning': '<i class="bi bi-exclamation-triangle"></i>',
+                    'danger': '<i class="bi bi-x-circle"></i>',
+                    'sistema': '<i class="bi bi-gear"></i>'
+                };
+                return icons[tipo] || '<i class="bi bi-bell"></i>';
+            }
+        };
+
+        // Funciones globales para notificaciones
+        window.verTodasLasNotificaciones = function() {
+            showComingSoon('Centro de Notificaciones');
+        };
+
+        window.marcarLeidaDropdown = function(id) {
+            fetch(`{{ url('lider/notificaciones') }}/${id}/leer`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationsSystem.loadNotifications();
+                }
+            });
+        };
+
+        window.marcarTodasLeidasDropdown = function() {
+            fetch('{{ route("lider.notificaciones.marcar-todas") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationsSystem.loadNotifications();
+                }
+            });
+        };
+
+        // Inicializar notificaciones cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            notificationsSystem.init();
+        });
     </script>
 
     @stack('scripts')

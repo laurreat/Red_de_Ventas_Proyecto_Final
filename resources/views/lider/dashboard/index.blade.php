@@ -6,6 +6,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}" media="all">
 <link rel="preload" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}" as="style">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script" crossorigin="anonymous">
 <noscript><link rel="stylesheet" href="{{ asset('css/lider/dashboard-modern.css') }}?v={{ filemtime(public_path('css/lider/dashboard-modern.css')) }}"></noscript>
 @endpush
 
@@ -313,8 +314,7 @@
 @endsection
 
 @push('scripts')
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script">
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
 <script src="{{ asset('js/lider/dashboard-modern.js') }}?v={{ filemtime(public_path('js/lider/dashboard-modern.js')) }}" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

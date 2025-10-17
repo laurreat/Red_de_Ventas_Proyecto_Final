@@ -187,10 +187,14 @@
                                 </small>
                             </td>
                             <td>
-                                <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
-                                    {{ $pedido->cliente->name }}
-                                </div>
-                                <small style="color:var(--gray-500);">{{ $pedido->cliente->email }}</small>
+                                @if($pedido->cliente)
+                                    <div style="font-weight:600;color:var(--gray-900);margin-bottom:.25rem;">
+                                        {{ $pedido->cliente->name }}
+                                    </div>
+                                    <small style="color:var(--gray-500);">{{ $pedido->cliente->email }}</small>
+                                @else
+                                    <span style="color:var(--gray-500);">Sin cliente</span>
+                                @endif
                             </td>
                             <td>
                                 @if($pedido->vendedor)

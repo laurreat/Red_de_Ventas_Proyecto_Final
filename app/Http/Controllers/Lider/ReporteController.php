@@ -539,7 +539,7 @@ class ReporteController extends Controller
                     ->where('estado', '!=', 'cancelado')
                     ->sum('total_final');
 
-                $progreso = $usuario->meta_mensual > 0 ? ($ventas / $usuario->meta_mensual) * 100 : 0;
+                $progreso = $usuario->meta_mensual > 0 ? (to_float($ventas) / to_float($usuario->meta_mensual)) * 100 : 0;
 
                 return [
                     'usuario' => $usuario,
