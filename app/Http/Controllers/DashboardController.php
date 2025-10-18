@@ -198,65 +198,7 @@ class DashboardController extends Controller
 
     private function clienteDashboard()
     {
-        $user = auth()->user();
-        $inicioMes = Carbon::now()->startOfMonth();
-
-        // Pedidos reales del cliente
-        $totalPedidos = Pedido::where('user_id', $user->_id)->count();
-        $pedidosMes = Pedido::where('user_id', $user->_id)
-                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                           ->count();
-
-        // Total gastado real
-        $totalGastado = to_float(Pedido::where('user_id', $user->_id)
-                             ->where('estado', '!=', 'cancelado')
-                             ->sum('total_final'));
-
-        // Promedio de pedido
-        $pedidoPromedio = $totalPedidos > 0 ? $totalGastado / $totalPedidos : 0;
-
-        // Referidos reales
-        $totalReferidos = User::where('referido_por', $user->_id)->count();
-        $referidosConPedidos = User::where('referido_por', $user->_id)
-                                  ->whereHas('pedidosComoCliente')
-                                  ->count();
-
-        // Estadísticas reales del cliente
-        $stats = [
-            'total_pedidos' => $totalPedidos,
-            'pedidos_mes' => $pedidosMes,
-            'total_gastado' => $totalGastado,
-            'pedido_promedio' => $pedidoPromedio,
-            'total_referidos' => $totalReferidos,
-            'referidos_realizados' => $referidosConPedidos,
-        ];
-
-        // Pedidos recientes reales
-        $pedidos_recientes = Pedido::where('user_id', $user->_id)
-                                  ->orderBy('created_at', 'desc')
-                                  ->take(5)
-                                  ->get()
-                                  ->map(function ($pedido) {
-                                      $vendedorData = $pedido->vendedor_data ?? [];
-
-                                      return (object)[
-                                          'id' => $pedido->_id,
-                                          'numero_pedido' => $pedido->numero_pedido,
-                                          'vendedor' => (object)[
-                                              'name' => is_array($vendedorData) ? ($vendedorData['name'] ?? 'Vendedor') : 'Vendedor',
-                                              'email' => is_array($vendedorData) ? ($vendedorData['email'] ?? '') : ''
-                                          ],
-                                          'total_final' => $pedido->total_final,
-                                          'estado' => $pedido->estado,
-                                          'productos_resumen' => $this->generarResumenProductosEmbebido($pedido),
-                                          'created_at' => $pedido->created_at
-                                      ];
-                                  });
-
-        // Productos favoritos (los más comprados por el cliente)
-        $productos_favoritos = $this->obtenerProductosFavoritosCliente($user->_id);
-
-        return view('cliente.dashboard', compact('stats', 'pedidos_recientes', 'productos_favoritos'));
+        return redirect()->route('cliente.dashboard');
     }
 
     // Métodos auxiliares para el dashboard admin

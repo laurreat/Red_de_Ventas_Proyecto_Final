@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CatalogoPublicoController;
+use App\Http\Controllers\Cliente\ClienteDashboardController;
 
 // Página principal - Welcome page renovada
 Route::get('/', function () {
@@ -45,7 +46,7 @@ Route::middleware(['auth', 'role'])->group(function () {
  */
 
     // TEMPORALMENTE COMENTADO - Falta crear ClienteDashboardController
-    /*
+    
     Route::prefix('cliente')->name('cliente.')->middleware(['auth', 'verified'])->group(function () {
 
         // Dashboard Principal
@@ -63,24 +64,37 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('/perfil/actualizar', [ClienteDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
 
-        // Pedidos
+        // Pedidos - Resource Routes
+        Route::get('/pedidos', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'index'])
+            ->name('pedidos.index');
+        
+        Route::get('/pedidos/create', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'create'])
+            ->name('pedidos.create');
+        
+        Route::post('/pedidos', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'store'])
+            ->name('pedidos.store');
+        
+        Route::get('/pedidos/{id}', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'show'])
+            ->name('pedidos.show');
+        
+        Route::post('/pedidos/{id}/cancelar', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'cancel'])
+            ->name('pedidos.cancel');
+
+        // Pedidos - Métodos adicionales del Dashboard Controller (compatibilidad)
         Route::post('/pedidos/crear', [ClienteDashboardController::class, 'crearPedido'])
             ->name('pedidos.crear');
 
         Route::get('/pedidos/historial', [ClienteDashboardController::class, 'historialPedidos'])
             ->name('pedidos.historial');
 
-        Route::get('/pedidos/{id}', [ClienteDashboardController::class, 'verPedido'])
+        Route::get('/pedidos/ver/{id}', [ClienteDashboardController::class, 'verPedido'])
             ->name('pedidos.ver');
-
-        Route::post('/pedidos/{id}/cancelar', [ClienteDashboardController::class, 'cancelarPedido'])
-            ->name('pedidos.cancelar');
 
         // Recomendaciones
         Route::get('/productos/recomendados', [ClienteDashboardController::class, 'productosRecomendados'])
             ->name('productos.recomendados');
     });
-    */
+    
 
     // Rutas para Administradores
     Route::middleware(['role:administrador'])->group(function () {

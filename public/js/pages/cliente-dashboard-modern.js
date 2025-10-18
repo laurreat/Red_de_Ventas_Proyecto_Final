@@ -359,7 +359,7 @@ class ClienteDashboardManager {
           <div class="fw-bold">${item.nombre}</div>
           <small class="text-muted">Cantidad: ${item.cantidad}</small>
         </div>
-        <div class="text-success fw-bold">${this.formatPrice(item.precio * item.cantidad)}</div>
+        <div class="text-success fw-bold">$${this.formatPrice(item.precio * item.cantidad)}</div>
       </div>
     `).join('');
 
@@ -369,42 +369,34 @@ class ClienteDashboardManager {
         ${itemsHtml}
         <div class="d-flex justify-content-between py-3 border-top mt-3">
           <strong>Total a pagar:</strong>
-          <strong class="text-success fs-5">${this.formatPrice(total)}</strong>
+          <strong class="text-success fs-5">$${this.formatPrice(total)}</strong>
         </div>
         <div class="alert alert-info mt-3 mb-0">
           <i class="bi bi-info-circle me-2"></i>
-          <small>Al confirmar, recibirás un correo con los detalles de tu pedido.</small>
+          <small>Serás redirigido a completar la información de entrega.</small>
         </div>
       </div>
     `, [
       { text: 'Cancelar', type: 'outline-secondary', onclick: 'clienteDashboard.closeAllModals()' },
-      { text: 'Confirmar Pedido', type: 'success', icon: 'check-circle', onclick: 'clienteDashboard.procesarPedido()' }
+      { text: 'Continuar', type: 'success', icon: 'arrow-right-circle', onclick: 'clienteDashboard.irACrearPedido()' }
     ]);
   }
 
-  procesarPedido() {
-    this.showLoading('Procesando tu pedido...');
+  irACrearPedido() {
+    // Guardar carrito en localStorage para usarlo en la página de crear pedido
+    this.guardarCarrito();
+    this.closeAllModals();
+    this.showLoading('Preparando tu pedido...');
     
-    // Simulación de envío al servidor
+    // Redirigir a la página de crear pedido
     setTimeout(() => {
-      this.hideLoading();
-      this.closeAllModals();
-      this.carrito = [];
-      this.guardarCarrito();
-      this.updateCarritoCount();
-      this.closeCarrito();
-      
-      this.createModal('success', '✅ ¡Pedido Confirmado!', `
-        <div class="text-center py-3">
-          <i class="bi bi-check-circle fs-1 text-success mb-3 d-block"></i>
-          <h5 class="mb-3">¡Tu pedido ha sido confirmado!</h5>
-          <p class="text-muted">Recibirás un correo con los detalles.</p>
-          <p class="text-muted mb-0">Número de pedido: <strong>#${Math.floor(Math.random() * 10000)}</strong></p>
-        </div>
-      `, [
-        { text: 'Ver mis pedidos', type: 'primary', onclick: 'clienteDashboard.closeAllModals()' }
-      ]);
-    }, 2000);
+      window.location.href = '/cliente/pedidos/create';
+    }, 500);
+  }
+
+  procesarPedido() {
+    // Método legacy - ahora redirige a crear pedido
+    this.irACrearPedido();
   }
 
   // ========================================
@@ -586,17 +578,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================================
 
 function agregarAlCarrito(id) {
-  const producto = document.querySelector(`[onclick*="agregarAlCarrito(${id})"]`)?.closest('.producto-card');
-  if (producto) {
-    const nombre = producto.querySelector('.card-title')?.textContent || 'Producto';
-    const precioText = producto.querySelector('.precio-producto .fw-bold')?.textContent || '$0';
-    const precio = parseInt(precioText.replace(/\D/g, ''));
-    clienteDashboard.agregarAlCarrito(id, nombre, precio);
+  const productoCard = document.querySelector(`[data-producto-id="${id}"]`);
+  
+  if (productoCard) {
+    const btn = productoCard.querySelector('.btn-primary');
+    const nombre = btn.dataset.nombre || 'Producto';
+    const precio = parseFloat(btn.dataset.precio) || 0;
+    const imagen = btn.dataset.imagen || null;
+    
+    clienteDashboard.agregarAlCarrito(id, nombre, precio, imagen);
   }
 }
 
 function toggleFavorito(id) {
-  const producto = document.querySelector(`[onclick*="toggleFavorito(${id})"]`)?.closest('.producto-card');
+  const producto = document.querySelector(`[onclick*="toggleFavorito('${id}')"]`)?.closest('.producto-card');
   if (producto) {
     const nombre = producto.querySelector('.card-title')?.textContent || '';
     const precioText = producto.querySelector('.precio-producto .fw-bold')?.textContent || '$0';
@@ -617,6 +612,83 @@ function shareReferralCode() {
   const codigo = document.querySelector('.bg-white .fw-bold.text-primary')?.textContent || '';
   const nombre = document.querySelector('.welcome-card h1')?.textContent || '';
   clienteDashboard.shareReferralCode(codigo, nombre);
+}
+
+function mostrarEditarPerfil() {
+  const user = {
+    nombre: document.querySelector('[class*="fw-medium"]')?.textContent || '',
+    email: '{{ auth()->user()->email }}',
+    telefono: '{{ auth()->user()->telefono ?? "" }}',
+    direccion: '{{ auth()->user()->direccion ?? "" }}',
+    ciudad: '{{ auth()->user()->ciudad ?? "" }}'
+  };
+
+  const modalContent = `
+    <form id="formEditarPerfil" onsubmit="return false;">
+      <div class="mb-3">
+        <label class="form-label">Teléfono</label>
+        <input type="tel" class="form-control" id="editTelefono" value="${user.telefono}" placeholder="+57 300 123 4567">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Dirección</label>
+        <input type="text" class="form-control" id="editDireccion" value="${user.direccion}" placeholder="Calle 123 # 45-67">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Ciudad</label>
+        <input type="text" class="form-control" id="editCiudad" value="${user.ciudad}" placeholder="Bogotá">
+      </div>
+      <div class="alert alert-info small mb-0">
+        <i class="bi bi-info-circle me-2"></i>
+        Para cambiar tu nombre o email, contacta con soporte.
+      </div>
+    </form>
+  `;
+
+  clienteDashboard.createModal('primary', '✏️ Actualizar Mi Información', modalContent, [
+    { text: 'Cancelar', type: 'outline-secondary', onclick: 'clienteDashboard.closeAllModals()' },
+    { text: 'Guardar Cambios', type: 'primary', icon: 'check-circle', onclick: 'guardarCambiosPerfil()' }
+  ]);
+}
+
+function guardarCambiosPerfil() {
+  const telefono = document.getElementById('editTelefono')?.value || '';
+  const direccion = document.getElementById('editDireccion')?.value || '';
+  const ciudad = document.getElementById('editCiudad')?.value || '';
+
+  clienteDashboard.showLoading('Guardando cambios...');
+
+  fetch('/cliente/perfil/actualizar', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+    },
+    body: JSON.stringify({
+      telefono: telefono,
+      direccion: direccion,
+      ciudad: ciudad
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    clienteDashboard.hideLoading();
+    clienteDashboard.closeAllModals();
+    
+    if (data.success) {
+      clienteDashboard.showToast('Información actualizada correctamente', 'success');
+      
+      // Recargar página para mostrar cambios
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      clienteDashboard.showToast(data.message || 'Error al actualizar', 'error');
+    }
+  })
+  .catch(error => {
+    clienteDashboard.hideLoading();
+    clienteDashboard.showToast('Error al conectar con el servidor', 'error');
+  });
 }
 
 // PWA: Registrar Service Worker
