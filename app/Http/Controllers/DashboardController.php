@@ -158,78 +158,8 @@ class DashboardController extends Controller
 
     private function vendedorDashboard()
     {
-        $user = auth()->user();
-        $inicioMes = Carbon::now()->startOfMonth();
-
-        // Ventas reales del mes
-        $ventasMes = to_float(Pedido::where('vendedor_id', $user->_id)
-                          ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                          ->where('estado', '!=', 'cancelado')
-                          ->sum('total_final'));
-
-        // Pedidos del mes
-        $pedidosMes = Pedido::where('vendedor_id', $user->_id)
-                           ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                           ->count();
-
-        // Comisiones ganadas este mes
-        $comisionesGanadas = to_float(Comision::where('user_id', $user->_id)
-                                   ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                   ->sum('monto'));
-
-        // Comisiones disponibles para retiro
-        $comisionesDisponibles = to_float(Comision::where('user_id', $user->_id)
-                                        ->where('estado', 'pendiente')
-                                        ->sum('monto'));
-
-        // Nuevos referidos este mes
-        $nuevosReferidosMes = User::where('referido_por', $user->_id)
-                                 ->whereBetween('created_at', [$inicioMes, Carbon::now()])
-                                 ->count();
-
-        // Referidos activos (que han hecho pedidos)
-        $referidosActivos = User::where('referido_por', $user->_id)
-                               ->whereHas('pedidosComoCliente')
-                               ->count();
-
-        // Estadísticas del vendedor
-        $stats = [
-            'ventas_mes' => $ventasMes,
-            'meta_mensual' => $user->meta_mensual ?? 0,
-            'comisiones_ganadas' => $comisionesGanadas,
-            'comisiones_disponibles' => $comisionesDisponibles,
-            // Calcular referidos reales de la base de datos
-            'total_referidos' => User::where('referido_por', $user->_id)->count(),
-            'nuevos_referidos_mes' => $nuevosReferidosMes,
-            'pedidos_mes' => $pedidosMes,
-            'referidos_activos' => $referidosActivos,
-            'progreso_meta' => $user->meta_mensual > 0 ?
-                             round((to_float($ventasMes) / to_float($user->meta_mensual)) * 100, 2) : 0,
-        ];
-
-        // Pedidos recientes reales
-        $pedidos_recientes = Pedido::where('vendedor_id', $user->_id)
-                                  ->orderBy('created_at', 'desc')
-                                  ->take(5)
-                                  ->get()
-                                  ->map(function ($pedido) {
-                                      $clienteData = $pedido->cliente_data ?? [];
-
-                                      return (object)[
-                                          'id' => $pedido->_id,
-                                          'numero_pedido' => $pedido->numero_pedido,
-                                          'cliente' => (object)[
-                                              'name' => is_array($clienteData) ? ($clienteData['name'] ?? 'Cliente') : 'Cliente',
-                                              'email' => is_array($clienteData) ? ($clienteData['email'] ?? '') : ''
-                                          ],
-                                          'total_final' => $pedido->total_final,
-                                          'estado' => $pedido->estado,
-                                          'productos_resumen' => $this->generarResumenProductosEmbebido($pedido),
-                                          'created_at' => $pedido->created_at
-                                      ];
-                                  });
-
-        return view('dashboard.vendedor', compact('stats', 'pedidos_recientes'));
+        // Redirigir al dashboard moderno del vendedor
+        return redirect()->route('vendedor.dashboard');
     }
 
     private function generarResumenProductos($pedido)

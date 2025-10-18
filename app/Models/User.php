@@ -66,6 +66,7 @@ class User extends Authenticatable
         'perfil_publico',
         'mostrar_email',
         'mostrar_telefono',
+        'mostrar_stats',
         'mostrar_ultima_conexion',
         'permitir_mensajes',
         'indexar_perfil',

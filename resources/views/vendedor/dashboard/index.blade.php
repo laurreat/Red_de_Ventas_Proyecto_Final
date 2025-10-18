@@ -4,233 +4,111 @@
 @section('page-title', 'Dashboard')
 
 @push('styles')
-<style>
-.metric-card {
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent;
-}
-
-.metric-card.ventas {
-    border-left-color: #28a745;
-}
-
-.metric-card.comisiones {
-    border-left-color: #17a2b8;
-}
-
-.metric-card.referidos {
-    border-left-color: #6f42c1;
-}
-
-.metric-card.pedidos {
-    border-left-color: #ffc107;
-}
-
-.metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(114, 47, 55, 0.15);
-}
-
-.chart-container {
-    position: relative;
-    height: 300px;
-    width: 100%;
-}
-
-.progress-ring {
-    transform: rotate(-90deg);
-}
-
-.progress-ring-circle {
-    transition: stroke-dasharray 0.35s;
-    transform-origin: 50% 50%;
-}
-
-.quick-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem 1rem;
-    border-radius: 0.5rem;
-    background: white;
-    border: 2px solid #e9ecef;
-    text-decoration: none;
-    color: #495057;
-    transition: all 0.3s ease;
-}
-
-.quick-action:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(114, 47, 55, 0.1);
-}
-
-.quick-action i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary-color);
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    margin-bottom: 0.5rem;
-    background: rgba(114, 47, 55, 0.02);
-    border-left: 3px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.activity-item:hover {
-    background: rgba(114, 47, 55, 0.05);
-    border-left-color: var(--primary-color);
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.75rem;
-    color: white;
-    font-size: 1.1rem;
-}
-
-.activity-icon.success { background-color: #28a745; }
-.activity-icon.info { background-color: #17a2b8; }
-.activity-icon.warning { background-color: #ffc107; }
-.activity-icon.primary { background-color: var(--primary-color); }
-
-.codigo-referido {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #8e3a42 100%);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.codigo-referido::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.codigo-valor {
-    font-size: 1.5rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-    margin: 0.5rem 0;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-</style>
+<link rel="stylesheet" href="{{ asset('css/vendedor/dashboard-modern.css') }}?v={{ filemtime(public_path('css/vendedor/dashboard-modern.css')) }}">
 @endpush
 
 @section('content')
 <div class="container-fluid">
-    <!-- Saludo y información básica -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="mb-1">¡Hola, {{ auth()->user()->name }}! 👋</h2>
-                    <p class="text-muted mb-0">Aquí tienes tu resumen de actividad del día</p>
+    <!-- Hero Header Moderno -->
+    <div class="vendedor-dashboard-header animate-fade-in-up">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="vendedor-dashboard-title">
+                    ¡Hola, {{ auth()->user()->name }}! 👋
+                </h1>
+                <p class="vendedor-dashboard-subtitle">
+                    Aquí tienes tu resumen de actividad y rendimiento del día
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="vendedor-dashboard-date">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>{{ now()->translatedFormat('d M Y') }}</span>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="badge bg-primary fs-6">
-                        <i class="bi bi-calendar-event me-1"></i>
-                        {{ now()->format('d/m/Y') }}
-                    </div>
-                    @if(auth()->user()->meta_mensual > 0)
-                    <div class="badge bg-info fs-6">
-                        <i class="bi bi-target me-1"></i>
-                        Meta: ${{ number_format((float)auth()->user()->meta_mensual, 0) }}
-                    </div>
-                    @endif
+                @if(auth()->user()->meta_mensual > 0)
+                <div class="vendedor-dashboard-meta-badge">
+                    <i class="bi bi-target"></i>
+                    <span>Meta: ${{ number_format((float)auth()->user()->meta_mensual, 0) }}</span>
                 </div>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Métricas principales -->
+    <!-- Stats Cards Modernas -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card ventas h-100">
-                <div class="card-body text-center">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(40, 167, 69, 0.1);">
-                        <i class="bi bi-currency-dollar fs-2 text-success"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-success">${{ number_format($stats['ventas_mes'], 0) }}</h3>
-                    <p class="text-muted mb-0 small">Ventas del Mes</p>
-                    @if($stats['meta_mensual'] > 0)
-                    <div class="progress mt-2" style="height: 4px;">
-                        <div class="progress-bar bg-success"
-                             style="width: {{ min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100) }}%"></div>
-                    </div>
-                    <small class="text-muted">{{ number_format(min(($stats['ventas_mes'] / $stats['meta_mensual']) * 100, 100), 1) }}% de la meta</small>
-                    @endif
+            <div class="vendedor-stat-card success animate-delay-1">
+                <div class="vendedor-stat-icon" style="background:linear-gradient(135deg,var(--success),var(--success-dark));color:#fff;">
+                    <i class="bi bi-currency-dollar"></i>
                 </div>
+                <div class="vendedor-stat-label">Ventas del Mes</div>
+                <div class="vendedor-stat-value text-success" data-stat="ventas_mes">
+                    ${{ number_format(to_float($stats['ventas_mes']), 0) }}
+                </div>
+                @if($stats['meta_mensual'] > 0)
+                <div class="vendedor-stat-meta text-success">
+                    <i class="bi bi-arrow-up-right"></i>
+                    {{ number_format(min((to_float($stats['ventas_mes']) / to_float($stats['meta_mensual'])) * 100, 100), 1) }}% de meta
+                </div>
+                <div class="vendedor-stat-progress">
+                    <div class="vendedor-stat-progress-bar" 
+                         style="color:var(--success);width:{{ min((to_float($stats['ventas_mes']) / to_float($stats['meta_mensual'])) * 100, 100) }}%"
+                         data-width="{{ min((to_float($stats['ventas_mes']) / to_float($stats['meta_mensual'])) * 100, 100) }}%">
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card comisiones h-100">
-                <div class="card-body text-center">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(23, 162, 184, 0.1);">
-                        <i class="bi bi-cash-coin fs-2 text-info"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-info">${{ number_format($stats['comisiones_ganadas'], 0) }}</h3>
-                    <p class="text-muted mb-0 small">Comisiones Ganadas</p>
-                    @if($stats['comisiones_disponibles'] > 0)
-                    <small class="text-success">
-                        <i class="bi bi-check-circle me-1"></i>
-                        ${{ number_format($stats['comisiones_disponibles'], 0) }} disponibles
-                    </small>
-                    @endif
+            <div class="vendedor-stat-card info animate-delay-2">
+                <div class="vendedor-stat-icon" style="background:linear-gradient(135deg,var(--info),var(--info-dark));color:#fff;">
+                    <i class="bi bi-cash-coin"></i>
                 </div>
+                <div class="vendedor-stat-label">Comisiones Ganadas</div>
+                <div class="vendedor-stat-value text-info" data-stat="comisiones_ganadas">
+                    ${{ number_format(to_float($stats['comisiones_ganadas']), 0) }}
+                </div>
+                @if($stats['comisiones_disponibles'] > 0)
+                <div class="vendedor-stat-meta text-success">
+                    <i class="bi bi-check-circle"></i>
+                    ${{ number_format(to_float($stats['comisiones_disponibles']), 0) }} disponibles
+                </div>
+                @endif
             </div>
         </div>
 
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card referidos h-100">
-                <div class="card-body text-center">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(114, 47, 55, 0.1);">
-                        <i class="bi bi-people fs-2" style="color: var(--primary-color);"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1" style="color: var(--primary-color);">{{ number_format($stats['total_referidos']) }}</h3>
-                    <p class="text-muted mb-0 small">Mis Referidos</p>
-                    @if($stats['nuevos_referidos_mes'] > 0)
-                    <small class="text-success">
-                        +{{ $stats['nuevos_referidos_mes'] }} este mes
-                    </small>
-                    @endif
+            <div class="vendedor-stat-card wine animate-delay-3">
+                <div class="vendedor-stat-icon" style="background:linear-gradient(135deg,var(--wine),var(--wine-dark));color:#fff;">
+                    <i class="bi bi-people"></i>
                 </div>
+                <div class="vendedor-stat-label">Mis Referidos</div>
+                <div class="vendedor-stat-value text-wine" data-stat="total_referidos">
+                    {{ number_format($stats['total_referidos']) }}
+                </div>
+                @if($stats['nuevos_referidos_mes'] > 0)
+                <div class="vendedor-stat-meta text-success">
+                    <i class="bi bi-plus-circle"></i>
+                    +{{ $stats['nuevos_referidos_mes'] }} este mes
+                </div>
+                @endif
             </div>
         </div>
 
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card pedidos h-100">
-                <div class="card-body text-center">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                         style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.1);">
-                        <i class="bi bi-cart-check fs-2 text-warning"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1 text-warning">{{ number_format($stats['pedidos_mes']) }}</h3>
-                    <p class="text-muted mb-0 small">Pedidos del Mes</p>
+            <div class="vendedor-stat-card warning animate-delay-4">
+                <div class="vendedor-stat-icon" style="background:linear-gradient(135deg,var(--warning),var(--warning-dark));color:#fff;">
+                    <i class="bi bi-cart-check"></i>
+                </div>
+                <div class="vendedor-stat-label">Pedidos del Mes</div>
+                <div class="vendedor-stat-value text-warning" data-stat="pedidos_mes">
+                    {{ number_format($stats['pedidos_mes']) }}
+                </div>
+                <div class="vendedor-stat-meta text-muted">
+                    <i class="bi bi-box-seam"></i>
+                    Total procesados
                 </div>
             </div>
         </div>
@@ -239,201 +117,218 @@
     <div class="row">
         <!-- Contenido principal -->
         <div class="col-xl-8 mb-4">
-            <!-- Acciones rápidas -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-lightning me-2"></i>
+            <!-- Acciones Rápidas Modernas -->
+            <div class="vendedor-quick-actions mb-4 animate-fade-in">
+                <div class="vendedor-quick-actions-header">
+                    <h3 class="vendedor-quick-actions-title">
+                        <i class="bi bi-lightning-charge"></i>
                         Acciones Rápidas
-                    </h5>
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ route('vendedor.pedidos.create') }}" class="quick-action">
-                                <i class="bi bi-plus-circle"></i>
-                                <div class="fw-medium">Nuevo Pedido</div>
-                                <small class="text-muted">Registrar venta</small>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <a href="{{ route('vendedor.pedidos.create') }}" class="vendedor-quick-action-btn">
+                                <div class="vendedor-quick-action-icon">
+                                    <i class="bi bi-plus-circle"></i>
+                                </div>
+                                <div class="vendedor-quick-action-label">Nuevo Pedido</div>
+                                <div class="vendedor-quick-action-desc">Registrar venta</div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ route('vendedor.clientes.index') }}" class="quick-action">
-                                <i class="bi bi-people"></i>
-                                <div class="fw-medium">Mis Clientes</div>
-                                <small class="text-muted">Gestionar</small>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ route('vendedor.clientes.index') }}" class="vendedor-quick-action-btn">
+                                <div class="vendedor-quick-action-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <div class="vendedor-quick-action-label">Mis Clientes</div>
+                                <div class="vendedor-quick-action-desc">Gestionar</div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ route('vendedor.comisiones.solicitar') }}" class="quick-action">
-                                <i class="bi bi-cash-stack"></i>
-                                <div class="fw-medium">Solicitar Retiro</div>
-                                <small class="text-muted">Comisiones</small>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ route('vendedor.comisiones.solicitar') }}" class="vendedor-quick-action-btn">
+                                <div class="vendedor-quick-action-icon">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                                <div class="vendedor-quick-action-label">Solicitar Retiro</div>
+                                <div class="vendedor-quick-action-desc">Comisiones</div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ route('vendedor.referidos.invitar') }}" class="quick-action">
-                                <i class="bi bi-share"></i>
-                                <div class="fw-medium">Invitar</div>
-                                <small class="text-muted">Referir amigos</small>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ route('vendedor.referidos.invitar') }}" class="vendedor-quick-action-btn">
+                                <div class="vendedor-quick-action-icon">
+                                    <i class="bi bi-share"></i>
+                                </div>
+                                <div class="vendedor-quick-action-label">Invitar</div>
+                                <div class="vendedor-quick-action-desc">Referir amigos</div>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Gráfico de evolución -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-graph-up me-2"></i>
-                        Evolución de Ventas (Últimos 6 Meses)
-                    </h5>
+            <!-- Gráfico de Evolución Moderno -->
+            <div class="vendedor-chart-card animate-fade-in">
+                <div class="vendedor-chart-header">
+                    <h3 class="vendedor-chart-title">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        Evolución de Ventas
+                    </h3>
+                    <span class="vendedor-badge wine">
+                        <i class="bi bi-calendar-range"></i>
+                        Últimos 6 Meses
+                    </span>
                 </div>
-                <div class="card-body">
-                    <div class="chart-container">
+                <div class="vendedor-chart-body">
+                    <div class="vendedor-chart-container">
                         <canvas id="ventasChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar derecho -->
+        <!-- Sidebar Derecho Moderno -->
         <div class="col-xl-4 mb-4">
-            <!-- Código de referido -->
+            <!-- Código de Referido Moderno -->
             @if(auth()->user()->codigo_referido)
-            <div class="card mb-3">
-                <div class="card-body p-0">
-                    <div class="codigo-referido">
-                        <div class="mb-2">
-                            <i class="bi bi-share fs-3"></i>
-                        </div>
-                        <div class="fw-medium mb-1">Tu Código de Referido</div>
-                        <div class="codigo-valor">{{ auth()->user()->codigo_referido }}</div>
-                        <button class="btn btn-light btn-sm mt-2" onclick="copyReferralCode()">
-                            <i class="bi bi-clipboard me-1"></i>
-                            Copiar código
-                        </button>
-                    </div>
+            <div class="vendedor-referral-card mb-3 animate-scale-in">
+                <div class="vendedor-referral-icon">
+                    <i class="bi bi-share-fill"></i>
                 </div>
+                <div class="vendedor-referral-label">Tu Código de Referido</div>
+                <div class="vendedor-referral-code">{{ auth()->user()->codigo_referido }}</div>
+                <button id="copyReferralBtn" 
+                        data-code="{{ auth()->user()->codigo_referido }}" 
+                        class="vendedor-referral-btn">
+                    <i class="bi bi-clipboard"></i> Copiar código
+                </button>
             </div>
             @endif
 
-            <!-- Progreso de meta -->
+            <!-- Progreso de Meta Moderno -->
             @if($progresoMetas['meta_mensual'] > 0)
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="bi bi-target me-2"></i>
+            <div class="vendedor-progress-card mb-3 animate-fade-in">
+                <div class="vendedor-progress-header">
+                    <h3 class="vendedor-progress-title">
+                        <i class="bi bi-bullseye"></i>
                         Progreso de Meta
-                    </h6>
+                    </h3>
+                    <span class="vendedor-badge {{ $progresoMetas['porcentaje_cumplimiento'] >= 100 ? 'success' : ($progresoMetas['porcentaje_cumplimiento'] >= 60 ? 'info' : 'warning') }}">
+                        {{ number_format(to_float($progresoMetas['porcentaje_cumplimiento']), 1) }}%
+                    </span>
                 </div>
-                <div class="card-body text-center">
-                    <div class="row align-items-center">
-                        <div class="col-8">
-                            <div class="d-flex justify-content-between mb-2 small">
-                                <span>Meta: ${{ number_format($progresoMetas['meta_mensual'], 0) }}</span>
-                                <strong>${{ number_format($progresoMetas['ventas_actuales'], 0) }}</strong>
-                            </div>
-                            <div class="progress" style="height: 10px;">
-                                <div class="progress-bar"
-                                     style="width: {{ min($progresoMetas['porcentaje_cumplimiento'], 100) }}%%;"></div>
-                            </div>
-                            <div class="d-flex justify-content-between mt-2 small text-muted">
-                                <span>{{ $progresoMetas['dias_restantes'] }} días restantes</span>
-                                <span>{{ number_format($progresoMetas['porcentaje_cumplimiento'], 1) }}%</span>
-                            </div>
+                <div class="vendedor-progress-body">
+                    <div class="vendedor-progress-meta">
+                        <div class="vendedor-progress-amount">
+                            ${{ number_format(to_float($progresoMetas['ventas_actuales']), 0) }}
                         </div>
-                        <div class="col-4">
-                            <div class="fs-1">
+                        <div class="vendedor-progress-goal">
+                            de ${{ number_format(to_float($progresoMetas['meta_mensual']), 0) }}
+                        </div>
+                    </div>
+                    <div class="vendedor-progress-bar-container">
+                        <div class="vendedor-progress-bar-fill" 
+                             style="width:{{ min(to_float($progresoMetas['porcentaje_cumplimiento']), 100) }}%"
+                             data-width="{{ min(to_float($progresoMetas['porcentaje_cumplimiento']), 100) }}%">
+                        </div>
+                    </div>
+                    <div class="vendedor-progress-stats">
+                        <div class="vendedor-progress-stat">
+                            <span class="vendedor-progress-stat-label">Días restantes</span>
+                            <span class="vendedor-progress-stat-value">{{ $progresoMetas['dias_restantes'] }}</span>
+                        </div>
+                        <div class="vendedor-progress-stat text-end">
+                            <span class="vendedor-progress-stat-label">Estado</span>
+                            <span class="vendedor-progress-stat-value">
                                 @if($progresoMetas['porcentaje_cumplimiento'] >= 100)
-                                    🎉
+                                    🎉 Logrado
                                 @elseif($progresoMetas['porcentaje_cumplimiento'] >= 80)
-                                    🔥
+                                    🔥 Excelente
                                 @elseif($progresoMetas['porcentaje_cumplimiento'] >= 60)
-                                    📈
+                                    📈 Avanzando
                                 @else
-                                    💪
+                                    💪 En progreso
                                 @endif
-                            </div>
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
             @endif
 
-            <!-- Pedidos recientes -->
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">
-                        <i class="bi bi-clock-history me-2"></i>
+            <!-- Pedidos Recientes Modernos -->
+            <div class="vendedor-recent-list mb-3 animate-fade-in">
+                <div class="vendedor-recent-header">
+                    <h3 class="vendedor-recent-title">
+                        <i class="bi bi-clock-history"></i>
                         Pedidos Recientes
-                    </h6>
-                    <a href="{{ route('vendedor.pedidos.index') }}" class="btn btn-sm btn-outline-primary">
+                    </h3>
+                    <a href="{{ route('vendedor.pedidos.index') }}" class="vendedor-btn-sm vendedor-btn-outline">
                         Ver todos
                     </a>
                 </div>
-                <div class="card-body">
+                <div>
                     @if($pedidos_recientes->count() > 0)
                         @foreach($pedidos_recientes as $pedido)
-                        <div class="d-flex justify-content-between align-items-center py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
-                            <div>
-                                <div class="fw-medium">{{ $pedido->numero_pedido }}</div>
-                                <small class="text-muted">{{ $pedido->cliente->name }}</small>
+                        <div class="vendedor-recent-item">
+                            <div class="vendedor-recent-item-main">
+                                <div class="vendedor-recent-item-title">{{ $pedido->numero_pedido }}</div>
+                                <div class="vendedor-recent-item-subtitle">{{ $pedido->cliente->name }}</div>
                             </div>
-                            <div class="text-end">
-                                <div class="fw-bold text-success">${{ number_format($pedido->total_final, 0) }}</div>
-                                <small class="text-muted">{{ $pedido->created_at->format('d/m') }}</small>
+                            <div class="vendedor-recent-item-meta">
+                                <div class="vendedor-recent-item-value">${{ number_format($pedido->total_final, 0) }}</div>
+                                <div class="vendedor-recent-item-date">{{ $pedido->created_at->format('d/m/Y') }}</div>
                             </div>
                         </div>
                         @endforeach
                     @else
-                        <div class="text-center py-3">
-                            <i class="bi bi-cart-x fs-3 text-muted"></i>
-                            <p class="text-muted mb-0">No hay pedidos recientes</p>
-                            <a href="{{ route('vendedor.pedidos.create') }}" class="btn btn-primary btn-sm mt-2">
-                                Crear primer pedido
+                        <div class="text-center py-4">
+                            <i class="bi bi-cart-x" style="font-size: 3rem; color: var(--gray-400);"></i>
+                            <p class="text-muted mt-2 mb-3">No hay pedidos recientes</p>
+                            <a href="{{ route('vendedor.pedidos.create') }}" class="vendedor-btn vendedor-btn-wine">
+                                <i class="bi bi-plus-circle"></i> Crear primer pedido
                             </a>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Actividad reciente -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="bi bi-activity me-2"></i>
+            <!-- Actividad Reciente Moderna -->
+            <div class="vendedor-activity-list animate-fade-in">
+                <div class="vendedor-activity-header">
+                    <h3 class="vendedor-activity-title">
+                        <i class="bi bi-activity"></i>
                         Actividad Reciente
-                    </h6>
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="activity-item">
-                        <div class="activity-icon success">
-                            <i class="bi bi-cart-check"></i>
+                <div class="vendedor-activity-body">
+                    <div class="vendedor-activity-item">
+                        <div class="vendedor-activity-icon" style="background:linear-gradient(135deg,var(--success),var(--success-dark));color:#fff;">
+                            <i class="bi bi-cart-check-fill"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Nueva venta registrada</div>
-                            <small class="text-muted">hace 2 horas</small>
+                        <div class="vendedor-activity-content">
+                            <div class="vendedor-activity-text">Nueva venta registrada</div>
+                            <div class="vendedor-activity-time">Hace 2 horas</div>
                         </div>
                     </div>
 
-                    <div class="activity-item">
-                        <div class="activity-icon info">
+                    <div class="vendedor-activity-item">
+                        <div class="vendedor-activity-icon" style="background:linear-gradient(135deg,var(--info),var(--info-dark));color:#fff;">
                             <i class="bi bi-cash-coin"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Comisión recibida</div>
-                            <small class="text-muted">hace 1 día</small>
+                        <div class="vendedor-activity-content">
+                            <div class="vendedor-activity-text">Comisión recibida</div>
+                            <div class="vendedor-activity-time">Hace 1 día</div>
                         </div>
                     </div>
 
-                    <div class="activity-item">
-                        <div class="activity-icon primary">
-                            <i class="bi bi-people"></i>
+                    <div class="vendedor-activity-item">
+                        <div class="vendedor-activity-icon" style="background:linear-gradient(135deg,var(--wine),var(--wine-dark));color:#fff;">
+                            <i class="bi bi-people-fill"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-medium">Nuevo referido registrado</div>
-                            <small class="text-muted">hace 3 días</small>
+                        <div class="vendedor-activity-content">
+                            <div class="vendedor-activity-text">Nuevo referido registrado</div>
+                            <div class="vendedor-activity-time">Hace 3 días</div>
                         </div>
                     </div>
                 </div>
@@ -444,76 +339,10 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Datos para el gráfico de evolución
-    const evolucionData = @json($evolucionVentas);
-
-    const ctx = document.getElementById('ventasChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: evolucionData.map(item => item.mes),
-            datasets: [{
-                label: 'Ventas ($)',
-                data: evolucionData.map(item => item.ventas),
-                borderColor: '#722F37',
-                backgroundColor: 'rgba(114, 47, 55, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#722F37',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString();
-                        }
-                    }
-                }
-            },
-            elements: {
-                point: {
-                    hoverRadius: 8
-                }
-            }
-        }
-    });
-});
-
-function copyReferralCode() {
-    const code = '{{ auth()->user()->codigo_referido ?? "" }}';
-    navigator.clipboard.writeText(code).then(function() {
-        showToast('Código copiado al portapapeles', 'success');
-    });
-}
-
-// Animar métricas al cargar
-document.addEventListener('DOMContentLoaded', function() {
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        const width = bar.style.width;
-        bar.style.width = '0%';
-        setTimeout(() => {
-            bar.style.transition = 'width 1s ease-in-out';
-            bar.style.width = width;
-        }, 500);
-    });
-});
+// Datos para los gráficos desde el servidor
+window.evolucionVentasData = @json($evolucionVentas);
 </script>
+<script src="{{ asset('js/vendedor/dashboard-modern.js') }}?v={{ filemtime(public_path('js/vendedor/dashboard-modern.js')) }}"></script>
 @endpush

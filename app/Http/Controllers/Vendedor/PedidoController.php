@@ -37,6 +37,13 @@ class PedidoController extends Controller
 
         $pedidos = $query->orderBy('created_at', 'desc')->paginate(15);
 
+        // Garantizar que cada pedido tenga productos como array
+        foreach ($pedidos as $pedido) {
+            if (!isset($pedido->productos) || !is_array($pedido->productos)) {
+                $pedido->productos = $pedido->detalles ?? [];
+            }
+        }
+
         // Estadísticas para el dashboard de pedidos (usando agregaciones de MongoDB)
         $stats = [
             'total' => Pedido::where('vendedor_id', $vendedor->_id)->count(),
@@ -52,10 +59,43 @@ class PedidoController extends Controller
     public function show($id)
     {
         $vendedor = Auth::user();
-        $pedido = Pedido::where('vendedor_id', $vendedor->id)
-                       ->where('id', $id)
-                       // MongoDB: datos embebidos, no necesita with
+        $pedido = Pedido::where('vendedor_id', $vendedor->_id)
+                       ->where('_id', $id)
                        ->firstOrFail();
+
+        // Garantizar que productos sea un array con múltiples intentos
+        if (!isset($pedido->productos) || !is_array($pedido->productos) || empty($pedido->productos)) {
+            // Intento 1: usar detalles (estructura estándar de MongoDB)
+            if (isset($pedido->detalles) && is_array($pedido->detalles) && !empty($pedido->detalles)) {
+                $pedido->productos = $pedido->detalles;
+            } else {
+                // Intento 2: acceso directo a attributes
+                $rawDetalles = $pedido->getRawOriginal('detalles');
+                $rawProductos = $pedido->getRawOriginal('productos');
+                
+                if (is_array($rawDetalles) && !empty($rawDetalles)) {
+                    $pedido->productos = $rawDetalles;
+                } elseif (is_array($rawProductos) && !empty($rawProductos)) {
+                    $pedido->productos = $rawProductos;
+                } else {
+                    // Intento 3: desde attributes directamente
+                    if (isset($pedido->attributes['detalles']) && is_array($pedido->attributes['detalles'])) {
+                        $pedido->productos = $pedido->attributes['detalles'];
+                    } elseif (isset($pedido->attributes['productos']) && is_array($pedido->attributes['productos'])) {
+                        $pedido->productos = $pedido->attributes['productos'];
+                    } else {
+                        $pedido->productos = [];
+                    }
+                }
+            }
+        }
+
+        // Log para debugging
+        \Log::info('Pedido Show - Productos cargados', [
+            'pedido_id' => $pedido->_id,
+            'cantidad_productos' => count($pedido->productos),
+            'productos' => $pedido->productos
+        ]);
 
         return view('vendedor.pedidos.show', compact('pedido'));
     }
@@ -63,7 +103,9 @@ class PedidoController extends Controller
     public function create()
     {
         $clientes = User::where('rol', 'cliente')->get();
-        $productos = Producto::where('estado', 'activo')->get();
+        $productos = Producto::where('activo', true)
+                            ->orderBy('nombre', 'asc')
+                            ->get();
 
         return view('vendedor.pedidos.create', compact('clientes', 'productos'));
     }
@@ -75,39 +117,57 @@ class PedidoController extends Controller
             'productos' => 'required|array|min:1',
             'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
-            'notas' => 'nullable|string|max:500'
+            'productos.*.precio' => 'required|numeric|min:0',
+        // Normalizar y filtrar productos válidos antes de validar
+        $productosFiltrados = collect($request->input('productos', []))
+            ->filter(function ($p) {
+                return isset($p['id']) && $p['id'] !== '' && isset($p['cantidad']) && (int) $p['cantidad'] > 0;
+            })
+            ->map(function ($p) {
+                $p['precio'] = isset($p['precio']) ? (float) $p['precio'] : 0;
+                return $p;
+            })
+            ->values()
+            ->all();
+        $request->merge(['productos' => $productosFiltrados]);
+
+            'direccion_entrega' => 'nullable|string|max:500',
+            'telefono_entrega' => 'nullable|string|max:20',
+            'notas' => 'nullable|string|max:500',
+            'descuento' => 'nullable|numeric|min:0'
         ]);
 
         $vendedor = Auth::user();
 
         try {
+            // Obtener datos del cliente
+            $cliente = User::findOrFail($request->cliente_id);
+
             // Generar número de pedido único
             $numeroPedido = 'PED-' . str_pad(Pedido::count() + 1, 6, '0', STR_PAD_LEFT);
 
-            // Calcular totales
+            // Calcular totales y preparar productos
             $subtotal = 0;
             $productosData = [];
 
             foreach ($request->productos as $productoData) {
                 $producto = Producto::findOrFail($productoData['id']);
                 $cantidad = $productoData['cantidad'];
+                $precio = $productoData['precio'];
 
                 // Verificar stock disponible
                 $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
-                if ($stockActual < $cantidad) {
-                    throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Stock disponible: {$stockActual}");
-                }
 
-                $precio = $producto->precio;
                 $total = $precio * $cantidad;
-
                 $subtotal += $total;
 
                 $productosData[] = [
-                    'producto_id' => $producto->id,
+                    'producto_id' => $producto->_id,
+                    'codigo' => $producto->codigo ?? 'N/A',
+                    'nombre' => $producto->nombre,
                     'cantidad' => $cantidad,
-                    'precio_unitario' => $precio,
-                    'total' => $total
+                    'precio' => $precio,
+                    'subtotal' => $total
                 ];
 
                 // Descontar stock
@@ -115,35 +175,38 @@ class PedidoController extends Controller
                 $producto->update(['stock' => $nuevoStock]);
             }
 
-            $iva = $subtotal * 0.19; // Asumiendo IVA del 19%
-            $totalFinal = $subtotal + $iva;
+            $descuento = $request->descuento ?? 0;
+            $totalFinal = $subtotal - $descuento;
 
-            // Crear el pedido
+            // Crear el pedido con productos embebidos
             $pedido = Pedido::create([
                 'numero_pedido' => $numeroPedido,
-                'cliente_id' => $request->cliente_id,
-                'vendedor_id' => $vendedor->id,
+                'cliente_id' => $cliente->_id,
+                'cliente_data' => [
+                    '_id' => $cliente->_id,
+                    'name' => $cliente->name,
+                    'email' => $cliente->email,
+                    'telefono' => $cliente->telefono ?? 'N/A',
+                ],
+                'vendedor_id' => $vendedor->_id,
+                'vendedor_data' => [
+                    '_id' => $vendedor->_id,
+                    'name' => $vendedor->name,
+                    'email' => $vendedor->email,
+                ],
+                'productos' => $productosData, // Array embebido
+                'detalles' => $productosData, // Alias para compatibilidad
                 'subtotal' => $subtotal,
-                'iva' => $iva,
+                'descuento' => $descuento,
                 'total_final' => $totalFinal,
                 'estado' => 'pendiente',
+                'direccion_entrega' => $request->direccion_entrega,
+                'telefono_entrega' => $request->telefono_entrega,
                 'notas' => $request->notas,
                 'stock_devuelto' => false
             ]);
 
-            // Asociar productos al pedido
-            foreach ($productosData as $productoData) {
-                // MongoDB: usar arrays embebidos
-                /*
-                $pedido->productos()->attach($productoData['producto_id'], [
-                    'cantidad' => $productoData['cantidad'],
-                    'precio_unitario' => $productoData['precio_unitario'],
-                    'total' => $productoData['total']
-                ]);
-                */
-            }
-
-            return redirect()->route('vendedor.pedidos.show', $pedido->id)
+            return redirect()->route('vendedor.pedidos.show', $pedido->_id)
                            ->with('success', 'Pedido creado exitosamente.');
 
         } catch (\Exception $e) {
@@ -156,82 +219,165 @@ class PedidoController extends Controller
     public function edit($id)
     {
         $vendedor = Auth::user();
-        $pedido = Pedido::where('vendedor_id', $vendedor->id)
-                       ->where('id', $id)
+        $pedido = Pedido::where('vendedor_id', $vendedor->_id)
+                       ->where('_id', $id)
                        ->where('estado', 'pendiente') // Solo pedidos pendientes se pueden editar
-                       // MongoDB: datos embebidos, no necesita with
                        ->firstOrFail();
 
+        // Garantizar que productos sea un array con múltiples intentos
+        if (!isset($pedido->productos) || !is_array($pedido->productos) || empty($pedido->productos)) {
+            // Intento 1: usar detalles (estructura estándar de MongoDB)
+            if (isset($pedido->detalles) && is_array($pedido->detalles) && !empty($pedido->detalles)) {
+                $pedido->productos = $pedido->detalles;
+            } else {
+                // Intento 2: acceso directo a attributes
+                $rawDetalles = $pedido->getRawOriginal('detalles');
+                $rawProductos = $pedido->getRawOriginal('productos');
+                
+                if (is_array($rawDetalles) && !empty($rawDetalles)) {
+                    $pedido->productos = $rawDetalles;
+                } elseif (is_array($rawProductos) && !empty($rawProductos)) {
+                    $pedido->productos = $rawProductos;
+                } else {
+                    $pedido->productos = [];
+                }
+            }
+        }
+
         $clientes = User::where('rol', 'cliente')->get();
-        $productos = Producto::where('estado', 'activo')->get();
+        // Cambiar 'estado' por 'activo' que es el campo correcto
+        $productos = Producto::where('activo', true)
+                            ->orderBy('nombre', 'asc')
+                            ->get();
 
         return view('vendedor.pedidos.edit', compact('pedido', 'clientes', 'productos'));
     }
 
     public function update(Request $request, $id)
     {
+        // Normalizar y filtrar productos válidos antes de validar
+        $productosFiltrados = collect($request->input('productos', []))
+            ->filter(function ($p) {
+                return isset($p['id']) && $p['id'] !== '' && isset($p['cantidad']) && (int) $p['cantidad'] > 0;
+            })
+            ->map(function ($p) {
+                $p['precio'] = isset($p['precio']) ? (float) $p['precio'] : 0;
+                return $p;
+            })
+            ->values()
+            ->all();
+        $request->merge(['productos' => $productosFiltrados]);
+
         $request->validate([
             'cliente_id' => 'required|string',
             'productos' => 'required|array|min:1',
             'productos.*.id' => 'required|string',
             'productos.*.cantidad' => 'required|integer|min:1',
-            'notas' => 'nullable|string|max:500'
+            'productos.*.precio' => 'required|numeric|min:0',
+            'direccion_entrega' => 'nullable|string|max:500',
+            'telefono_entrega' => 'nullable|string|max:20',
+            'notas' => 'nullable|string|max:500',
+            'descuento' => 'nullable|numeric|min:0'
         ]);
 
         $vendedor = Auth::user();
-        $pedido = Pedido::where('vendedor_id', $vendedor->id)
-                       ->where('id', $id)
+        $pedido = Pedido::where('vendedor_id', $vendedor->_id)
+                       ->where('_id', $id)
                        ->where('estado', 'pendiente')
                        ->firstOrFail();
 
         try {
-            // Calcular nuevos totales
+            // Obtener datos del cliente
+            $cliente = User::findOrFail($request->cliente_id);
+
+            // Crear un mapa de productos actuales para comparar
+            $productosAnteriores = [];
+            $productosData = $pedido->productos ?? $pedido->detalles ?? [];
+            
+            foreach ($productosData as $prod) {
+                $prodId = $prod['producto_id'] ?? null;
+                if ($prodId) {
+                    $productosAnteriores[(string) $prodId] = $prod['cantidad'] ?? 0;
+                }
+            }
+
+            // Calcular nuevos totales y preparar productos
             $subtotal = 0;
-            $productosData = [];
+            $productosNuevos = [];
+            $productosNuevosIds = [];
 
             foreach ($request->productos as $productoData) {
                 $producto = Producto::findOrFail($productoData['id']);
-                $cantidad = $productoData['cantidad'];
-                $precio = $producto->precio;
-                $total = $precio * $cantidad;
+                $cantidad = (int)$productoData['cantidad'];
+                $precio = $productoData['precio'];
 
+                // Calcular diferencia de stock
+                $cantidadAnterior = $productosAnteriores[(string) $producto->_id] ?? 0;
+                $diferencia = $cantidad - $cantidadAnterior;
+
+                // Solo verificar stock si se aumenta la cantidad
+                if ($diferencia > 0) {
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    // Descontar solo la diferencia (sin validar stock)
+                    $nuevoStock = $stockActual - $diferencia;
+                    $producto->update(['stock' => $nuevoStock]);
+                } elseif ($diferencia < 0) {
+                    // Si se reduce la cantidad, devolver stock
+                    $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                    $nuevoStock = $stockActual + abs($diferencia);
+                    $producto->update(['stock' => $nuevoStock]);
+                }
+
+                $total = $precio * $cantidad;
                 $subtotal += $total;
 
-                $productosData[] = [
-                    'producto_id' => $producto->id,
+                $productosNuevos[] = [
+                    'producto_id' => $producto->_id,
+                    'codigo' => $producto->codigo ?? 'N/A',
+                    'nombre' => $producto->nombre,
                     'cantidad' => $cantidad,
-                    'precio_unitario' => $precio,
-                    'total' => $total
+                    'precio' => $precio,
+                    'subtotal' => $total
                 ];
+                
+                $productosNuevosIds[] = (string) $producto->_id;
             }
 
-            $iva = $subtotal * 0.19;
-            $totalFinal = $subtotal + $iva;
+            // Devolver stock de productos que fueron eliminados del pedido
+            foreach ($productosAnteriores as $prodId => $cantidadAnterior) {
+                if (!in_array($prodId, $productosNuevosIds)) {
+                    $producto = Producto::find($prodId);
+                    if ($producto) {
+                        $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
+                        $nuevoStock = $stockActual + $cantidadAnterior;
+                        $producto->update(['stock' => $nuevoStock]);
+                    }
+                }
+            }
+
+            $descuento = $request->descuento ?? 0;
+            $totalFinal = $subtotal - $descuento;
 
             // Actualizar el pedido
             $pedido->update([
-                'cliente_id' => $request->cliente_id,
+                'cliente_id' => $cliente->_id,
+                'cliente_data' => [
+                    '_id' => $cliente->_id,
+                    'name' => $cliente->name,
+                    'email' => $cliente->email,
+                    'telefono' => $cliente->telefono ?? 'N/A',
+                ],
+                'productos' => $productosNuevos,
+                'detalles' => $productosNuevos,
                 'subtotal' => $subtotal,
-                'iva' => $iva,
+                'descuento' => $descuento,
                 'total_final' => $totalFinal,
+                'direccion_entrega' => $request->direccion_entrega,
+                'telefono_entrega' => $request->telefono_entrega,
                 'notas' => $request->notas
             ]);
 
-            // Actualizar productos del pedido
-            // MongoDB: usar arrays embebidos
-            // $pedido->productos()->detach();
-            foreach ($productosData as $productoData) {
-                // MongoDB: usar arrays embebidos
-                /*
-                $pedido->productos()->attach($productoData['producto_id'], [
-                    'cantidad' => $productoData['cantidad'],
-                    'precio_unitario' => $productoData['precio_unitario'],
-                    'total' => $productoData['total']
-                ]);
-                */
-            }
-
-            return redirect()->route('vendedor.pedidos.show', $pedido->id)
+            return redirect()->route('vendedor.pedidos.show', $pedido->_id)
                            ->with('success', 'Pedido actualizado exitosamente.');
 
         } catch (\Exception $e) {

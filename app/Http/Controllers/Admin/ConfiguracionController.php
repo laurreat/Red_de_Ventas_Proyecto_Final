@@ -71,14 +71,21 @@ class ConfiguracionController extends Controller
         ];
 
         // Estadísticas del sistema
+        $ventasMes = \App\Models\Pedido::whereMonth('created_at', now()->month)
+                                      ->whereYear('created_at', now()->year)
+                                      ->where('estado', 'entregado')
+                                      ->sum('total_final');
+        
+        // Convertir MongoDB Decimal128 a float si es necesario
+        if (is_object($ventasMes) && get_class($ventasMes) === 'MongoDB\BSON\Decimal128') {
+            $ventasMes = (float) $ventasMes->__toString();
+        }
+        
         $estadisticas = [
             'usuarios_totales' => \App\Models\User::count(),
             'pedidos_totales' => \App\Models\Pedido::count(),
             'productos_totales' => \App\Models\Producto::count(),
-            'ventas_mes_actual' => \App\Models\Pedido::whereMonth('created_at', now()->month)
-                                                  ->whereYear('created_at', now()->year)
-                                                  ->where('estado', 'entregado')
-                                                  ->sum('total_final'),
+            'ventas_mes_actual' => $ventasMes ?? 0,
             'usuarios_activos_mes' => \App\Models\User::where('created_at', '>=', now()->subMonth())->count(),
             'espacio_storage' => $this->calcularEspacioStorage(),
         ];

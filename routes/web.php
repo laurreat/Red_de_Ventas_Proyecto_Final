@@ -306,9 +306,14 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::delete('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'destroy'])->name('vendedor.pedidos.destroy');
         Route::post('vendedor/pedidos/exportar', [\App\Http\Controllers\Vendedor\PedidoController::class, 'exportar'])->name('vendedor.pedidos.exportar');
 
-        // Ventas (alias para pedidos)
-        Route::get('vendedor/ventas/crear', [\App\Http\Controllers\Vendedor\PedidoController::class, 'create'])->name('vendedor.ventas.crear');
-        Route::get('vendedor/ventas/historial', [\App\Http\Controllers\Vendedor\PedidoController::class, 'index'])->name('vendedor.ventas.historial');
+        // Gestión de Ventas (Nuevo Módulo)
+        Route::get('vendedor/ventas', [\App\Http\Controllers\Vendedor\VentaController::class, 'index'])->name('vendedor.ventas.index');
+        Route::get('vendedor/ventas/create', [\App\Http\Controllers\Vendedor\VentaController::class, 'create'])->name('vendedor.ventas.create');
+        Route::post('vendedor/ventas', [\App\Http\Controllers\Vendedor\VentaController::class, 'store'])->name('vendedor.ventas.store');
+        Route::get('vendedor/ventas/{id}', [\App\Http\Controllers\Vendedor\VentaController::class, 'show'])->name('vendedor.ventas.show');
+        Route::post('vendedor/ventas/exportar', [\App\Http\Controllers\Vendedor\VentaController::class, 'exportar'])->name('vendedor.ventas.exportar');
+        Route::get('vendedor/ventas/buscar-cliente', [\App\Http\Controllers\Vendedor\VentaController::class, 'buscarCliente'])->name('vendedor.ventas.buscar-cliente');
+        Route::get('vendedor/ventas/buscar-producto', [\App\Http\Controllers\Vendedor\VentaController::class, 'buscarProducto'])->name('vendedor.ventas.buscar-producto');
 
         // Gestión de Clientes
         Route::get('vendedor/clientes', [\App\Http\Controllers\Vendedor\ClienteController::class, 'index'])->name('vendedor.clientes.index');
@@ -360,9 +365,20 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::delete('vendedor/perfil/avatar', [\App\Http\Controllers\Vendedor\PerfilController::class, 'eliminarAvatar'])->name('vendedor.perfil.eliminar-avatar');
         Route::get('vendedor/perfil/exportar-datos', [\App\Http\Controllers\Vendedor\PerfilController::class, 'exportarDatos'])->name('vendedor.perfil.exportar-datos');
 
-        // Configuración del Vendedor
-        Route::get('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'configuracion'])->name('vendedor.configuracion.index');
-        Route::put('vendedor/configuracion', [\App\Http\Controllers\Vendedor\PerfilController::class, 'updateConfiguracion'])->name('vendedor.configuracion.update');
+        // Notificaciones del Vendedor
+        Route::get('vendedor/notificaciones', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'index'])->name('vendedor.notificaciones.index');
+        Route::get('vendedor/notificaciones/dropdown', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'dropdown'])->name('vendedor.notificaciones.dropdown');
+        Route::get('vendedor/notificaciones/contar-no-leidas', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'contarNoLeidas'])->name('vendedor.notificaciones.contar-no-leidas');
+        Route::post('vendedor/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'marcarTodasLeidas'])->name('vendedor.notificaciones.marcar-todas-leidas');
+        Route::delete('vendedor/notificaciones/limpiar-leidas', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'limpiarLeidas'])->name('vendedor.notificaciones.limpiar-leidas');
+        Route::get('vendedor/notificaciones/{id}', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'show'])->name('vendedor.notificaciones.show');
+        Route::post('vendedor/notificaciones/{id}/marcar-leida', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'marcarLeida'])->name('vendedor.notificaciones.marcar-leida');
+        Route::delete('vendedor/notificaciones/{id}', [\App\Http\Controllers\Vendedor\NotificacionController::class, 'eliminar'])->name('vendedor.notificaciones.eliminar');
+
+        // Centro de Ayuda del Vendedor
+        Route::get('vendedor/ayuda', [\App\Http\Controllers\Vendedor\AyudaController::class, 'index'])->name('vendedor.ayuda.index');
+        Route::get('vendedor/ayuda/buscar', [\App\Http\Controllers\Vendedor\AyudaController::class, 'buscar'])->name('vendedor.ayuda.buscar');
+        Route::post('vendedor/ayuda/ticket', [\App\Http\Controllers\Vendedor\AyudaController::class, 'enviarTicket'])->name('vendedor.ayuda.ticket');
 
         // Mensajes del Líder
         Route::get('vendedor/mensajes', [\App\Http\Controllers\Vendedor\MensajeController::class, 'index'])->name('vendedor.mensajes.index');

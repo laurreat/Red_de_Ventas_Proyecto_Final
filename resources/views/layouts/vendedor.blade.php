@@ -14,6 +14,12 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
+    <!-- Header Dropdowns CSS - Using Admin Unified Style -->
+    <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
+
+    <!-- Mobile Optimizations -->
+    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
@@ -495,20 +501,20 @@
             <div class="nav-section">Ventas</div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#ventasSubmenu" aria-expanded="false">
+                <a href="#" class="nav-link dropdown-toggle {{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'active' : '' }}" data-bs-toggle="collapse" data-bs-target="#ventasSubmenu" aria-expanded="{{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'true' : 'false' }}">
                     <i class="bi bi-cart-check"></i>
                     Mis Ventas
                 </a>
-                <div class="collapse" id="ventasSubmenu">
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Gestión de Pedidos')">
-                        <i class="bi bi-list"></i>
+                <div class="collapse {{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'show' : '' }}" id="ventasSubmenu">
+                    <a href="{{ route('vendedor.pedidos.index') }}" class="dropdown-item {{ request()->routeIs('vendedor.pedidos.*') ? 'active' : '' }}">
+                        <i class="bi bi-list-check"></i>
                         Gestión de Pedidos
                     </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Nueva Venta')">
-                        <i class="bi bi-plus-circle"></i>
+                    <a href="{{ route('vendedor.ventas.create') }}" class="dropdown-item {{ request()->routeIs('vendedor.ventas.create') ? 'active' : '' }}">
+                        <i class="bi bi-plus-circle-fill"></i>
                         Nueva Venta
                     </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Historial de Ventas')">
+                    <a href="{{ route('vendedor.ventas.index') }}" class="dropdown-item {{ request()->routeIs('vendedor.ventas.index') || request()->routeIs('vendedor.ventas.show') ? 'active' : '' }}">
                         <i class="bi bi-clock-history"></i>
                         Historial de Ventas
                     </a>
@@ -626,98 +632,19 @@
             <div class="nav-section">Configuración</div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Mi Perfil')">
+                <a href="{{ route('vendedor.perfil.index') }}" class="nav-link {{ request()->routeIs('vendedor.perfil.*') ? 'active' : '' }}">
                     <i class="bi bi-person-circle"></i>
                     Mi Perfil
-                </a>
-            </div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Configuración')">
-                    <i class="bi bi-gear"></i>
-                    Configuración
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- Header -->
-    <header class="vendedor-header" id="vendedorHeader">
-        <div class="header-content">
-            <div class="header-left">
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="bi bi-list"></i>
-                </button>
-                <h1 class="header-title">@yield('page-title', 'Dashboard')</h1>
-            </div>
-
-            <div class="header-right">
-                <!-- Notifications -->
-                <div class="dropdown">
-                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end" style="width: 320px; z-index: 1090 !important;">
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h6 class="mb-0">Notificaciones</h6>
-                            <small class="text-muted">3 nuevas</small>
-                        </div>
-                        <div class="p-3 text-center text-muted">
-                            <i class="bi bi-bell-slash fs-4"></i>
-                            <p class="mb-0 mt-2">Sistema de notificaciones próximamente</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile -->
-                <div class="dropdown">
-                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="profile-avatar">
-                            <i class="bi bi-person"></i>
-                        </div>
-                        <div class="profile-info">
-                            <div class="profile-name">{{ Auth::user()->name }}</div>
-                            <div class="profile-role">Vendedor</div>
-                        </div>
-                        <i class="bi bi-chevron-down ms-2"></i>
-                    </div>
-                    <ul class="dropdown-menu dropdown-menu-end" style="z-index: 1090 !important;">
-                        <li>
-                            <h6 class="dropdown-header">
-                                {{ Auth::user()->name }}
-                                <small class="text-muted d-block">{{ Auth::user()->email }}</small>
-                            </h6>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Mi Perfil')">
-                                <i class="bi bi-person me-2"></i>
-                                Mi Perfil
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Configuración')">
-                                <i class="bi bi-gear me-2"></i>
-                                Configuración
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right me-2"></i>
-                                Cerrar Sesión
-                            </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Header Unificado -->
+    @include('admin.partials.unified-header', [
+        'headerId' => 'vendedorHeader',
+        'sidebarToggleId' => 'sidebarToggle'
+    ])
 
     <!-- Main Content -->
     <main class="vendedor-main" id="vendedorMain">
@@ -778,6 +705,9 @@
             alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
         }
     </script>
+
+    <!-- Header Modern Script -->
+    <script src="{{ asset('js/vendedor/header-modern.js') }}?v={{ filemtime(public_path('js/vendedor/header-modern.js')) }}"></script>
 
     @stack('scripts')
 </body>

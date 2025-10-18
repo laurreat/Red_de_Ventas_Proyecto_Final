@@ -55,7 +55,9 @@
       "Bash(if [ -f \"public/js/modules/dashboard.js\" ])",
       "Bash(then rm \"public/js/modules/dashboard.js\")",
       "Bash(fi)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(if not exist \"public\\css\\vendedor\" mkdir \"public\\css\\vendedor\")",
+      "Bash(if not exist \"public\\js\\vendedor\" mkdir \"public\\js\\vendedor\")"
     ],
     "deny": [],
     "ask": []

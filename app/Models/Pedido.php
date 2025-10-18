@@ -15,12 +15,16 @@ class Pedido extends Model
     protected $fillable = [
         'numero_pedido',
         'user_id',
+        'cliente_id',
         'cliente_data', // Datos del cliente embebidos
         'vendedor_id',
         'vendedor_data', // Datos del vendedor embebidos
+        'productos', // Array embebido de productos
         'estado',
-        'total',
+        'subtotal',
         'descuento',
+        'iva',
+        'total',
         'total_final',
         'direccion_entrega',
         'telefono_entrega',
@@ -28,7 +32,7 @@ class Pedido extends Model
         'fecha_entrega_estimada',
         'zona_entrega_id',
         'zona_entrega_data',
-        'detalles', // Array embebido de productos
+        'detalles', // Array embebido de productos (alias)
         'historial_estados',
         'metodo_pago',
         'datos_entrega',
@@ -37,11 +41,14 @@ class Pedido extends Model
     ];
 
     protected $casts = [
-        'total' => 'decimal:2',
+        'subtotal' => 'decimal:2',
         'descuento' => 'decimal:2',
+        'iva' => 'decimal:2',
+        'total' => 'decimal:2',
         'total_final' => 'decimal:2',
         'fecha_entrega_estimada' => 'datetime',
-        // 'detalles' => 'array', // Comentado: ya se maneja con getter/setter personalizado
+        'productos' => 'array',
+        'detalles' => 'array',
         'historial_estados' => 'array',
         'cliente_data' => 'array',
         'vendedor_data' => 'array',
@@ -72,6 +79,32 @@ class Pedido extends Model
         return $this->hasMany(DetallePedido::class, 'pedido_id');
     }
 
+    // Accessor para garantizar que productos siempre sea un array
+    public function getProductosAttribute($value)
+    {
+        // Si ya tiene valor como array, devolverlo
+        if (is_array($value) && !empty($value)) {
+            return $value;
+        }
+        
+        // Intentar obtener de 'detalles' primero (estructura MongoDB estándar)
+        $detalles = $this->attributes['detalles'] ?? null;
+        if (is_array($detalles) && !empty($detalles)) {
+            return $detalles;
+        }
+        
+        // Si value es string, intentar decodificar JSON
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+        
+        // Si nada funciona, devolver array vacío
+        return [];
+    }
+
     // Override para manejar tanto embebidos como relación
     public function getDetallesAttribute($value)
     {
@@ -90,6 +123,14 @@ class Pedido extends Model
             $rawDetalles = $this->attributes['detalles'];
             if (is_array($rawDetalles)) {
                 return $rawDetalles;
+            }
+        }
+
+        // Si no hay detalles, intentar con productos
+        if (isset($this->attributes['productos'])) {
+            $rawProductos = $this->attributes['productos'];
+            if (is_array($rawProductos)) {
+                return $rawProductos;
             }
         }
 

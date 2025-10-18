@@ -58,7 +58,7 @@
         <div class="col-md-3 col-sm-6 mb-3">
             <div class="config-stat-card animate-delay-4">
                 <i class="bi bi-currency-dollar" style="color:var(--info)"></i>
-                <h4>${{ number_format($estadisticas['ventas_mes_actual'] ?? 0, 0, ',', '.') }}</h4>
+                <h4>${{ format_currency($estadisticas['ventas_mes_actual'] ?? 0) }}</h4>
                 <small>Ventas Este Mes</small>
             </div>
         </div>

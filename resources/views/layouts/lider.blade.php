@@ -14,8 +14,11 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
-    <!-- Header Dropdowns CSS -->
-    <link rel="stylesheet" href="{{ asset('css/lider/header-dropdowns.css') }}?v={{ filemtime(public_path('css/lider/header-dropdowns.css')) }}">
+    <!-- Header Dropdowns CSS - Using Admin Unified Style -->
+    <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
+
+    <!-- Mobile Optimizations -->
+    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -580,188 +583,11 @@
         </div>
     </nav>
 
-    <!-- Header -->
-    <header class="lider-header" id="liderHeader">
-        <div class="header-content">
-            <div class="header-left">
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="bi bi-list"></i>
-                </button>
-                <h1 class="header-title">@yield('page-title', 'Dashboard')</h1>
-            </div>
-
-            <div class="header-right">
-                <!-- Notifications -->
-                <div class="dropdown">
-                    <button class="header-notifications" data-bs-toggle="dropdown" aria-expanded="false" id="notificationsDropdown">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge-animated" id="notificationBadge" style="display: none;">0</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu notifications-dropdown" id="notificationsDropdownMenu">
-                        <!-- Header -->
-                        <div class="dropdown-header-modern">
-                            <h6>
-                                <i class="bi bi-bell me-2"></i>
-                                Notificaciones
-                            </h6>
-                            <div class="dropdown-header-actions">
-                                <span class="notification-count-badge" id="notificationCount">0 nuevas</span>
-                                <button class="btn btn-view-all" onclick="verTodasLasNotificaciones()">
-                                    Ver todas
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Notifications List -->
-                        <div class="notifications-list" id="notificationsList">
-                            <div class="notifications-empty">
-                                <i class="bi bi-bell-slash"></i>
-                                <h6>Sin notificaciones</h6>
-                                <p>No tienes notificaciones nuevas en este momento</p>
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="dropdown-footer">
-                            <button class="btn btn-mark-all-read" onclick="marcarTodasLeidasDropdown()">
-                                <i class="bi bi-check-all"></i>
-                                Marcar todas como leídas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile -->
-                <div class="dropdown">
-                    <div class="header-profile" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="profile-avatar">
-                            @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
-                                     alt="Avatar">
-                            @else
-                                <div class="avatar-placeholder">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                </div>
-                            @endif
-                        </div>
-                        <div class="profile-info">
-                            <div class="profile-name">{{ Auth::user()->name }}</div>
-                            <div class="profile-role">{{ ucfirst(Auth::user()->rol) }}</div>
-                        </div>
-                        <i class="bi bi-chevron-down ms-2"></i>
-                    </div>
-                    <div class="dropdown-menu dropdown-menu-end header-dropdown-menu profile-dropdown">
-                        <!-- Profile Header -->
-                        <div class="profile-dropdown-header">
-                            <div class="profile-dropdown-avatar">
-                                @if(Auth::user()->avatar)
-                                    <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}"
-                                         alt="Avatar">
-                                @else
-                                    <div class="avatar-initial">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="profile-dropdown-name">{{ Auth::user()->name }}</div>
-                            <div class="profile-dropdown-email">{{ Auth::user()->email }}</div>
-                            <span class="profile-dropdown-role">
-                                <i class="bi bi-person-badge me-1"></i>
-                                {{ ucfirst(Auth::user()->rol) }}
-                            </span>
-                        </div>
-
-                        <!-- Stats Section -->
-                        @php
-                            // Obtener miembros del equipo directo (referidos directos)
-                            $equipoDirecto = \App\Models\User::where('referido_por', Auth::user()->_id)->get();
-                            $totalEquipo = $equipoDirecto->count();
-
-                            // Obtener total de ventas del líder y su equipo
-                            $idsEquipo = $equipoDirecto->pluck('_id')->toArray();
-                            $idsEquipo[] = Auth::user()->_id; // Incluir al líder
-
-                            $totalVentas = \App\Models\Pedido::whereIn('vendedor_id', $idsEquipo)
-                                ->whereIn('estado', ['completado', 'entregado'])
-                                ->count();
-
-                            // Obtener comisiones reales del líder desde la colección de comisiones
-                            // Suma de comisiones aprobadas y pendientes (que aún no han sido pagadas)
-                            $comisionesDisponibles = \App\Models\Comision::where('user_id', Auth::user()->_id)
-                                ->whereIn('estado', ['aprobada', 'pendiente'])
-                                ->sum('monto');
-
-                            $liderStats = [
-                                'equipo' => $totalEquipo,
-                                'ventas' => $totalVentas,
-                                'comisiones' => $comisionesDisponibles
-                            ];
-                        @endphp
-                        <div class="profile-stats">
-                            <div class="profile-stat">
-                                <span class="profile-stat-value">{{ $liderStats['equipo'] }}</span>
-                                <span class="profile-stat-label">Equipo</span>
-                            </div>
-                            <div class="profile-stat">
-                                <span class="profile-stat-value">{{ $liderStats['ventas'] }}</span>
-                                <span class="profile-stat-label">Ventas</span>
-                            </div>
-                            <div class="profile-stat">
-                                <span class="profile-stat-value">${{ format_currency($liderStats['comisiones']) }}</span>
-                                <span class="profile-stat-label">Comisiones</span>
-                            </div>
-                        </div>
-
-                        <!-- Menu Items -->
-                        <div class="profile-menu-section">
-                            <a href="{{ route('lider.dashboard') }}" class="profile-menu-item">
-                                <i class="bi bi-speedometer2"></i>
-                                <span class="menu-item-text">Dashboard</span>
-                            </a>
-                            <a href="{{ route('lider.perfil.index') }}" class="profile-menu-item">
-                                <i class="bi bi-person"></i>
-                                <span class="menu-item-text">Mi Perfil</span>
-                            </a>
-                            <a href="{{ route('lider.equipo.index') }}" class="profile-menu-item">
-                                <i class="bi bi-people"></i>
-                                <span class="menu-item-text">Mi Equipo</span>
-                            </a>
-                            <a href="{{ route('lider.comisiones.index') }}" class="profile-menu-item">
-                                <i class="bi bi-currency-dollar"></i>
-                                <span class="menu-item-text">Comisiones</span>
-                            </a>
-                        </div>
-
-                        <hr class="profile-menu-divider">
-
-                        <div class="profile-menu-section">
-                            <a href="{{ route('lider.configuracion.index') }}" class="profile-menu-item">
-                                <i class="bi bi-gear"></i>
-                                <span class="menu-item-text">Configuración</span>
-                            </a>
-                            <a href="{{ route('lider.ayuda.index') }}" class="profile-menu-item">
-                                <i class="bi bi-question-circle"></i>
-                                <span class="menu-item-text">Ayuda</span>
-                            </a>
-                        </div>
-
-                        <hr class="profile-menu-divider">
-
-                        <div class="profile-menu-section">
-                            <a href="{{ route('logout') }}" class="profile-menu-item danger"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span class="menu-item-text">Cerrar Sesión</span>
-                            </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Header Unificado -->
+    @include('admin.partials.unified-header', [
+        'headerId' => 'liderHeader',
+        'sidebarToggleId' => 'sidebarToggle'
+    ])
 
     <!-- Main Content -->
     <main class="lider-main" id="liderMain">
