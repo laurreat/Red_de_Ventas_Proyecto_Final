@@ -20,7 +20,9 @@ class ClienteDashboardManager {
     this.setupEventListeners();
     this.animateCards();
     this.updateCarritoCount();
+    this.sincronizarFavoritosConDOM(); // Sincronizar con favoritos renderizados
     this.loadFavoritos();
+    this.actualizarContadorFavoritos(); // Actualizar contador al inicio
   }
 
   setupEventListeners() {
@@ -321,9 +323,22 @@ class ClienteDashboardManager {
    * Actualizar el sidebar de favoritos dinámicamente
    */
   actualizarSidebarFavoritos() {
-    const container = document.querySelector('.card-header:has(.bi-heart-fill)')?.nextElementSibling?.nextElementSibling;
+    // Buscar el contenedor correcto - puede tener alerts de debug
+    let container = document.querySelector('.card-header:has(.bi-heart-fill)')?.parentElement?.querySelector('.card-body:last-of-type');
     
-    if (!container) return;
+    // Si no lo encuentra, buscar de forma alternativa
+    if (!container) {
+      const card = document.querySelector('.card-header:has(.bi-heart-fill)')?.closest('.card');
+      if (card) {
+        const cardBodies = card.querySelectorAll('.card-body');
+        container = cardBodies[cardBodies.length - 1]; // Último card-body
+      }
+    }
+    
+    if (!container) {
+      console.warn('No se encontró el contenedor de favoritos');
+      return;
+    }
 
     // Actualizar contador en el header
     this.actualizarContadorFavoritos();
@@ -677,6 +692,69 @@ class ClienteDashboardManager {
         }
       }
     });
+  }
+
+  /**
+   * Sincronizar favoritos con los elementos del DOM ya renderizados
+   * Esto se ejecuta al cargar la página cuando ya hay favoritos en la BD
+   */
+  sincronizarFavoritosConDOM() {
+    // Buscar todos los elementos de favoritos ya renderizados en el sidebar
+    const favoritosEnDOM = document.querySelectorAll('[data-favorito-id]');
+    
+    if (favoritosEnDOM.length > 0) {
+      console.log('Sincronizando favoritos con DOM...', favoritosEnDOM.length);
+      
+      favoritosEnDOM.forEach(elemento => {
+        const id = elemento.dataset.favoritoId;
+        
+        // Obtener datos del producto desde los atributos del botón de agregar al carrito
+        const btnCarrito = elemento.querySelector('[data-producto-id]');
+        if (btnCarrito) {
+          const nombre = btnCarrito.dataset.nombre || 'Producto';
+          const precio = parseFloat(btnCarrito.dataset.precio) || 0;
+          const imagen = btnCarrito.dataset.imagen || null;
+          const stock = btnCarrito.dataset.stock ? parseInt(btnCarrito.dataset.stock) : null;
+          
+          // Verificar si ya está en favoritos localStorage
+          const existe = this.favoritos.find(f => f.id === id);
+          if (!existe) {
+            // Agregar a localStorage
+            this.favoritos.push({
+              id: id,
+              nombre: nombre,
+              precio: precio,
+              imagen: imagen,
+              stock: stock
+            });
+          } else {
+            // Actualizar datos si ya existe (por si cambió precio o stock)
+            existe.nombre = nombre;
+            existe.precio = precio;
+            existe.imagen = imagen;
+            existe.stock = stock;
+          }
+        }
+      });
+      
+      // Guardar favoritos sincronizados
+      this.guardarFavoritos();
+      
+      // Marcar botones de corazón en el catálogo
+      this.favoritos.forEach(fav => {
+        const btn = document.querySelector(`[onclick*="toggleFavorito('${fav.id}')"]`);
+        if (btn) {
+          btn.classList.add('active');
+          const icon = btn.querySelector('i');
+          if (icon) {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill');
+          }
+        }
+      });
+      
+      console.log('Favoritos sincronizados:', this.favoritos.length);
+    }
   }
 
   eliminarFavoritoDirecto(productoId) {
@@ -1243,3 +1321,506 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+/**
+ * PARCHE PARA SISTEMA DE FAVORITOS
+ * Agregar este código al final del archivo cliente-dashboard-modern.js
+ * o reemplazar las funciones existentes
+ */
+
+// SOBRESCRIBIR método toggleFavorito
+ClienteDashboardManager.prototype.toggleFavorito = function(productoId, nombre = '', precio = 0, imagen = null, stock = null) {
+  const idx = this.favoritos.findIndex(f => f.id === productoId);
+  const btn = document.querySelector(`[onclick*="toggleFavorito('${productoId}')"]`);
+  
+  if (idx > -1) {
+    // ELIMINAR de favoritos
+    this.favoritos.splice(idx, 1);
+    if (btn) {
+      btn.classList.remove('active');
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+      }
+    }
+    this.showToast('Eliminado de favoritos', 'info');
+    this.syncFavoritoBackend(productoId, 'eliminar');
+  } else {
+    // AGREGAR a favoritos
+    this.favoritos.push({ id: productoId, nombre, precio, imagen, stock });
+    if (btn) {
+      btn.classList.add('active');
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('bi-heart');
+        icon.classList.add('bi-heart-fill');
+      }
+    }
+    this.showToast('Agregado a favoritos', 'success');
+    this.syncFavoritoBackend(productoId, 'agregar');
+  }
+  
+  // CRÍTICO: Actualizar TODO después de cada cambio
+  this.guardarFavoritos();
+  this.actualizarContadorFavoritos();
+  this.actualizarSidebarFavoritos();
+};
+
+// SOBRESCRIBIR método actualizarContadorFavoritos
+ClienteDashboardManager.prototype.actualizarContadorFavoritos = function() {
+  const totalFavoritos = this.favoritos.length;
+  
+  // 1. Actualizar badge en el sidebar
+  const header = document.querySelector('.card-header:has(.bi-heart-fill) h6');
+  if (header) {
+    let badge = header.querySelector('.badge');
+    
+    if (totalFavoritos > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'badge bg-primary ms-2';
+        header.appendChild(badge);
+      }
+      badge.textContent = totalFavoritos;
+      badge.style.display = 'inline-block';
+      badge.classList.add('pulse');
+      setTimeout(() => badge.classList.remove('pulse'), 1000);
+    } else {
+      if (badge) {
+        badge.style.display = 'none';
+      }
+    }
+  }
+  
+  // 2. Actualizar contador en las métricas superiores
+  const metricCounter = document.getElementById('contadorFavoritosMetric');
+  if (metricCounter) {
+    metricCounter.textContent = totalFavoritos;
+    // Agregar animación de actualización
+    metricCounter.classList.add('animate-bounce');
+    setTimeout(() => {
+      metricCounter.classList.remove('animate-bounce');
+    }, 500);
+  }
+
+  // 3. Actualizar TODOS los contadores de favoritos en la página
+  document.querySelectorAll('[data-favoritos-count]').forEach(counter => {
+    counter.textContent = totalFavoritos;
+  });
+
+  console.log('✅ Contador actualizado:', totalFavoritos);
+};
+
+// SOBRESCRIBIR método eliminarFavoritoDirecto
+ClienteDashboardManager.prototype.eliminarFavoritoDirecto = function(productoId) {
+  const idx = this.favoritos.findIndex(f => f.id === productoId);
+  if (idx > -1) {
+    const nombre = this.favoritos[idx].nombre;
+    this.favoritos.splice(idx, 1);
+    this.guardarFavoritos();
+    
+    // Sincronizar con backend
+    this.syncFavoritoBackend(productoId, 'eliminar');
+    
+    // Actualizar botón en el catálogo si existe
+    const btn = document.querySelector(`[onclick*="toggleFavorito('${productoId}')"]`);
+    if (btn) {
+      btn.classList.remove('active');
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+      }
+    }
+    
+    // CRÍTICO: Actualizar contador y sidebar
+    this.actualizarContadorFavoritos();
+    this.actualizarSidebarFavoritos();
+    
+    // Remover elemento con animación
+    const favoritoElement = document.querySelector(`[data-favorito-id="${productoId}"]`);
+    if (favoritoElement) {
+      favoritoElement.style.transition = 'all 0.3s ease';
+      favoritoElement.style.opacity = '0';
+      favoritoElement.style.transform = 'translateX(-20px)';
+      setTimeout(() => {
+        favoritoElement.remove();
+        if (this.favoritos.length === 0) {
+          this.actualizarSidebarFavoritos();
+        }
+      }, 300);
+    }
+    
+    this.showToast(`${nombre} eliminado de favoritos`, 'info');
+  }
+};
+
+// SOBRESCRIBIR método eliminarFavoritoDesdeModal
+ClienteDashboardManager.prototype.eliminarFavoritoDesdeModal = function(productoId) {
+  this.eliminarFavoritoDirecto(productoId);
+  
+  const element = document.querySelector(`[data-favorito-modal-id="${productoId}"]`);
+  if (element) {
+    element.style.transition = 'all 0.3s ease';
+    element.style.opacity = '0';
+    element.style.transform = 'translateX(-20px)';
+    setTimeout(() => {
+      element.remove();
+      
+      if (this.favoritos.length === 0) {
+        this.closeAllModals();
+        this.actualizarSidebarFavoritos();
+        this.actualizarContadorFavoritos();
+      } else {
+        const modalTitle = document.querySelector('.modal-container h5');
+        if (modalTitle) {
+          modalTitle.textContent = `❤️ Mis Favoritos (${this.favoritos.length})`;
+        }
+        
+        const totalBadge = document.querySelector('.favoritos-list')?.nextElementSibling?.querySelector('.badge');
+        if (totalBadge) {
+          totalBadge.textContent = this.favoritos.length;
+        }
+        
+        this.actualizarContadorFavoritos();
+      }
+    }, 300);
+  }
+};
+
+// SOBRESCRIBIR método ejecutarVaciarFavoritos
+ClienteDashboardManager.prototype.ejecutarVaciarFavoritos = function() {
+  const favoritosIds = [...this.favoritos.map(f => f.id)];
+  
+  this.favoritos = [];
+  this.guardarFavoritos();
+  
+  favoritosIds.forEach(id => {
+    this.syncFavoritoBackend(id, 'eliminar');
+  });
+  
+  document.querySelectorAll('.btn-favorito.active').forEach(btn => {
+    btn.classList.remove('active');
+    const icon = btn.querySelector('i');
+    if (icon) {
+      icon.classList.remove('bi-heart-fill');
+      icon.classList.add('bi-heart');
+    }
+  });
+  
+  // CRÍTICO: Actualizar contador y sidebar
+  this.actualizarContadorFavoritos();
+  this.actualizarSidebarFavoritos();
+  
+  this.closeAllModals();
+  this.showToast('Todos los favoritos han sido eliminados', 'info');
+};
+
+// SOBRESCRIBIR método init para asegurar sincronización al cargar
+ClienteDashboardManager.prototype.init = function() {
+  this.setupEventListeners();
+  this.animateCards();
+  this.updateCarritoCount();
+  this.sincronizarFavoritosConDOM();
+  this.loadFavoritos();
+  this.actualizarContadorFavoritos(); // Actualizar contador al inicio
+  
+  // Verificar y actualizar sidebar después de un pequeño delay
+  setTimeout(() => {
+    this.actualizarSidebarFavoritos();
+    this.actualizarContadorFavoritos();
+    console.log('✅ Sistema de favoritos inicializado:', this.favoritos.length);
+  }, 100);
+};
+
+// Agregar método de sincronización periódica (cada 30 segundos)
+setInterval(() => {
+  if (window.clienteDashboard) {
+    const favoritosActuales = window.clienteDashboard.favoritos.length;
+    const contadorMostrado = document.getElementById('contadorFavoritosMetric')?.textContent;
+    
+    if (favoritosActuales != contadorMostrado) {
+      console.warn('⚠️ Desincronización detectada. Corrigiendo...');
+      window.clienteDashboard.actualizarContadorFavoritos();
+      window.clienteDashboard.actualizarSidebarFavoritos();
+    }
+  }
+}, 30000);
+
+// ========================================
+// CORRECCIÓN: AGREGAR AL CARRITO DESDE FAVORITOS
+// ========================================
+
+// FUNCIÓN GLOBAL MEJORADA: agregarAlCarritoFromFavorito
+window.agregarAlCarritoFromFavorito = function(id) {
+  console.log('🛒 Intentando agregar al carrito desde favoritos:', id);
+  
+  if (!window.clienteDashboard) {
+    console.error('❌ ClienteDashboard no disponible');
+    return;
+  }
+  
+  // Buscar en favoritos del manager
+  const fav = window.clienteDashboard.favoritos.find(f => f.id === id);
+  
+  if (fav) {
+    console.log('✅ Producto encontrado en favoritos:', fav);
+    window.clienteDashboard.agregarAlCarrito(id, fav.nombre, fav.precio, fav.imagen, fav.stock);
+    
+    // Feedback visual en el botón
+    const btn = document.querySelector(`[onclick*="agregarAlCarritoFromFavorito('${id}')"]`);
+    if (btn && !btn.disabled) {
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> ¡Agregado!';
+      btn.classList.add('btn-success');
+      btn.classList.remove('btn-outline-primary');
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-primary');
+        btn.disabled = false;
+      }, 2000);
+    }
+  } else {
+    console.error('❌ Producto no encontrado en favoritos:', id);
+    
+    // Intentar obtener datos del DOM como fallback
+    const btnDOM = document.querySelector(`[data-producto-id="${id}"]`);
+    if (btnDOM) {
+      const nombre = btnDOM.dataset.nombre || 'Producto';
+      const precio = parseFloat(btnDOM.dataset.precio) || 0;
+      const imagen = btnDOM.dataset.imagen || null;
+      const stock = btnDOM.dataset.stock ? parseInt(btnDOM.dataset.stock) : null;
+      
+      console.log('⚠️ Usando datos del DOM como fallback');
+      window.clienteDashboard.agregarAlCarrito(id, nombre, precio, imagen, stock);
+    } else {
+      window.clienteDashboard.showToast('Error: Producto no encontrado', 'error');
+    }
+  }
+};
+
+// SOBRESCRIBIR: agregarAlCarritoDesdeModal
+ClienteDashboardManager.prototype.agregarAlCarritoDesdeModal = function(productoId) {
+  console.log('🛒 Agregando al carrito desde modal:', productoId);
+  
+  const fav = this.favoritos.find(f => f.id === productoId);
+  
+  if (!fav) {
+    console.error('❌ Producto no encontrado en favoritos');
+    this.showToast('Error: Producto no encontrado', 'error');
+    return;
+  }
+  
+  // Verificar stock
+  if (fav.stock !== null && fav.stock <= 0) {
+    this.showToast('Producto sin stock disponible', 'warning');
+    return;
+  }
+  
+  this.agregarAlCarrito(productoId, fav.nombre, fav.precio, fav.imagen, fav.stock);
+  
+  // Feedback visual mejorado
+  const btnModal = document.querySelector(`[onclick*="agregarAlCarritoDesdeModal('${productoId}')"]`);
+  if (btnModal && !btnModal.disabled) {
+    const originalText = btnModal.innerHTML;
+    btnModal.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ¡Agregado!';
+    btnModal.classList.remove('btn-primary');
+    btnModal.classList.add('btn-success');
+    btnModal.disabled = true;
+    
+    // Restaurar después de 2 segundos
+    setTimeout(() => {
+      btnModal.innerHTML = originalText;
+      btnModal.classList.add('btn-primary');
+      btnModal.classList.remove('btn-success');
+      btnModal.disabled = fav.stock <= 0;
+    }, 2000);
+  }
+};
+
+// MEJORAR: actualizarSidebarFavoritos para asegurar data-attributes correctos
+ClienteDashboardManager.prototype.actualizarSidebarFavoritos = function() {
+  let container = document.querySelector('.card-header:has(.bi-heart-fill)')?.parentElement?.querySelector('.card-body:last-of-type');
+  
+  if (!container) {
+    const card = document.querySelector('.card-header:has(.bi-heart-fill)')?.closest('.card');
+    if (card) {
+      const cardBodies = card.querySelectorAll('.card-body');
+      container = cardBodies[cardBodies.length - 1];
+    }
+  }
+  
+  if (!container) {
+    console.warn('⚠️ No se encontró el contenedor de favoritos');
+    return;
+  }
+
+  this.actualizarContadorFavoritos();
+
+  if (this.favoritos.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-3">
+        <i class="bi bi-heart fs-3 text-muted"></i>
+        <p class="text-muted mb-2">No tienes productos favoritos</p>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('buscarProducto')?.scrollIntoView({behavior:'smooth'})">
+          Explorar productos
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const favoritosVisible = this.favoritos.slice(0, 3);
+  const totalFavoritos = this.favoritos.length;
+
+  let html = '';
+  favoritosVisible.forEach((fav, index) => {
+    const stockColor = fav.stock <= 0 ? 'text-danger' : (fav.stock <= 5 ? 'text-warning' : 'text-muted');
+    const stockText = fav.stock !== null && fav.stock !== undefined ? `
+      <small class="d-block ${stockColor}">
+        <i class="bi bi-box-seam"></i> Stock: ${fav.stock}
+      </small>
+    ` : '';
+    
+    const borderClass = index < favoritosVisible.length - 1 ? 'border-bottom' : '';
+    const estaAgotado = fav.stock !== null && fav.stock <= 0;
+
+    html += `
+      <div class="d-flex align-items-center py-2 ${borderClass}" data-favorito-id="${fav.id}">
+        <div class="bg-primary text-white rounded me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+          <i class="bi bi-heart-fill"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-medium">${fav.nombre}</div>
+          <small class="text-muted">${this.formatPrice(fav.precio)}</small>
+          ${stockText}
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-outline-primary ${estaAgotado ? 'disabled' : ''}" 
+                  onclick="agregarAlCarritoFromFavorito('${fav.id}')"
+                  data-producto-id="${fav.id}"
+                  data-nombre="${this.escapeHtml(fav.nombre)}"
+                  data-precio="${fav.precio}"
+                  data-imagen="${fav.imagen || ''}"
+                  data-stock="${fav.stock || 0}"
+                  ${estaAgotado ? 'disabled' : ''}
+                  title="${estaAgotado ? 'Producto agotado' : 'Agregar al carrito'}">
+            <i class="bi bi-cart-plus"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" 
+                  onclick="eliminarFavorito('${fav.id}')"
+                  title="Quitar de favoritos">
+            <i class="bi bi-heart-fill"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  if (totalFavoritos > 3) {
+    html += `
+      <div class="text-center mt-2">
+        <button class="btn btn-sm btn-outline-primary" onclick="clienteDashboard.mostrarTodosFavoritos()">
+          Ver todos (${totalFavoritos})
+        </button>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+  console.log('✅ Sidebar de favoritos actualizado');
+};
+
+// NUEVO: Método auxiliar para escapar HTML
+ClienteDashboardManager.prototype.escapeHtml = function(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+};
+
+// MEJORAR: mostrarTodosFavoritos con data-attributes correctos
+ClienteDashboardManager.prototype.mostrarTodosFavoritos = function() {
+  if (this.favoritos.length === 0) {
+    this.showToast('No tienes productos favoritos', 'info');
+    return;
+  }
+
+  this.closeAllModals();
+  
+  setTimeout(() => {
+    let favoritosHtml = '';
+    
+    this.favoritos.forEach((fav) => {
+      const stockColor = fav.stock <= 0 ? 'danger' : (fav.stock <= 5 ? 'warning' : 'secondary');
+      const stockText = fav.stock !== null && fav.stock !== undefined ? `
+        <span class="badge bg-${stockColor} me-2">
+          <i class="bi bi-box-seam"></i> Stock: ${fav.stock}
+        </span>
+      ` : '';
+      
+      const estaAgotado = fav.stock !== null && fav.stock <= 0;
+
+      favoritosHtml += `
+        <div class="d-flex align-items-center p-3 border-bottom hover-bg-light" 
+             data-favorito-modal-id="${fav.id}"
+             data-producto-nombre="${this.escapeHtml(fav.nombre)}"
+             data-producto-precio="${fav.precio}"
+             data-producto-imagen="${fav.imagen || ''}"
+             data-producto-stock="${fav.stock || 0}">
+          <div class="bg-primary text-white rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-heart-fill fs-5"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-bold">${fav.nombre}</div>
+            <div class="text-success fw-bold mt-1">${this.formatPrice(fav.precio)}</div>
+            <div class="mt-1">
+              ${stockText}
+            </div>
+          </div>
+          <div class="d-flex flex-column gap-2">
+            <button class="btn btn-sm btn-primary ${estaAgotado ? 'disabled' : ''}" 
+                    onclick="event.stopPropagation(); clienteDashboard.agregarAlCarritoDesdeModal('${fav.id}')"
+                    data-modal-producto-id="${fav.id}"
+                    ${estaAgotado ? 'disabled' : ''}
+                    title="${estaAgotado ? 'Producto agotado' : 'Agregar al carrito'}">
+              <i class="bi bi-cart-plus me-1"></i> Agregar
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="event.stopPropagation(); clienteDashboard.eliminarFavoritoDesdeModal('${fav.id}')"
+                    title="Quitar de favoritos">
+              <i class="bi bi-trash"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    this.createModal('info', `❤️ Mis Favoritos (${this.favoritos.length})`, `
+      <div class="favoritos-list" style="max-height: 500px; overflow-y: auto;">
+        ${favoritosHtml}
+      </div>
+      <div class="mt-3 p-3 bg-light rounded">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Total de productos favoritos:</strong>
+            <span class="badge bg-primary ms-2">${this.favoritos.length}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" onclick="clienteDashboard.confirmarVaciarFavoritos()">
+            <i class="bi bi-trash me-1"></i> Vaciar todos
+          </button>
+        </div>
+      </div>
+    `, [
+      { text: 'Cerrar', type: 'secondary', onclick: 'clienteDashboard.closeAllModals()' }
+    ]);
+    
+    console.log('✅ Modal de favoritos mostrado con', this.favoritos.length, 'productos');
+  }, 100);
+};
+
+console.log('✅ Parche del sistema de favoritos aplicado correctamente');
+console.log('✅ Corrección de agregar al carrito desde favoritos aplicada');

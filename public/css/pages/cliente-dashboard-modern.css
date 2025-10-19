@@ -238,6 +238,107 @@
   height:100%;
 }
 
+/* Animación para contador de favoritos */
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.5s ease;
+}
+
+/* Animación para agregar/quitar favorito */
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-favorito.active i {
+  animation: heartPulse 0.3s ease;
+}
+
+/* Transición suave para botones de favoritos */
+.btn-favorito {
+  transition: all 0.2s ease;
+}
+
+.btn-favorito:hover {
+  transform: scale(1.1);
+}
+
+/* Animación para elementos que se eliminan */
+.favorito-removing {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+}
+
+/* Badge pulsante para actualizaciones */
+@keyframes badgePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(114, 47, 55, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(114, 47, 55, 0);
+  }
+}
+
+.badge.pulse {
+  animation: badgePulse 1s ease;
+}
+
+/* Efecto hover mejorado para cards de favoritos */
+[data-favorito-id]:hover,
+[data-favorito-modal-id]:hover {
+  background-color: rgba(114, 47, 55, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Animación de entrada para sidebar de favoritos */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+[data-favorito-id],
+[data-favorito-modal-id] {
+  animation: slideInRight 0.3s ease;
+}
+
+/* Estilo para contador métrico con énfasis */
+.metric-value {
+  transition: all 0.3s ease;
+}
+
+.metric-value.updated {
+  color: #722F37;
+  font-weight: bold;
+}
+
 .producto-card::after{
   content:'';
   position:absolute;
