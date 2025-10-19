@@ -809,6 +809,8 @@
 .pedidos-actions-group {
     display: flex;
     gap: 0.5rem;
+    position: relative;
+    z-index: 1;
 }
 
 .pedidos-action-btn {
@@ -822,6 +824,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1rem;
+    position: relative;
 }
 
 .pedidos-action-btn-view {
@@ -868,6 +871,140 @@
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+/* ===== DROPDOWN FIXES - VERSIÓN 3.0 CON PORTAL ===== */
+/* Dropdown container con position static */
+.pedidos-actions-group .dropdown {
+    position: static;
+}
+
+/* Menú dropdown - estilos base */
+.pedidos-actions-group .dropdown-menu,
+.pedidos-dropdown-portal {
+    position: fixed !important;
+    z-index: 9999 !important;
+    min-width: 200px;
+    padding: 0.5rem 0;
+    margin: 0;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    background: white;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+/* Cuando el dropdown está visible */
+.pedidos-actions-group .dropdown-menu.show,
+.pedidos-dropdown-portal.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Portal container */
+#dropdown-portal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+#dropdown-portal-container .dropdown-menu {
+    pointer-events: auto;
+}
+
+/* Items del dropdown */
+.pedidos-actions-group .dropdown-item {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.pedidos-actions-group .dropdown-item:hover {
+    background: var(--gray-50);
+    color: var(--wine-primary);
+    padding-left: 1.5rem;
+}
+
+.pedidos-actions-group .dropdown-item.text-danger {
+    color: var(--danger);
+}
+
+.pedidos-actions-group .dropdown-item.text-danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.pedidos-actions-group .dropdown-item i {
+    font-size: 1rem;
+}
+
+.pedidos-actions-group .dropdown-divider {
+    margin: 0.5rem 0;
+    border-top-color: var(--gray-200);
+}
+
+/* Fix para la fila de la tabla que contenga el dropdown */
+.pedidos-table-row {
+    position: relative;
+}
+
+/* Asegurar que la celda de acciones NO tenga position relative para no crear stacking context */
+.pedidos-td-actions {
+    position: static !important;
+    overflow: visible !important;
+}
+
+/* La tabla container debe mantener su overflow pero no afectar dropdowns */
+.pedidos-table-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    position: relative;
+}
+
+/* La tabla en sí no debe crear stacking context */
+.pedidos-table {
+    position: relative;
+    z-index: 1;
+}
+
+/* El tbody tampoco debe crear stacking context */
+.pedidos-table tbody {
+    position: relative;
+    z-index: 1;
+}
+
+/* Toggle button del dropdown */
+.pedidos-action-btn-more.dropdown-toggle::after {
+    display: none;
+}
+
+.pedidos-action-btn-more:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.2);
+}
+
+/* Backdrop oscuro cuando dropdown está abierto (opcional pero mejora UX) */
+.pedidos-actions-group .dropdown.show::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-out;
 }
 
 /* ===== PAGINACIÓN ===== */

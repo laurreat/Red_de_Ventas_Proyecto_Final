@@ -164,25 +164,49 @@ class ComisionService
                 ->first();
 
             if (!$comision) {
+                Log::info('No existe comisión para este pedido, creando nueva', [
+                    'pedido_id' => $pedido->_id
+                ]);
                 // Si no existe, crear nueva comisión
                 return self::crearComisionPorPedido($pedido);
             }
 
-            // Si ya está pagada, no actualizar
-            if ($comision->estado === 'pagada') {
-                Log::info('Comisión no actualizada - ya está pagada', [
-                    'comision_id' => $comision->_id
+            // Si ya está pagada o en proceso, no actualizar el monto
+            if (in_array($comision->estado, ['pagado', 'en_proceso'])) {
+                Log::info('Comisión no actualizada - estado protegido', [
+                    'comision_id' => $comision->_id,
+                    'estado' => $comision->estado
                 ]);
+                
+                // Actualizar solo los datos del pedido (no el monto)
+                $comision->update([
+                    'pedido_data' => [
+                        '_id' => $pedido->_id,
+                        'numero_pedido' => $pedido->numero_pedido,
+                        'total' => $pedido->total_final,
+                        'fecha' => $pedido->created_at
+                    ]
+                ]);
+                
                 return $comision;
             }
 
-            // Recalcular monto de comisión
+            // Recalcular monto de comisión solo si está pendiente
             $porcentajeComision = $comision->porcentaje ?? config('comisiones.venta_directa', 15);
-            $montoComision = ($pedido->total_final * $porcentajeComision) / 100;
+            $montoComisionAnterior = $comision->monto;
+            $montoComisionNuevo = ($pedido->total_final * $porcentajeComision) / 100;
+
+            Log::info('Recalculando comisión', [
+                'comision_id' => $comision->_id,
+                'monto_anterior' => $montoComisionAnterior,
+                'monto_nuevo' => $montoComisionNuevo,
+                'total_pedido' => $pedido->total_final,
+                'porcentaje' => $porcentajeComision
+            ]);
 
             // Actualizar comisión
             $comision->update([
-                'monto' => $montoComision,
+                'monto' => $montoComisionNuevo,
                 'pedido_data' => [
                     '_id' => $pedido->_id,
                     'numero_pedido' => $pedido->numero_pedido,
@@ -192,13 +216,17 @@ class ComisionService
                 'detalles_calculo' => [
                     'total_pedido' => $pedido->total_final,
                     'porcentaje_aplicado' => $porcentajeComision,
-                    'fecha_calculo' => now()
+                    'monto_anterior' => $montoComisionAnterior,
+                    'fecha_actualizacion' => now(),
+                    'fecha_calculo_original' => $comision->detalles_calculo['fecha_calculo'] ?? $comision->created_at
                 ]
             ]);
 
-            Log::info('Comisión actualizada', [
+            Log::info('Comisión actualizada exitosamente', [
                 'comision_id' => $comision->_id,
-                'nuevo_monto' => $montoComision
+                'monto_anterior' => $montoComisionAnterior,
+                'monto_nuevo' => $montoComisionNuevo,
+                'diferencia' => $montoComisionNuevo - $montoComisionAnterior
             ]);
 
             return $comision;
@@ -206,7 +234,8 @@ class ComisionService
         } catch (\Exception $e) {
             Log::error('Error al actualizar comisión', [
                 'pedido_id' => $pedido->_id ?? null,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return null;
         }

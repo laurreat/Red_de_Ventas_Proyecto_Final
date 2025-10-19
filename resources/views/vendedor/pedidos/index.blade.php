@@ -382,11 +382,16 @@
                                         type="button"
                                         id="dropdownPedido{{ $pedido->_id }}"
                                         data-bs-toggle="dropdown"
+                                        data-bs-boundary="viewport"
+                                        data-bs-reference="parent"
+                                        data-bs-display="static"
                                         aria-expanded="false"
                                         title="Más opciones">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownPedido{{ $pedido->_id }}">
+                                <ul class="dropdown-menu dropdown-menu-end pedidos-dropdown-portal" 
+                                    aria-labelledby="dropdownPedido{{ $pedido->_id }}"
+                                    data-popper-placement="bottom-end">
                                     @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
                                     <li>
                                         <button class="dropdown-item"
@@ -504,6 +509,93 @@ document.addEventListener('DOMContentLoaded', function() {
             // Aquí puedes agregar lógica para cambiar entre vista tabla y grid
         });
     });
+
+    // SOLUCIÓN DEFINITIVA: Mover dropdown fuera de la tabla usando portal
+    const dropdownPortalContainer = document.createElement('div');
+    dropdownPortalContainer.id = 'dropdown-portal-container';
+    dropdownPortalContainer.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none;';
+    document.body.appendChild(dropdownPortalContainer);
+
+    // Inicializar dropdowns con Popper.js configurado
+    document.querySelectorAll('.pedidos-actions-group .dropdown-toggle').forEach(toggle => {
+        const dropdown = toggle.closest('.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        if (!menu) return;
+        
+        // Cuando se abre el dropdown
+        toggle.addEventListener('show.bs.dropdown', function(e) {
+            // Mover el menú al portal
+            dropdownPortalContainer.appendChild(menu);
+            menu.style.pointerEvents = 'auto';
+            
+            // Calcular posición
+            const rect = toggle.getBoundingClientRect();
+            menu.style.position = 'fixed';
+            menu.style.zIndex = '9999';
+            
+            // Usar requestAnimationFrame para asegurar que se aplique después del render
+            requestAnimationFrame(() => {
+                const menuRect = menu.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const spaceBelow = viewportHeight - rect.bottom;
+                
+                // Posición vertical
+                if (spaceBelow < menuRect.height && rect.top > menuRect.height) {
+                    menu.style.top = (rect.top - menuRect.height - 8) + 'px';
+                } else {
+                    menu.style.top = (rect.bottom + 8) + 'px';
+                }
+                
+                // Posición horizontal (alineado a la derecha)
+                const leftPosition = rect.right - menuRect.width;
+                if (leftPosition < 10) {
+                    menu.style.left = '10px';
+                } else if (leftPosition + menuRect.width > window.innerWidth) {
+                    menu.style.left = (window.innerWidth - menuRect.width - 10) + 'px';
+                } else {
+                    menu.style.left = leftPosition + 'px';
+                }
+                
+                // Agregar clase para animación
+                menu.classList.add('show');
+            });
+        });
+        
+        // Cuando se cierra el dropdown
+        toggle.addEventListener('hide.bs.dropdown', function(e) {
+            menu.classList.remove('show');
+            // Devolver el menú a su contenedor original
+            setTimeout(() => {
+                if (dropdown && !menu.classList.contains('show')) {
+                    dropdown.appendChild(menu);
+                    menu.style.position = '';
+                    menu.style.top = '';
+                    menu.style.left = '';
+                    menu.style.pointerEvents = '';
+                }
+            }, 300);
+        });
+    });
+
+    // Cerrar dropdown al hacer scroll
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const openDropdown = document.querySelector('.pedidos-actions-group .dropdown.show');
+            if (openDropdown) {
+                const toggle = openDropdown.querySelector('.dropdown-toggle');
+                if (toggle) {
+                    // Usar el método de Bootstrap para cerrar
+                    const bsDropdown = bootstrap.Dropdown.getInstance(toggle);
+                    if (bsDropdown) {
+                        bsDropdown.hide();
+                    }
+                }
+            }
+        }, 100);
+    }, true);
 });
 </script>
 @endpush

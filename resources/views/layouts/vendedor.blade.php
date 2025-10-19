@@ -525,7 +525,7 @@
             <div class="nav-section">Ganancias</div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Mis Comisiones')">
+                <a href="{{ route('vendedor.comisiones.index') }}" class="nav-link {{ request()->routeIs('vendedor.comisiones.*') ? 'active' : '' }}">
                     <i class="bi bi-cash-coin"></i>
                     Mis Comisiones
                 </a>

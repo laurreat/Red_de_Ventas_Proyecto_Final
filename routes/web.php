@@ -344,12 +344,12 @@ Route::middleware(['auth', 'role'])->group(function () {
 
         // Comisiones del Vendedor
         Route::get('vendedor/comisiones', [\App\Http\Controllers\Vendedor\ComisionController::class, 'index'])->name('vendedor.comisiones.index');
-        Route::get('vendedor/comisiones/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'show'])->name('vendedor.comisiones.show');
         Route::get('vendedor/comisiones/solicitar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'solicitar'])->name('vendedor.comisiones.solicitar');
         Route::post('vendedor/comisiones/solicitar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'procesarSolicitud'])->name('vendedor.comisiones.procesar');
         Route::get('vendedor/comisiones/historial', [\App\Http\Controllers\Vendedor\ComisionController::class, 'historial'])->name('vendedor.comisiones.historial');
         Route::get('vendedor/comisiones/evolucion', [\App\Http\Controllers\Vendedor\ComisionController::class, 'getEvolucionComisiones'])->name('vendedor.comisiones.evolucion');
         Route::post('vendedor/comisiones/exportar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'exportar'])->name('vendedor.comisiones.exportar');
+        Route::get('vendedor/comisiones/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'show'])->name('vendedor.comisiones.show');
 
         // Red de Referidos del Vendedor
         Route::get('vendedor/referidos', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'index'])->name('vendedor.referidos.index');

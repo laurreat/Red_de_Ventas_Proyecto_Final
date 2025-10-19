@@ -37,7 +37,7 @@ class PedidoObserver
 
     /**
      * Handle the Pedido "updated" event.
-     * Actualiza o elimina comisiones cuando el pedido cambia de estado.
+     * Actualiza o elimina comisiones cuando el pedido cambia.
      */
     public function updated(Pedido $pedido): void
     {
@@ -45,38 +45,57 @@ class PedidoObserver
             $original = $pedido->getOriginal();
             $estadoAnterior = $original['estado'] ?? null;
             $estadoActual = $pedido->estado;
+            
+            // Obtener totales anterior y actual
+            $totalAnterior = $original['total_final'] ?? null;
+            $totalActual = $pedido->total_final;
+            
+            // Detectar si cambió el estado
+            $cambioEstado = $estadoAnterior !== $estadoActual;
+            
+            // Detectar si cambió el total del pedido
+            $cambioTotal = $totalAnterior != $totalActual;
 
-            // Si el estado no cambió, no hacer nada
-            if ($estadoAnterior === $estadoActual) {
-                return;
-            }
-
-            Log::info('Estado de pedido actualizado', [
+            Log::info('Pedido actualizado - verificando comisiones', [
                 'pedido_id' => $pedido->_id,
                 'estado_anterior' => $estadoAnterior,
-                'estado_actual' => $estadoActual
+                'estado_actual' => $estadoActual,
+                'total_anterior' => $totalAnterior,
+                'total_actual' => $totalActual,
+                'cambio_estado' => $cambioEstado,
+                'cambio_total' => $cambioTotal
             ]);
 
-            // Si se cancela el pedido, eliminar comisiones
+            // CASO 1: Si se cancela el pedido, eliminar comisiones
             if ($estadoActual === 'cancelado' && $estadoAnterior !== 'cancelado') {
                 Log::info('Eliminando comisiones por cancelación de pedido');
                 ComisionService::eliminarComisionPorPedido($pedido);
             }
-            // Si se reactiva un pedido cancelado, crear comisiones nuevamente
+            // CASO 2: Si se reactiva un pedido cancelado, crear comisiones nuevamente
             else if ($estadoAnterior === 'cancelado' && $estadoActual !== 'cancelado' && $pedido->vendedor_id) {
                 Log::info('Recreando comisiones por reactivación de pedido');
                 ComisionService::crearComisionPorPedido($pedido);
             }
-            // Si cambia el total del pedido, actualizar comisiones
-            else if (isset($original['total_final']) && $original['total_final'] != $pedido->total_final && $estadoActual !== 'cancelado') {
-                Log::info('Actualizando comisiones por cambio en total del pedido');
+            // CASO 3: Si cambia el total del pedido (edición de productos/descuentos), actualizar comisiones
+            else if ($cambioTotal && $estadoActual !== 'cancelado' && $pedido->vendedor_id) {
+                Log::info('Actualizando comisiones por cambio en total del pedido', [
+                    'total_anterior' => $totalAnterior,
+                    'total_nuevo' => $totalActual
+                ]);
+                ComisionService::actualizarComisionPorPedido($pedido);
+            }
+            // CASO 4: Si no hubo cambios importantes pero el pedido tiene vendedor y no está cancelado,
+            // verificar que exista la comisión (por si acaso)
+            else if (!$cambioEstado && !$cambioTotal && $pedido->vendedor_id && $estadoActual !== 'cancelado') {
+                Log::info('Verificando existencia de comisión');
                 ComisionService::actualizarComisionPorPedido($pedido);
             }
 
         } catch (\Exception $e) {
             Log::error('Error al actualizar comisiones en updated event', [
                 'pedido_id' => $pedido->_id ?? null,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
