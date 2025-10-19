@@ -3,7 +3,7 @@
 @section('title', ' - Mis Comisiones')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/lider/comisiones-modern.css') }}?v={{ filemtime(public_path('css/lider/comisiones-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/lider/comisiones-modern.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')
@@ -353,7 +353,7 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="{{ asset('js/lider/comisiones-modern.js') }}?v={{ filemtime(public_path('js/lider/comisiones-modern.js')) }}"></script>
+<script src="{{ asset('js/lider/comisiones-modern.js') }}?v={{ time() }}"></script>
 <script>
 // Gráfico de Evolución
 const evolucionCtx = document.getElementById('evolucionChart');

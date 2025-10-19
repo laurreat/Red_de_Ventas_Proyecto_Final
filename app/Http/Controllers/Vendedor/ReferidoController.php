@@ -18,20 +18,33 @@ class ReferidoController extends Controller
 
         // Obtener referidos directos
         $referidos = User::where('referido_por', $vendedor->id)
-                        ->withCount(['pedidosVendedor', 'referidos'])
-                        ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
                         ->orderBy('created_at', 'desc')
                         ->paginate(15);
+
+        // Calcular conteos y sumas manualmente para cada referido
+        foreach ($referidos as $referido) {
+            // Contar pedidos del referido como vendedor
+            $referido->pedidos_vendedor_count = Pedido::where('vendedor_id', $referido->id)->count();
+            
+            // Contar sus referidos
+            $referido->referidos_count = User::where('referido_por', $referido->id)->count();
+            
+            // Sumar total de ventas
+            $referido->total_ventas = Pedido::where('vendedor_id', $referido->id)->sum('total_final') ?? 0;
+        }
 
         // Estadísticas de la red
         $stats = $this->calcularEstadisticasRed($vendedor);
 
         // Top referidos por ventas
-        $topReferidos = User::where('referido_por', $vendedor->id)
-                           ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
-                           ->orderBy('total_ventas', 'desc')
-                           ->limit(5)
-                           ->get();
+        $allReferidos = User::where('referido_por', $vendedor->id)->get();
+        
+        foreach ($allReferidos as $ref) {
+            $ref->total_ventas = Pedido::where('vendedor_id', $ref->id)->sum('total_final') ?? 0;
+            $ref->pedidos_vendedor_count = Pedido::where('vendedor_id', $ref->id)->count();
+        }
+        
+        $topReferidos = $allReferidos->sortByDesc('total_ventas')->take(5);
 
         return view('vendedor.referidos.index', compact('referidos', 'stats', 'topReferidos'));
     }
@@ -41,9 +54,12 @@ class ReferidoController extends Controller
         $vendedor = Auth::user();
         $referido = User::where('referido_por', $vendedor->id)
                        ->where('id', $id)
-                       ->withCount(['pedidosVendedor', 'referidos'])
-                       ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
                        ->firstOrFail();
+
+        // Calcular conteos manualmente
+        $referido->pedidos_vendedor_count = Pedido::where('vendedor_id', $referido->id)->count();
+        $referido->referidos_count = User::where('referido_por', $referido->id)->count();
+        $referido->total_ventas = Pedido::where('vendedor_id', $referido->id)->sum('total_final') ?? 0;
 
         // Ventas del referido por mes (últimos 6 meses)
         $ventasPorMes = $this->obtenerVentasPorMes($referido);
@@ -56,9 +72,14 @@ class ReferidoController extends Controller
 
         // Sus propios referidos (segundo nivel)
         $subReferidos = User::where('referido_por', $referido->id)
-                           ->withCount('pedidosVendedor')
                            ->limit(10)
                            ->get();
+        
+        // Calcular conteos para sub-referidos
+        foreach ($subReferidos as $subRef) {
+            $subRef->pedidos_vendedor_count = Pedido::where('vendedor_id', $subRef->id)->count();
+            $subRef->total_ventas = Pedido::where('vendedor_id', $subRef->id)->sum('total_final') ?? 0;
+        }
 
         return view('vendedor.referidos.show', compact('referido', 'ventasPorMes', 'comisionesGeneradas', 'subReferidos'));
     }
@@ -74,10 +95,9 @@ class ReferidoController extends Controller
     {
         $vendedor = Auth::user();
 
-        // Comisiones por referidos
+        // Comisiones por referidos (without 'with' para MongoDB)
         $query = Comision::where('user_id', $vendedor->id)
-                         ->where('tipo_comision', 'referido')
-                         ->with(['referido']);
+                         ->where('tipo_comision', 'referido');
 
         // Filtros
         if ($request->filled('referido_id')) {
@@ -94,6 +114,23 @@ class ReferidoController extends Controller
 
         $comisionesReferidos = $query->orderBy('created_at', 'desc')->paginate(15);
 
+        // Buscar mejor referido manualmente
+        $referidos = User::where('referido_por', $vendedor->id)->get();
+        $mejorReferido = null;
+        $maxComisiones = 0;
+        
+        foreach ($referidos as $ref) {
+            $totalComisiones = Comision::where('user_id', $vendedor->id)
+                                      ->where('tipo_comision', 'referido')
+                                      ->where('referido_id', $ref->id)
+                                      ->sum('monto_comision');
+            
+            if ($totalComisiones > $maxComisiones) {
+                $maxComisiones = $totalComisiones;
+                $mejorReferido = $ref;
+            }
+        }
+
         // Estadísticas de ganancias por referidos
         $statsGanancias = [
             'total_comisiones' => Comision::where('user_id', $vendedor->id)
@@ -103,13 +140,7 @@ class ReferidoController extends Controller
                                    ->where('tipo_comision', 'referido')
                                    ->whereMonth('created_at', Carbon::now()->month)
                                    ->sum('monto_comision'),
-            'mejor_referido' => User::where('referido_por', $vendedor->id)
-                                   ->withSum(['comisionesGeneradas as total_comisiones' => function($q) use ($vendedor) {
-                                       $q->where('user_id', $vendedor->id)
-                                         ->where('tipo_comision', 'referido');
-                                   }], 'monto_comision')
-                                   ->orderBy('total_comisiones', 'desc')
-                                   ->first(),
+            'mejor_referido' => $mejorReferido,
             'promedio_mensual' => Comision::where('user_id', $vendedor->id)
                                          ->where('tipo_comision', 'referido')
                                          ->where('created_at', '>=', Carbon::now()->subMonths(6))
@@ -207,19 +238,26 @@ class ReferidoController extends Controller
     private function construirEstructuraRed($vendedor)
     {
         // Nivel 1: Referidos directos
-        $nivel1 = User::where('referido_por', $vendedor->id)
-                     ->withCount(['pedidosVendedor', 'referidos'])
-                     ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
-                     ->get();
+        $nivel1 = User::where('referido_por', $vendedor->id)->get();
+        
+        // Calcular conteos manualmente para nivel 1
+        foreach ($nivel1 as $ref) {
+            $ref->pedidos_vendedor_count = Pedido::where('vendedor_id', $ref->id)->count();
+            $ref->referidos_count = User::where('referido_por', $ref->id)->count();
+            $ref->total_ventas = Pedido::where('vendedor_id', $ref->id)->sum('total_final') ?? 0;
+        }
 
         $redCompleta = [];
 
         foreach ($nivel1 as $referido) {
             // Nivel 2: Referidos de cada referido directo
-            $nivel2 = User::where('referido_por', $referido->id)
-                         ->withCount('pedidosVendedor')
-                         ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
-                         ->get();
+            $nivel2 = User::where('referido_por', $referido->id)->get();
+            
+            // Calcular conteos para nivel 2
+            foreach ($nivel2 as $subRef) {
+                $subRef->pedidos_vendedor_count = Pedido::where('vendedor_id', $subRef->id)->count();
+                $subRef->total_ventas = Pedido::where('vendedor_id', $subRef->id)->sum('total_final') ?? 0;
+            }
 
             $redCompleta[] = [
                 'referido' => $referido,
@@ -265,12 +303,118 @@ class ReferidoController extends Controller
     {
         $vendedor = Auth::user();
 
-        $referidos = User::where('referido_por', $vendedor->id)
-                        ->withCount(['pedidosVendedor', 'referidos'])
-                        ->withSum(['pedidosVendedor as total_ventas'], 'total_final')
-                        ->get();
+        $referidos = User::where('referido_por', $vendedor->id)->get();
+        
+        // Calcular datos para cada referido
+        foreach ($referidos as $ref) {
+            $ref->pedidos_vendedor_count = Pedido::where('vendedor_id', $ref->id)->count();
+            $ref->referidos_count = User::where('referido_por', $ref->id)->count();
+            $ref->total_ventas = Pedido::where('vendedor_id', $ref->id)->sum('total_final') ?? 0;
+        }
 
-        // Aquí implementarías la exportación
-        return response()->json($referidos);
+        // Crear CSV
+        $filename = 'referidos_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($referidos) {
+            $file = fopen('php://output', 'w');
+            
+            // BOM para UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Encabezados
+            fputcsv($file, [
+                'Nombre',
+                'Apellidos',
+                'Email',
+                'Teléfono',
+                'Fecha Registro',
+                'Estado',
+                'Total Ventas',
+                'Cantidad Pedidos',
+                'Referidos Directos'
+            ]);
+
+            // Datos
+            foreach ($referidos as $ref) {
+                fputcsv($file, [
+                    $ref->name,
+                    $ref->apellidos ?? '',
+                    $ref->email,
+                    $ref->telefono ?? '',
+                    $ref->created_at->format('d/m/Y H:i'),
+                    $ref->activo ? 'Activo' : 'Inactivo',
+                    '$' . number_format($ref->total_ventas, 0, ',', '.'),
+                    $ref->pedidos_vendedor_count,
+                    $ref->referidos_count
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function enviarMensaje(Request $request)
+    {
+        $request->validate([
+            'referido_id' => 'required',
+            'asunto' => 'required|string|max:200',
+            'mensaje' => 'required|string|max:1000'
+        ]);
+
+        $vendedor = Auth::user();
+        $referido = User::where('id', $request->referido_id)
+                       ->where('referido_por', $vendedor->id)
+                       ->first();
+
+        if (!$referido) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Referido no encontrado o no pertenece a tu red'
+            ], 404);
+        }
+
+        try {
+            // Crear notificación para el referido
+            $notificacion = \App\Models\Notificacion::create([
+                'user_id' => $referido->id,
+                'user_data' => [
+                    'name' => $referido->name,
+                    'email' => $referido->email
+                ],
+                'titulo' => $request->asunto,
+                'mensaje' => $request->mensaje,
+                'tipo' => 'mensaje_red',
+                'leida' => false,
+                'datos_adicionales' => [
+                    'remitente_id' => $vendedor->id,
+                    'remitente_nombre' => $vendedor->name . ' ' . ($vendedor->apellidos ?? ''),
+                    'fecha_envio' => now()->toDateTimeString()
+                ],
+                'canal' => 'sistema'
+            ]);
+
+            // Aquí puedes agregar el envío de email si lo deseas
+            // Mail::to($referido->email)->send(new MensajeReferido($vendedor, $request->asunto, $request->mensaje));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mensaje enviado correctamente. El usuario recibirá una notificación.',
+                'notificacion_id' => $notificacion->id
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar mensaje a referido: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al enviar el mensaje. Por favor intenta nuevamente.'
+            ], 500);
+        }
     }
 }

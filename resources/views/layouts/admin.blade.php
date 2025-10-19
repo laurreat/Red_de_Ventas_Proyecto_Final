@@ -30,6 +30,9 @@
     <!-- Header Dropdowns CSS -->
     <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
 
+    <!-- Modern Sidebar Global CSS -->
+    <link rel="stylesheet" href="{{ asset('css/modern-sidebar-global.css') }}?v={{ time() }}">
+
     <style>
         :root {
             --primary-color: #722F37;
@@ -587,111 +590,159 @@
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
-    <nav class="admin-sidebar" id="adminSidebar">
+    <!-- Sidebar Moderno -->
+    <nav class="modern-sidebar admin-sidebar" id="adminSidebar">
+        <!-- Header del Sidebar -->
         <div class="sidebar-header">
-            <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                <i class="bi bi-shop me-2"></i>
-                Arepa la Llanerita
-            </a>
+            <div class="sidebar-brand-wrapper">
+                <a href="{{ route('dashboard') }}" class="sidebar-brand">
+                    <div class="brand-icon">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">Arepa Llanerita</span>
+                        <span class="brand-subtitle">Administrador</span>
+                    </div>
+                </a>
+            </div>
         </div>
 
+        <!-- Info de Usuario -->
+        <div class="sidebar-user-info">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->apellidos ?? Auth::user()->name, 0, 1)) }}
+            </div>
+            <div class="user-details">
+                <div class="user-name">{{ Auth::user()->name }}</div>
+                <div class="user-role admin">
+                    <i class="bi bi-shield-check"></i>
+                    Administrador
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación -->
         <div class="sidebar-nav">
             <!-- Dashboard -->
-            <div class="nav-section">Dashboard</div>
+            <div class="nav-section">
+                <i class="bi bi-grid-fill"></i>
+                <span>Panel Principal</span>
+            </div>
             <div class="nav-item">
                 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i>
-                    Panel Principal
+                    <span>Dashboard</span>
+                    <span class="nav-badge">Inicio</span>
                 </a>
             </div>
 
             <!-- Gestión -->
-            <div class="nav-section">Gestión</div>
+            <div class="nav-section">
+                <i class="bi bi-gear-fill"></i>
+                <span>Gestión</span>
+            </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#usersSubmenu" aria-expanded="false">
-                    <i class="bi bi-people"></i>
-                    Usuarios
+                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Usuarios</span>
                 </a>
-                <div class="collapse" id="usersSubmenu">
-                    <a href="{{ route('admin.users.index') }}" class="dropdown-item">
-                        <i class="bi bi-list"></i>
-                        Lista de Usuarios
-                    </a>
-                    <a href="{{ route('admin.users.create') }}" class="dropdown-item">
-                        <i class="bi bi-person-plus"></i>
-                        Crear Usuario
-                    </a>
-                    <a href="{{ route('admin.roles.index') }}" class="dropdown-item">
-                        <i class="bi bi-shield-check"></i>
-                        Roles y Permisos
-                    </a>
-                </div>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.productos.index') }}" class="nav-link {{ request()->routeIs('admin.productos.*') ? 'active' : '' }}">
                     <i class="bi bi-boxes"></i>
-                    Productos
+                    <span>Productos</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.pedidos.index') }}" class="nav-link {{ request()->routeIs('admin.pedidos.*') ? 'active' : '' }}">
-                    <i class="bi bi-cart3"></i>
-                    Pedidos
+                    <i class="bi bi-cart-check-fill"></i>
+                    <span>Pedidos</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </span>
                 </a>
             </div>
 
             <!-- Ventas y Comisiones -->
-            <div class="nav-section">Ventas y Comisiones</div>
+            <div class="nav-section">
+                <i class="bi bi-cash-stack"></i>
+                <span>Finanzas</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.reportes.ventas') }}" class="nav-link {{ request()->routeIs('admin.reportes.*') ? 'active' : '' }}">
                     <i class="bi bi-graph-up"></i>
-                    Reportes de Ventas
+                    <span>Reportes de Ventas</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.comisiones.index') }}" class="nav-link {{ request()->routeIs('admin.comisiones.*') ? 'active' : '' }}">
                     <i class="bi bi-cash-coin"></i>
-                    Comisiones
+                    <span>Comisiones</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-graph-up"></i>
+                    </span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.referidos.index') }}" class="nav-link {{ request()->routeIs('admin.referidos.*') ? 'active' : '' }}">
-                    <i class="bi bi-diagram-3"></i>
-                    Red de Referidos
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>Red de Referidos</span>
                 </a>
             </div>
 
             <!-- Configuración -->
-            <div class="nav-section">Configuración</div>
+            <div class="nav-section">
+                <i class="bi bi-sliders"></i>
+                <span>Sistema</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.configuracion.index') }}" class="nav-link {{ request()->routeIs('admin.configuracion.*') ? 'active' : '' }}">
-                    <i class="bi bi-gear"></i>
-                    Configuración
+                    <i class="bi bi-gear-wide-connected"></i>
+                    <span>Configuración</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.logs.index') }}" class="nav-link">
-                    <i class="bi bi-file-text"></i>
-                    Logs del Sistema
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Logs del Sistema</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('admin.notificaciones.index') }}" class="nav-link">
-                    <i class="bi bi-bell"></i>
-                    Notificaciones
-                    <span class="badge bg-warning ms-auto" id="sidebarNotificationBadge" style="display: none;">0</span>
+                    <i class="bi bi-bell-fill"></i>
+                    <span>Notificaciones</span>
+                    <span class="nav-badge badge-warning" id="sidebarNotificationBadge" style="display: none;">0</span>
                 </a>
             </div>
+        </div>
+
+        <!-- Footer del Sidebar -->
+        <div class="sidebar-footer">
+            <div class="footer-stats">
+                <div class="stat-item admin-stat">
+                    <i class="bi bi-award-fill"></i>
+                    <span>Administrador Master</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </nav>
 

@@ -20,6 +20,9 @@
     <!-- Mobile Optimizations -->
     <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
 
+    <!-- Modern Sidebar Global CSS -->
+    <link rel="stylesheet" href="{{ asset('css/modern-sidebar-global.css') }}?v={{ time() }}">
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
@@ -482,104 +485,166 @@
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
-    <nav class="lider-sidebar" id="liderSidebar">
+    <!-- Sidebar Moderno -->
+    <nav class="modern-sidebar lider-sidebar" id="liderSidebar">
+        <!-- Header del Sidebar -->
         <div class="sidebar-header">
-            <a href="{{ route('lider.dashboard') }}" class="sidebar-brand">
-                <i class="bi bi-person-badge me-2"></i>
-                Arepa la Llanerita
-            </a>
+            <div class="sidebar-brand-wrapper">
+                <a href="{{ route('lider.dashboard') }}" class="sidebar-brand">
+                    <div class="brand-icon">
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">Arepa Llanerita</span>
+                        <span class="brand-subtitle">Líder</span>
+                    </div>
+                </a>
+            </div>
         </div>
 
+        <!-- Info de Usuario -->
+        <div class="sidebar-user-info">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->apellidos ?? Auth::user()->name, 0, 1)) }}
+            </div>
+            <div class="user-details">
+                <div class="user-name">{{ Auth::user()->name }}</div>
+                <div class="user-role lider">
+                    <i class="bi bi-shield-check"></i>
+                    Líder Activo
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación -->
         <div class="sidebar-nav">
             <!-- Dashboard -->
-            <div class="nav-section">Dashboard</div>
+            <div class="nav-section">
+                <i class="bi bi-grid-fill"></i>
+                <span>Principal</span>
+            </div>
             <div class="nav-item">
                 <a href="{{ route('lider.dashboard') }}" class="nav-link {{ request()->routeIs('lider.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i>
-                    Panel Principal
+                    <span>Dashboard</span>
+                    <span class="nav-badge">Inicio</span>
                 </a>
             </div>
 
             <!-- Mi Equipo -->
-            <div class="nav-section">Mi Equipo</div>
+            <div class="nav-section">
+                <i class="bi bi-people-fill"></i>
+                <span>Mi Equipo</span>
+            </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#equipoSubmenu" aria-expanded="false">
-                    <i class="bi bi-people"></i>
-                    Gestión de Equipo
+                <a href="{{ route('lider.equipo.index') }}" class="nav-link {{ request()->routeIs('lider.equipo.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Gestión de Equipo</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </span>
                 </a>
-                <div class="collapse" id="equipoSubmenu">
-                    <a href="{{ route('lider.equipo.index') }}" class="dropdown-item">
-                        <i class="bi bi-list"></i>
-                        Lista del Equipo
-                    </a>
-                    <a href="{{ route('lider.rendimiento.index') }}" class="dropdown-item">
-                        <i class="bi bi-graph-up"></i>
-                        Rendimiento
-                    </a>
-                    <a href="{{ route('lider.capacitacion.index') }}" class="dropdown-item">
-                        <i class="bi bi-book"></i>
-                        Capacitación
-                    </a>
-                </div>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.rendimiento.index') }}" class="nav-link {{ request()->routeIs('lider.rendimiento.*') ? 'active' : '' }}">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Rendimiento</span>
+                </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.referidos.index') }}" class="nav-link {{ request()->routeIs('lider.referidos.*') ? 'active' : '' }}">
-                    <i class="bi bi-diagram-3"></i>
-                    Red de Referidos
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>Red de Referidos</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('lider.capacitacion.index') }}" class="nav-link {{ request()->routeIs('lider.capacitacion.*') ? 'active' : '' }}">
+                    <i class="bi bi-book-fill"></i>
+                    <span>Capacitación</span>
                 </a>
             </div>
 
             <!-- Ventas y Comisiones -->
-            <div class="nav-section">Ventas y Comisiones</div>
+            <div class="nav-section">
+                <i class="bi bi-cash-stack"></i>
+                <span>Ganancias</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.ventas.index') }}" class="nav-link {{ request()->routeIs('lider.ventas.*') ? 'active' : '' }}">
-                    <i class="bi bi-cart-check"></i>
-                    Ventas del Equipo
+                    <i class="bi bi-cart-check-fill"></i>
+                    <span>Ventas del Equipo</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.comisiones.index') }}" class="nav-link {{ request()->routeIs('lider.comisiones.*') ? 'active' : '' }}">
-                    <i class="bi bi-currency-dollar"></i>
-                    Mis Comisiones
+                    <i class="bi bi-cash-coin"></i>
+                    <span>Mis Comisiones</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-graph-up"></i>
+                    </span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.metas.index') }}" class="nav-link {{ request()->routeIs('lider.metas.*') ? 'active' : '' }}">
                     <i class="bi bi-target"></i>
-                    Metas y Objetivos
+                    <span>Metas y Objetivos</span>
                 </a>
             </div>
 
             <!-- Configuración -->
-            <div class="nav-section">Configuración</div>
+            <div class="nav-section">
+                <i class="bi bi-gear-fill"></i>
+                <span>Configuración</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.perfil.index') }}" class="nav-link {{ request()->routeIs('lider.perfil.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-gear"></i>
-                    Mi Perfil
+                    <i class="bi bi-person-circle"></i>
+                    <span>Mi Perfil</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.notificaciones.index') }}" class="nav-link {{ request()->routeIs('lider.notificaciones.*') ? 'active' : '' }}">
                     <i class="bi bi-bell-fill"></i>
-                    Notificaciones
-                    <span class="badge bg-danger ms-auto" id="sidebarNotifBadge" style="display: none;">0</span>
+                    <span>Notificaciones</span>
+                    <span class="nav-badge badge-warning" id="sidebarNotifBadge" style="display: none;">0</span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('lider.ayuda.index') }}" class="nav-link {{ request()->routeIs('lider.ayuda.*') ? 'active' : '' }}">
-                    <i class="bi bi-question-circle"></i>
-                    Centro de Ayuda
+                    <i class="bi bi-question-circle-fill"></i>
+                    <span>Centro de Ayuda</span>
                 </a>
             </div>
+        </div>
+
+        <!-- Footer del Sidebar -->
+        <div class="sidebar-footer">
+            <div class="footer-stats">
+                <div class="stat-item lider-stat">
+                    <i class="bi bi-star-fill"></i>
+                    <span>Líder Premium</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </nav>
 

@@ -20,10 +20,11 @@ class NotificacionController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
         $filter = $request->get('filter', 'all'); // all, unread, read
         $tipo = $request->get('tipo', '');
 
-        $query = Notificacion::where('user_id', $user->id);
+        $query = Notificacion::where('user_id', $userId);
 
         // Filtrar por estado
         if ($filter === 'unread') {
@@ -41,13 +42,13 @@ class NotificacionController extends Controller
 
         // Estadísticas
         $stats = [
-            'total' => Notificacion::where('user_id', $user->id)->count(),
-            'no_leidas' => Notificacion::where('user_id', $user->id)->noLeidas()->count(),
-            'leidas' => Notificacion::where('user_id', $user->id)->leidas()->count(),
+            'total' => Notificacion::where('user_id', $userId)->count(),
+            'no_leidas' => Notificacion::where('user_id', $userId)->noLeidas()->count(),
+            'leidas' => Notificacion::where('user_id', $userId)->leidas()->count(),
         ];
 
         // Tipos de notificaciones disponibles
-        $tipos = Notificacion::where('user_id', $user->id)
+        $tipos = Notificacion::where('user_id', $userId)
             ->select('tipo')
             ->distinct()
             ->pluck('tipo');
@@ -67,8 +68,9 @@ class NotificacionController extends Controller
     public function show($id)
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $notificacion = Notificacion::where('user_id', $user->id)
+        $notificacion = Notificacion::where('user_id', $userId)
             ->where('_id', $id)
             ->first();
 
@@ -85,14 +87,15 @@ class NotificacionController extends Controller
     public function dropdown()
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $notificaciones = Notificacion::where('user_id', $user->id)
+        $notificaciones = Notificacion::where('user_id', $userId)
             ->noLeidas()
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        $total_no_leidas = Notificacion::where('user_id', $user->id)->noLeidas()->count();
+        $total_no_leidas = Notificacion::where('user_id', $userId)->noLeidas()->count();
 
         return response()->json([
             'success' => true,
@@ -107,8 +110,9 @@ class NotificacionController extends Controller
     public function marcarLeida($id)
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $notificacion = Notificacion::where('user_id', $user->id)
+        $notificacion = Notificacion::where('user_id', $userId)
             ->where('_id', $id)
             ->first();
 
@@ -133,8 +137,9 @@ class NotificacionController extends Controller
     public function marcarTodasLeidas()
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        Notificacion::where('user_id', $user->id)
+        Notificacion::where('user_id', $userId)
             ->noLeidas()
             ->update([
                 'leida' => true,
@@ -153,8 +158,9 @@ class NotificacionController extends Controller
     public function eliminar($id)
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $notificacion = Notificacion::where('user_id', $user->id)
+        $notificacion = Notificacion::where('user_id', $userId)
             ->where('_id', $id)
             ->first();
 
@@ -179,12 +185,13 @@ class NotificacionController extends Controller
     public function limpiarLeidas()
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $count = Notificacion::where('user_id', $user->id)
+        $count = Notificacion::where('user_id', $userId)
             ->leidas()
             ->count();
 
-        Notificacion::where('user_id', $user->id)
+        Notificacion::where('user_id', $userId)
             ->leidas()
             ->delete();
 
@@ -219,8 +226,9 @@ class NotificacionController extends Controller
     public function contarNoLeidas()
     {
         $user = Auth::user();
+        $userId = (string) ($user->_id ?? $user->id);
 
-        $count = Notificacion::where('user_id', $user->id)->noLeidas()->count();
+        $count = Notificacion::where('user_id', $userId)->noLeidas()->count();
 
         return response()->json([
             'success' => true,

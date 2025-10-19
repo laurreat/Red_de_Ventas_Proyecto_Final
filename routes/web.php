@@ -137,6 +137,12 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::post('admin/comisiones/calcular', [\App\Http\Controllers\Admin\ComisionController::class, 'calcular'])->name('admin.comisiones.calcular');
         Route::post('admin/comisiones/exportar', [\App\Http\Controllers\Admin\ComisionController::class, 'exportar'])->name('admin.comisiones.exportar');
 
+        // Solicitudes de Retiro - Gestión por Administradores
+        Route::post('admin/solicitudes-retiro/{id}/aprobar', [\App\Http\Controllers\Admin\SolicitudRetiroController::class, 'aprobar'])->name('admin.solicitudes-retiro.aprobar');
+        Route::post('admin/solicitudes-retiro/{id}/rechazar', [\App\Http\Controllers\Admin\SolicitudRetiroController::class, 'rechazar'])->name('admin.solicitudes-retiro.rechazar');
+        Route::post('admin/solicitudes-retiro/{id}/marcar-pagado', [\App\Http\Controllers\Admin\SolicitudRetiroController::class, 'marcarPagado'])->name('admin.solicitudes-retiro.marcar-pagado');
+        Route::post('admin/solicitudes-retiro/{id}/cambiar-estado', [\App\Http\Controllers\Admin\SolicitudRetiroController::class, 'cambiarEstado'])->name('admin.solicitudes-retiro.cambiar-estado');
+
         // Red de Referidos
         Route::get('admin/referidos', [\App\Http\Controllers\Admin\ReferidoController::class, 'index'])->name('admin.referidos.index');
         Route::post('admin/referidos/exportar', [\App\Http\Controllers\Admin\ReferidoController::class, 'exportar'])->name('admin.referidos.exportar');
@@ -237,8 +243,8 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('lider/comisiones', [\App\Http\Controllers\Lider\ComisionController::class, 'index'])->name('lider.comisiones.index');
         Route::get('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'solicitar'])->name('lider.comisiones.solicitar');
         Route::post('lider/comisiones/solicitar', [\App\Http\Controllers\Lider\ComisionController::class, 'procesarSolicitud'])->name('lider.comisiones.procesar');
-        Route::get('lider/comisiones/{id}', [\App\Http\Controllers\Lider\ComisionController::class, 'show'])->name('lider.comisiones.show');
-        Route::post('lider/comisiones/{id}/cambiar-estado', [\App\Http\Controllers\Lider\ComisionController::class, 'cambiarEstado'])->name('lider.comisiones.cambiar-estado');
+        Route::get('lider/comisiones/{id}', [\App\Http\Controllers\Lider\ComisionController::class, 'show'])->name('lider.comisiones.show')->where('id', '[0-9a-f]{24}');
+        Route::post('lider/comisiones/{id}/cambiar-estado', [\App\Http\Controllers\Lider\ComisionController::class, 'cambiarEstado'])->name('lider.comisiones.cambiar-estado')->where('id', '[0-9a-f]{24}');
 
         // Metas y Objetivos
         Route::get('lider/metas', [\App\Http\Controllers\Lider\MetaController::class, 'index'])->name('lider.metas.index');
@@ -349,17 +355,19 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('vendedor/comisiones/historial', [\App\Http\Controllers\Vendedor\ComisionController::class, 'historial'])->name('vendedor.comisiones.historial');
         Route::get('vendedor/comisiones/evolucion', [\App\Http\Controllers\Vendedor\ComisionController::class, 'getEvolucionComisiones'])->name('vendedor.comisiones.evolucion');
         Route::post('vendedor/comisiones/exportar', [\App\Http\Controllers\Vendedor\ComisionController::class, 'exportar'])->name('vendedor.comisiones.exportar');
-        Route::get('vendedor/comisiones/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'show'])->name('vendedor.comisiones.show');
+        Route::post('vendedor/comisiones/reenviar-notificacion/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'reenviarNotificacion'])->name('vendedor.comisiones.reenviar-notificacion');
+        Route::get('vendedor/comisiones/{id}', [\App\Http\Controllers\Vendedor\ComisionController::class, 'show'])->name('vendedor.comisiones.show')->where('id', '[0-9a-f]{24}');
 
         // Red de Referidos del Vendedor
         Route::get('vendedor/referidos', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'index'])->name('vendedor.referidos.index');
-        Route::get('vendedor/referidos/{id}', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'show'])->name('vendedor.referidos.show');
+        Route::get('vendedor/referidos/red', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'red'])->name('vendedor.referidos.red');
         Route::get('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'invitar'])->name('vendedor.referidos.invitar');
         Route::post('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'enviarInvitacion'])->name('vendedor.referidos.enviar-invitacion');
         Route::get('vendedor/referidos/ganancias', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'ganancias'])->name('vendedor.referidos.ganancias');
-        Route::get('vendedor/referidos/red', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'red'])->name('vendedor.referidos.red');
         Route::get('vendedor/referidos/enlace', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'generarEnlaceReferido'])->name('vendedor.referidos.enlace');
-        Route::post('vendedor/referidos/exportar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'exportar'])->name('vendedor.referidos.exportar');
+        Route::get('vendedor/referidos/exportar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'exportar'])->name('vendedor.referidos.exportar');
+        Route::post('vendedor/referidos/enviar-mensaje', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'enviarMensaje'])->name('vendedor.referidos.enviar-mensaje');
+        Route::get('vendedor/referidos/{id}', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'show'])->name('vendedor.referidos.show');
 
         // Metas del Vendedor
         Route::get('vendedor/metas', [\App\Http\Controllers\Vendedor\MetaController::class, 'index'])->name('vendedor.metas.index');

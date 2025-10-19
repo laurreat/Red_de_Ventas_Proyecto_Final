@@ -24,14 +24,29 @@ class SolicitudPago extends Model
         'procesado_por',
         'comprobante',
         'notas_admin',
-        'mysql_id'
+        'mysql_id',
+        // Campos adicionales para gestión
+        'aprobado_por',
+        'aprobado_en',
+        'rechazado_por',
+        'rechazado_en',
+        'motivo_rechazo',
+        'pagado_por',
+        'pagado_en',
+        'referencia_pago',
+        'notas_pago',
+        'comisiones_ids' // IDs de las comisiones vinculadas
     ];
 
     protected $casts = [
         'monto' => 'decimal:2',
         'fecha_procesado' => 'datetime',
+        'aprobado_en' => 'datetime',
+        'rechazado_en' => 'datetime',
+        'pagado_en' => 'datetime',
         'user_data' => 'array',
-        'comprobante' => 'array'
+        'comprobante' => 'array',
+        'comisiones_ids' => 'array'
     ];
 
     /**

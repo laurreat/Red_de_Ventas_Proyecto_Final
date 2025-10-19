@@ -3,7 +3,7 @@
 @section('title', ' - Solicitar Pago de Comisiones')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/lider/comisiones-modern.css') }}?v={{ filemtime(public_path('css/lider/comisiones-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/lider/comisiones-modern.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendedor;
 use App\Http\Controllers\Controller;
 use App\Models\Comision;
 use App\Models\SolicitudPago;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,17 @@ use Carbon\Carbon;
 
 class ComisionController extends Controller
 {
+    /**
+     * Convierte MongoDB Decimal128 a float
+     */
+    private function convertirDecimal($valor)
+    {
+        if ($valor instanceof \MongoDB\BSON\Decimal128) {
+            return (float) $valor->__toString();
+        }
+        return (float) ($valor ?? 0);
+    }
+
     public function index(Request $request)
     {
         $vendedor = Auth::user();
@@ -55,6 +67,9 @@ class ComisionController extends Controller
                                         ->where('estado', 'pendiente')
                                         ->sum('monto');
 
+        // Convertir a float
+        $comisionesDisponibles = $this->convertirDecimal($comisionesDisponibles);
+
         // Historial de solicitudes de retiro
         $solicitudesRetiro = SolicitudPago::where('user_id', $userId)
                                            ->orderBy('created_at', 'desc')
@@ -79,6 +94,9 @@ class ComisionController extends Controller
         $comisionesDisponibles = Comision::where('user_id', $userId)
                                         ->where('estado', 'pendiente')
                                         ->sum('monto');
+        
+        // Convertir a float
+        $comisionesDisponibles = $this->convertirDecimal($comisionesDisponibles);
 
         if ($request->monto > $comisionesDisponibles) {
             return redirect()->back()
@@ -98,7 +116,8 @@ class ComisionController extends Controller
                 'metodo_pago' => $request->metodo_pago,
                 'datos_pago' => $request->datos_pago,
                 'observaciones' => $request->observaciones ?? null,
-                'estado' => 'pendiente'
+                'estado' => 'pendiente',
+                'comisiones_ids' => [] // Inicializar array
             ]);
 
             // Marcar comisiones como "en_proceso" hasta completar el monto
@@ -113,16 +132,65 @@ class ComisionController extends Controller
             foreach ($comisiones as $comision) {
                 if ($montoRestante <= 0) break;
 
-                if ($comision->monto <= $montoRestante) {
-                    $comision->update(['estado' => 'en_proceso']);
-                    $montoRestante -= $comision->monto;
+                $montoComision = $this->convertirDecimal($comision->monto);
+
+                if ($montoComision <= $montoRestante) {
+                    // La comisión completa cabe en el monto restante
+                    $comision->update([
+                        'estado' => 'en_proceso',
+                        'solicitud_pago_id' => (string) ($solicitud->_id ?? $solicitud->id)
+                    ]);
+                    $montoRestante -= $montoComision;
                     $comisionesAfectadas[] = (string) ($comision->_id ?? $comision->id);
                 } else {
-                    // Si la comisión es mayor que lo que resta, dividir (esto es más complejo)
-                    // Por simplicidad, no permitimos retiros parciales de comisiones individuales
+                    // La comisión es mayor que lo que resta - dividirla
+                    // Crear una nueva comisión con el sobrante
+                    $montoSobrante = $montoComision - $montoRestante;
+                    
+                    // Actualizar la comisión actual con el monto usado
+                    $comision->update([
+                        'estado' => 'en_proceso',
+                        'monto' => $montoRestante,
+                        'dividida' => true,
+                        'monto_original' => $montoComision,
+                        'solicitud_pago_id' => (string) ($solicitud->_id ?? $solicitud->id)
+                    ]);
+                    
+                    // Crear nueva comisión con el sobrante
+                    Comision::create([
+                        'user_id' => $userId,
+                        'pedido_id' => $comision->pedido_id ?? null,
+                        'referido_id' => $comision->referido_id ?? null,
+                        'tipo' => $comision->tipo,
+                        'monto' => $montoSobrante,
+                        'estado' => 'pendiente',
+                        'porcentaje' => $comision->porcentaje ?? null,
+                        'descripcion' => ($comision->descripcion ?? '') . ' (Sobrante de división)',
+                        'dividida_desde' => (string) ($comision->_id ?? $comision->id),
+                        'created_at' => now()
+                    ]);
+                    
+                    $comisionesAfectadas[] = (string) ($comision->_id ?? $comision->id);
+                    $montoRestante = 0;
                     break;
                 }
             }
+
+            // Guardar los IDs de las comisiones en la solicitud
+            $solicitud->update([
+                'comisiones_ids' => $comisionesAfectadas
+            ]);
+
+            \Log::info('Solicitud de retiro procesada', [
+                'solicitud_id' => $solicitud->_id ?? $solicitud->id,
+                'monto_solicitado' => $request->monto,
+                'comisiones_afectadas' => count($comisionesAfectadas),
+                'comisiones_ids' => $comisionesAfectadas,
+                'monto_restante' => $montoRestante
+            ]);
+
+            // Enviar notificación a los administradores
+            $this->enviarNotificacionAdministradores($solicitud, $vendedor);
 
             return redirect()->route('vendedor.comisiones.index')
                            ->with('success', 'Solicitud de retiro enviada exitosamente. Será procesada en las próximas 24-48 horas.');
@@ -153,7 +221,45 @@ class ComisionController extends Controller
                            ->where('_id', $id)
                            ->firstOrFail();
 
-        return view('vendedor.comisiones.show', compact('comision'));
+        // Buscar si hay una solicitud de pago relacionada con esta comisión
+        $solicitudPago = null;
+        if ($comision->estado === 'en_proceso' || $comision->estado === 'pagado') {
+            $solicitudPago = SolicitudPago::where('user_id', $vendedor->_id ?? $vendedor->id)
+                                          ->where('estado', '!=', 'rechazado')
+                                          ->orderBy('created_at', 'desc')
+                                          ->first();
+        }
+
+        return view('vendedor.comisiones.show', compact('comision', 'solicitudPago'));
+    }
+
+    /**
+     * Reenviar notificación de solicitud de retiro a administradores
+     */
+    public function reenviarNotificacion($solicitudId)
+    {
+        try {
+            $vendedor = Auth::user();
+            $solicitud = SolicitudPago::findOrFail($solicitudId);
+
+            // Verificar que la solicitud pertenezca al vendedor
+            if ($solicitud->user_id != ($vendedor->_id ?? $vendedor->id)) {
+                return back()->with('error', 'No tienes permiso para realizar esta acción.');
+            }
+
+            // Verificar que la solicitud esté en estado pendiente
+            if ($solicitud->estado !== 'pendiente') {
+                return back()->with('warning', 'Solo se pueden reenviar notificaciones de solicitudes pendientes.');
+            }
+
+            // Enviar nuevamente las notificaciones
+            $this->enviarNotificacionAdministradores($solicitud, $vendedor);
+
+            return back()->with('success', 'Notificación reenviada a los administradores exitosamente.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al reenviar la notificación: ' . $e->getMessage());
+        }
     }
 
     private function calcularEstadisticasComisiones($vendedor)
@@ -169,17 +275,17 @@ class ComisionController extends Controller
 
         return [
             // Totales generales - solo comisiones aprobadas
-            'total_ganado' => $comisionesData->sum('monto') ?? 0,
-            'disponible_retiro' => $comisionesData->where('estado', 'pendiente')->sum('monto') ?? 0,
-            'en_proceso' => $comisionesData->where('estado', 'en_proceso')->sum('monto') ?? 0,
-            'pagado' => $comisionesData->where('estado', 'pagado')->sum('monto') ?? 0,
+            'total_ganado' => $this->convertirDecimal($comisionesData->sum('monto')),
+            'disponible_retiro' => $this->convertirDecimal($comisionesData->where('estado', 'pendiente')->sum('monto')),
+            'en_proceso' => $this->convertirDecimal($comisionesData->where('estado', 'en_proceso')->sum('monto')),
+            'pagado' => $this->convertirDecimal($comisionesData->where('estado', 'pagado')->sum('monto')),
 
             // Este mes
-            'mes_actual' => $comisionesData->whereBetween('created_at', [$mesActual, $finMes])->sum('monto') ?? 0,
+            'mes_actual' => $this->convertirDecimal($comisionesData->whereBetween('created_at', [$mesActual, $finMes])->sum('monto')),
 
             // Por tipo
-            'ventas_directas' => $comisionesData->where('tipo', 'venta_directa')->sum('monto') ?? 0,
-            'referidos' => $comisionesData->where('tipo', 'referido')->sum('monto') ?? 0,
+            'ventas_directas' => $this->convertirDecimal($comisionesData->where('tipo', 'venta_directa')->sum('monto')),
+            'referidos' => $this->convertirDecimal($comisionesData->where('tipo', 'referido')->sum('monto')),
 
             // Métricas adicionales - usar 0 si no hay SolicitudRetiro
             'total_retiros' => 0,
@@ -204,7 +310,7 @@ class ComisionController extends Controller
 
             $meses[] = [
                 'mes' => $mes->format('M Y'),
-                'comisiones' => $comisiones
+                'comisiones' => $this->convertirDecimal($comisiones)
             ];
         }
 
@@ -229,5 +335,57 @@ class ComisionController extends Controller
 
         // Aquí implementarías la lógica de exportación (CSV, Excel, etc.)
         return response()->json($comisiones);
+    }
+
+    /**
+     * Enviar notificación a los administradores sobre nueva solicitud de retiro
+     */
+    private function enviarNotificacionAdministradores($solicitud, $vendedor)
+    {
+        // Obtener todos los administradores
+        $administradores = User::where('rol', 'administrador')
+                              ->where('activo', true)
+                              ->get();
+
+        \Log::info('Enviando notificaciones a administradores', [
+            'total_admins' => $administradores->count(),
+            'solicitud_id' => $solicitud->_id ?? $solicitud->id
+        ]);
+
+        foreach ($administradores as $admin) {
+            $notificacion = \App\Models\Notificacion::create([
+                'user_id' => (string) ($admin->_id ?? $admin->id),
+                'user_data' => [
+                    'nombre' => $admin->name,
+                    'email' => $admin->email
+                ],
+                'titulo' => 'Nueva Solicitud de Retiro de Comisiones',
+                'mensaje' => "{$vendedor->name} ha solicitado un retiro de \${$solicitud->monto} por {$solicitud->metodo_pago}",
+                'tipo' => 'solicitud_retiro',
+                'leida' => false,
+                'datos_adicionales' => [
+                    'solicitud_id' => (string) ($solicitud->_id ?? $solicitud->id),
+                    'vendedor_id' => (string) ($vendedor->_id ?? $vendedor->id),
+                    'vendedor_nombre' => $vendedor->name,
+                    'monto' => $solicitud->monto,
+                    'metodo_pago' => $solicitud->metodo_pago,
+                    'datos_pago' => $solicitud->datos_pago,
+                    'estado' => $solicitud->estado,
+                    'puede_cambiar_estado' => true,
+                    'acciones' => [
+                        'aprobar' => route('admin.solicitudes-retiro.aprobar', $solicitud->_id ?? $solicitud->id),
+                        'rechazar' => route('admin.solicitudes-retiro.rechazar', $solicitud->_id ?? $solicitud->id),
+                        'marcar_pagado' => route('admin.solicitudes-retiro.marcar-pagado', $solicitud->_id ?? $solicitud->id)
+                    ]
+                ],
+                'canal' => 'web'
+            ]);
+
+            \Log::info('Notificación creada', [
+                'admin_id' => $admin->_id ?? $admin->id,
+                'notificacion_id' => $notificacion->_id ?? $notificacion->id,
+                'user_id_guardado' => $notificacion->user_id
+            ]);
+        }
     }
 }

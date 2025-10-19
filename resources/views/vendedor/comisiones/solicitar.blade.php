@@ -3,7 +3,7 @@
 @section('title', 'Solicitar Retiro')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/vendedor/comisiones-modern.css') }}?v={{ filemtime(public_path('css/vendedor/comisiones-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/vendedor/comisiones-modern.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')
@@ -168,7 +168,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/vendedor/comisiones-modern.js') }}?v={{ filemtime(public_path('js/vendedor/comisiones-modern.js')) }}"></script>
+<script src="{{ asset('js/vendedor/comisiones-modern.js') }}?v={{ time() }}"></script>
 @if(session('success'))
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -26,7 +26,12 @@ class Comision extends Model
         'fecha_pago',
         'detalles_calculo',
         'metodo_pago',
-        'mysql_id'
+        'mysql_id',
+        'descripcion',
+        'dividida',
+        'monto_original',
+        'dividida_desde',
+        'solicitud_pago_id' // ID de la solicitud de pago asociada
     ];
 
     protected $casts = [

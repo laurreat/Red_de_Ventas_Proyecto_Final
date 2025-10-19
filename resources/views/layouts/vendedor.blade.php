@@ -39,93 +39,392 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f9fafb;
         }
 
-        /* Sidebar Styles */
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .animate-delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .animate-delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .animate-delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Sidebar Styles - Enhanced & Modern */
         .vendedor-sidebar {
-            width: 260px;
+            width: 280px;
             height: 100vh;
-            background: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
+            background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+            border-right: 1px solid #e5e7eb;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
             position: fixed;
             left: 0;
             top: 0;
             z-index: 1040;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
         }
 
         .vendedor-sidebar.collapsed {
-            transform: translateX(-260px);
+            transform: translateX(-280px);
         }
 
+        /* Sidebar Header - Mejorado */
         .sidebar-header {
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--primary-color);
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+
+        .sidebar-brand-wrapper {
+            position: relative;
+            z-index: 2;
         }
 
         .sidebar-brand {
-            font-size: 1.25rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 800;
             color: var(--secondary-color);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
         }
 
-        .sidebar-nav {
-            padding: 1rem 0;
-            height: calc(100vh - 80px);
-            overflow-y: auto;
+        .sidebar-brand:hover {
+            color: var(--secondary-color);
+            transform: translateX(4px);
         }
 
-        .nav-section {
-            padding: 0.5rem 1rem;
+        .brand-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .brand-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
             font-size: 0.75rem;
+            opacity: 0.9;
             font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Sidebar User Info - Nuevo */
+        .sidebar-user-info {
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border-bottom: 2px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(114, 47, 55, 0.2);
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #111827;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+        }
+
+        /* Sidebar Navigation - Mejorado */
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(114, 47, 55, 0.3) transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background-color: rgba(114, 47, 55, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(114, 47, 55, 0.5);
+        }
+
+        /* Nav Section - Mejorado */
+        .nav-section {
+            padding: 1rem 1.5rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-section:first-child {
             margin-top: 0;
         }
 
+        .nav-section i {
+            font-size: 0.875rem;
+        }
+
+        /* Nav Item - Mejorado */
         .nav-item {
-            margin: 0.25rem 0;
+            margin: 0.25rem 0.75rem;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            color: var(--text-dark);
+            padding: 0.875rem 1rem;
+            color: #4b5563;
             text-decoration: none;
-            border-radius: 0;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            gap: 0.875rem;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            transform: scaleY(0);
+            transition: transform 0.25s ease;
+            border-radius: 0 4px 4px 0;
         }
 
         .nav-link:hover {
-            background-color: var(--hover-bg);
+            background: linear-gradient(90deg, rgba(114, 47, 55, 0.08) 0%, rgba(114, 47, 55, 0.04) 100%);
             color: var(--primary-color);
-            border-left-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .nav-link:hover::before {
+            transform: scaleY(1);
         }
 
         .nav-link.active {
-            background-color: rgba(114, 47, 55, 0.1);
+            background: linear-gradient(90deg, rgba(114, 47, 55, 0.12) 0%, rgba(114, 47, 55, 0.06) 100%);
             color: var(--primary-color);
-            border-left-color: var(--primary-color);
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .nav-link i {
-            width: 20px;
-            margin-right: 0.75rem;
-            font-size: 1rem;
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+
+        .nav-link i:first-child {
+            width: 24px;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span:first-of-type {
+            flex: 1;
+        }
+
+        /* Nav Badge - Nuevo */
+        .nav-badge {
+            padding: 0.25rem 0.5rem;
+            background: #f3f4f6;
+            color: #6b7280;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-badge.badge-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .nav-badge.badge-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .nav-icon-end {
+            font-size: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .nav-link:hover .nav-icon-end {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+
+        /* Sidebar Footer - Nuevo */
+        .sidebar-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 2px solid #f3f4f6;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+        }
+
+        .footer-stats {
+            margin-bottom: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 10px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #92400e;
+        }
+
+        .stat-item i {
+            font-size: 1.125rem;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1rem;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn i {
+            font-size: 1.125rem;
         }
 
         .dropdown-toggle::after {
@@ -159,18 +458,19 @@
             border-left-color: var(--primary-color);
         }
 
-        /* Header Styles */
+        /* Header Styles - Enhanced */
         .vendedor-header {
-            height: 70px;
-            background: var(--secondary-color);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
+            height: 75px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             position: fixed;
             top: 0;
             right: 0;
-            left: 260px;
+            left: 280px;
             z-index: 1060;
-            transition: left 0.3s ease;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
 
         .vendedor-header.expanded {
@@ -182,7 +482,7 @@
             align-items: center;
             justify-content: space-between;
             height: 100%;
-            padding: 0 1.5rem;
+            padding: 0 2rem;
         }
 
         .header-left {
@@ -191,86 +491,109 @@
         }
 
         .sidebar-toggle {
-            background: none;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             border: none;
             font-size: 1.25rem;
             color: var(--text-dark);
             cursor: pointer;
-            margin-right: 1rem;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s ease;
+            margin-right: 1.5rem;
+            padding: 0.625rem;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .sidebar-toggle:hover {
-            background-color: var(--hover-bg);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            transform: scale(1.05);
         }
 
         .header-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.4rem;
+            font-weight: 700;
             color: var(--text-dark);
             margin: 0;
+            letter-spacing: -0.5px;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .header-notifications {
             position: relative;
-            background: none;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             border: none;
             font-size: 1.25rem;
             color: var(--text-dark);
             cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s ease;
+            padding: 0.625rem;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .header-notifications:hover {
-            background-color: var(--hover-bg);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            transform: scale(1.05);
         }
 
         .notification-badge {
             position: absolute;
-            top: 0.25rem;
-            right: 0.25rem;
-            background: #dc3545;
+            top: 0.125rem;
+            right: 0.125rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
-            font-size: 0.6rem;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.75rem;
+            font-size: 0.625rem;
+            padding: 0.125rem 0.4rem;
+            border-radius: 10px;
             min-width: 1.25rem;
             text-align: center;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
 
         .header-profile {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.875rem;
             cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s ease;
+            padding: 0.5rem 0.875rem;
+            border-radius: 14px;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
         }
 
         .header-profile:hover {
-            background-color: var(--hover-bg);
+            background: linear-gradient(135deg, rgba(114, 47, 55, 0.08) 0%, rgba(114, 47, 55, 0.04) 100%);
+            border-color: rgba(114, 47, 55, 0.1);
         }
 
         .profile-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(114, 47, 55, 0.25);
         }
 
         .profile-info {
@@ -279,27 +602,29 @@
         }
 
         .profile-name {
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-dark);
-            font-size: 0.875rem;
-            line-height: 1.2;
+            font-size: 0.9rem;
+            line-height: 1.3;
         }
 
         .profile-role {
             font-size: 0.75rem;
             color: var(--text-muted);
-            line-height: 1.2;
+            line-height: 1.3;
+            font-weight: 500;
         }
 
-        /* Main Content */
+        /* Main Content - Enhanced */
         .vendedor-main {
-            margin-left: 260px;
-            margin-top: 70px;
+            margin-left: 280px;
+            margin-top: 75px;
             padding: 2rem;
-            min-height: calc(100vh - 70px);
-            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 75px);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             z-index: 1;
+            background: #f9fafb;
         }
 
         .vendedor-main.expanded {
@@ -309,7 +634,7 @@
         /* Responsive */
         @media (max-width: 991.98px) {
             .vendedor-sidebar {
-                transform: translateX(-260px);
+                transform: translateX(-280px);
             }
 
             .vendedor-sidebar.show {
@@ -360,23 +685,38 @@
                 font-size: 0.5rem;
                 padding: 0.1rem 0.3rem;
             }
+
+            .header-title {
+                font-size: 1.1rem;
+            }
+
+            .sidebar-toggle {
+                margin-right: 0.75rem;
+            }
         }
 
-        /* Card Styles */
+        /* Card Styles - Enhanced */
         .card {
             border: none;
-            border-radius: 0.5rem;
-            box-shadow: var(--shadow);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             position: relative;
             z-index: 2;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
 
         .card-header {
-            background: var(--secondary-color);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 500;
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            border-bottom: 2px solid #f3f4f6;
+            font-weight: 600;
             position: relative;
             z-index: 2;
+            padding: 1.25rem 1.5rem;
         }
 
         /* Asegurar que las badges no interfieran con dropdowns */
@@ -391,25 +731,37 @@
             z-index: 50 !important;
         }
 
-        /* Buttons */
+        /* Buttons - Enhanced */
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(114, 47, 55, 0.25);
         }
 
         .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(114, 47, 55, 0.35);
         }
 
         .btn-outline-primary {
             color: var(--primary-color);
-            border-color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             border-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
         }
 
         /* Dropdown Menu */
@@ -478,75 +830,154 @@
 <body>
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <!-- Sidebar -->
+    
+    <!-- Sidebar Mejorado -->
     <nav class="vendedor-sidebar" id="vendedorSidebar">
+        <!-- Sidebar Header Mejorado -->
         <div class="sidebar-header">
-            <a href="{{ route('vendedor.dashboard') }}" class="sidebar-brand">
-                <i class="bi bi-shop me-2"></i>
-                Arepa la Llanerita
-            </a>
+            <div class="sidebar-brand-wrapper">
+                <a href="{{ route('vendedor.dashboard') }}" class="sidebar-brand">
+                    <div class="brand-icon">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">Arepa Llanerita</span>
+                        <span class="brand-subtitle">Vendedor</span>
+                    </div>
+                </a>
+            </div>
         </div>
 
+        <!-- Sidebar User Info -->
+        <div class="sidebar-user-info">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->apellidos ?? '', 0, 1)) }}
+            </div>
+            <div class="user-details">
+                <div class="user-name">{{ Auth::user()->name }}</div>
+                <div class="user-role">
+                    <i class="bi bi-shield-check"></i>
+                    Vendedor Activo
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Navigation -->
         <div class="sidebar-nav">
             <!-- Dashboard -->
-            <div class="nav-section">Principal</div>
+            <div class="nav-section">
+                <i class="bi bi-grid-fill"></i>
+                <span>Principal</span>
+            </div>
             <div class="nav-item">
                 <a href="{{ route('vendedor.dashboard') }}" class="nav-link {{ request()->routeIs('vendedor.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i>
-                    Dashboard
+                    <span>Dashboard</span>
+                    <span class="nav-badge">Inicio</span>
                 </a>
             </div>
 
             <!-- Gestión de Ventas -->
-            <div class="nav-section">Ventas</div>
+            <div class="nav-section">
+                <i class="bi bi-cart-fill"></i>
+                <span>Ventas</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('vendedor.pedidos.index') }}" class="nav-link {{ request()->routeIs('vendedor.pedidos.index') || request()->routeIs('vendedor.pedidos.show') ? 'active' : '' }}">
-                    <i class="bi bi-cart-check"></i>
-                    Mis Pedidos
+                    <i class="bi bi-cart-check-fill"></i>
+                    <span>Mis Pedidos</span>
+                    @if(isset($pedidosPendientes) && $pedidosPendientes > 0)
+                    <span class="nav-badge badge-warning">{{ $pedidosPendientes }}</span>
+                    @endif
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('vendedor.pedidos.create') }}" class="nav-link {{ request()->routeIs('vendedor.pedidos.create') ? 'active' : '' }}">
                     <i class="bi bi-plus-circle-fill"></i>
-                    Crear Pedido
+                    <span>Crear Pedido</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </span>
                 </a>
             </div>
 
             <div class="nav-item">
                 <a href="{{ route('vendedor.productos.index') }}" class="nav-link {{ request()->routeIs('vendedor.productos.*') ? 'active' : '' }}">
                     <i class="bi bi-boxes"></i>
-                    Productos
+                    <span>Productos</span>
                 </a>
             </div>
 
             <!-- Ganancias -->
-            <div class="nav-section">Ganancias</div>
+            <div class="nav-section">
+                <i class="bi bi-cash-stack"></i>
+                <span>Ganancias</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('vendedor.comisiones.index') }}" class="nav-link {{ request()->routeIs('vendedor.comisiones.*') ? 'active' : '' }}">
                     <i class="bi bi-cash-coin"></i>
-                    Mis Comisiones
+                    <span>Mis Comisiones</span>
+                    <span class="nav-icon-end">
+                        <i class="bi bi-graph-up"></i>
+                    </span>
                 </a>
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Red de Referidos')">
-                    <i class="bi bi-diagram-3"></i>
-                    Mis Referidos
+                <a href="{{ route('vendedor.referidos.index') }}" class="nav-link {{ request()->routeIs('vendedor.referidos.*') ? 'active' : '' }}">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>Mis Referidos</span>
+                    @if(Auth::user()->referidos_count > 0)
+                    <span class="nav-badge badge-success">{{ Auth::user()->referidos_count }}</span>
+                    @endif
                 </a>
             </div>
 
-            <!-- Perfil -->
-            <div class="nav-section">Configuración</div>
+            <!-- Configuración -->
+            <div class="nav-section">
+                <i class="bi bi-gear-fill"></i>
+                <span>Configuración</span>
+            </div>
 
             <div class="nav-item">
                 <a href="{{ route('vendedor.perfil.index') }}" class="nav-link {{ request()->routeIs('vendedor.perfil.*') ? 'active' : '' }}">
                     <i class="bi bi-person-circle"></i>
-                    Mi Perfil
+                    <span>Mi Perfil</span>
                 </a>
             </div>
+
+            <!-- Quick Actions -->
+            <div class="nav-section">
+                <i class="bi bi-lightning-fill"></i>
+                <span>Acceso Rápido</span>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('vendedor.ayuda.index') }}" class="nav-link {{ request()->routeIs('vendedor.ayuda.*') ? 'active' : '' }}">
+                    <i class="bi bi-question-circle-fill"></i>
+                    <span>Ayuda</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div class="footer-stats">
+                <div class="stat-item">
+                    <i class="bi bi-trophy-fill"></i>
+                    <span>Top Vendedor</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </nav>
 
