@@ -361,6 +361,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Red de Referidos del Vendedor
         Route::get('vendedor/referidos', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'index'])->name('vendedor.referidos.index');
         Route::get('vendedor/referidos/red', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'red'])->name('vendedor.referidos.red');
+        Route::get('vendedor/referidos/red/exportar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'exportarRed'])->name('vendedor.referidos.red.exportar');
         Route::get('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'invitar'])->name('vendedor.referidos.invitar');
         Route::post('vendedor/referidos/invitar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'enviarInvitacion'])->name('vendedor.referidos.enviar-invitacion');
         Route::get('vendedor/referidos/ganancias', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'ganancias'])->name('vendedor.referidos.ganancias');

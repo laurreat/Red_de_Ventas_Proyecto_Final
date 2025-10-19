@@ -1,179 +1,747 @@
-@extends('layouts.app')
+@extends('layouts.cliente')
 
-@section('title', '- Mi Cuenta')
+@section('title', ' - Mi Dashboard')
+@section('header-title', 'Mi Dashboard')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/cliente-dashboard-modern.css') }}?v={{ filemtime(public_path('css/pages/cliente-dashboard-modern.css')) }}">
+<style>
+    /* Dashboard Moderno del Cliente */
+    
+    /* Hero Welcome Card con Glassmorphism */
+    .welcome-hero {
+        background: linear-gradient(135deg, #722F37 0%, #8b3c44 100%);
+        border-radius: 24px;
+        padding: 3rem 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 60px rgba(114, 47, 55, 0.3);
+    }
+
+    .welcome-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .welcome-hero::after {
+        content: '🫓';
+        position: absolute;
+        bottom: -20px;
+        right: 5%;
+        font-size: 200px;
+        opacity: 0.1;
+        transform: rotate(-15deg);
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .welcome-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .welcome-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        margin-bottom: 1.5rem;
+    }
+
+    .codigo-referido-box {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        padding: 1rem 2rem;
+        border-radius: 16px;
+        border: 2px dashed rgba(255,255,255,0.4);
+        transition: all 0.3s ease;
+    }
+
+    .codigo-referido-box:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Stats Cards Mejoradas */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary-color);
+    }
+
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stat-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-detail {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f3f4f6;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    /* Quick Actions Cards */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+
+    .action-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .action-card:hover .action-icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    .action-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    .action-description {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Pedidos Recientes */
+    .pedidos-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.35rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .pedido-item {
+        display: flex;
+        align-items: center;
+        padding: 1.25rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .pedido-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateX(4px);
+    }
+
+    .pedido-numero {
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.125rem;
+        margin-right: 1.25rem;
+    }
+
+    .pedido-info {
+        flex: 1;
+    }
+
+    .pedido-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .pedido-meta {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .pedido-estado {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .estado-pendiente { background: #fef3c7; color: #92400e; }
+    .estado-confirmado { background: #dbeafe; color: #1e40af; }
+    .estado-en-preparacion { background: #e0e7ff; color: #4338ca; }
+    .estado-enviado { background: #fce7f3; color: #9f1239; }
+    .estado-entregado { background: #d1fae5; color: #065f46; }
+    .estado-cancelado { background: #fee2e2; color: #991b1b; }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        font-size: 5rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-text {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    /* Productos Destacados */
+    .productos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .producto-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .producto-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        border-color: var(--primary-color);
+    }
+
+    .producto-image {
+        height: 200px;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .producto-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .producto-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.35rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .producto-content {
+        padding: 1.5rem;
+    }
+
+    .producto-nombre {
+        font-weight: 700;
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    .producto-precio {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .btn-agregar {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-agregar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(114, 47, 55, 0.3);
+    }
+
+    /* Animaciones */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .animate-delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .animate-delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .animate-delay-3 { animation-delay: 0.3s; opacity: 0; }
+    .animate-delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .welcome-hero {
+            padding: 2rem 1.5rem;
+        }
+
+        .welcome-title {
+            font-size: 1.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .productos-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
 <div class="container-fluid">
-    <!-- Bienvenida Hero -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="welcome-card">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h1 class="h3 mb-2 fw-bold">¡Bienvenido, {{ auth()->user()->name }}! 🍯</h1>
-                            <p class="mb-0 opacity-90">
-                                Disfruta de nuestras deliciosas arepas y productos tradicionales. 
-                                @if(auth()->user()->referido_por)
-                                Referido por: <strong>
-                                    @php
-                                        $referidor = \App\Models\User::find(auth()->user()->referido_por);
-                                    @endphp
-                                    {{ $referidor->name ?? 'Usuario' }}
-                                </strong>
-                                @endif
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="fs-1">🫓</div>
-                            @if(auth()->user()->codigo_referido)
-                            <div class="mt-2">
-                                <small class="opacity-75">Tu código:</small>
-                                <div class="fw-bold fs-5">{{ auth()->user()->codigo_referido }}</div>
-                            </div>
-                            @endif
-                        </div>
+    <!-- Welcome Hero -->
+    <div class="welcome-hero animate-fade-in">
+        <div class="welcome-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="welcome-title">¡Bienvenido, {{ auth()->user()->name }}! 👋</h1>
+                    <p class="welcome-subtitle">
+                        Disfruta de nuestras deliciosas arepas y productos tradicionales.
+                        @if(auth()->user()->referido_por)
+                            @php
+                                $referidor = \App\Models\User::find(auth()->user()->referido_por);
+                            @endphp
+                            Fuiste referido por <strong>{{ $referidor->name ?? 'Usuario' }}</strong>
+                        @endif
+                    </p>
+                    @if(auth()->user()->codigo_referido)
+                    <div class="codigo-referido-box">
+                        <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.25rem;">Tu código de referido</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; letter-spacing: 2px;">{{ auth()->user()->codigo_referido }}</div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Estadísticas del Cliente -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <a href="{{ route('cliente.pedidos.index') }}" class="text-decoration-none">
-                <div class="card metric-card h-100 animate-delay-1">
-                    <div class="card-body text-center">
-                        <i class="bi bi-cart-check text-success fs-1 mb-3"></i>
-                        <div class="metric-value">{{ number_format($stats['total_pedidos'] ?? 0) }}</div>
-                        <div class="metric-label">Pedidos Realizados</div>
-                        <small class="text-muted mt-2 d-block">
-                            <i class="bi bi-arrow-right-circle me-1"></i>Ver todos
-                        </small>
-                    </div>
-                </div>
-            </a>
-        </div>
-        
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100 animate-delay-2">
-                <div class="card-body text-center">
-                    <i class="bi bi-currency-dollar text-primary fs-1 mb-3"></i>
-                    <div class="metric-value">${{ number_format($stats['total_gastado'] ?? 0, 0) }}</div>
-                    <div class="metric-label">Total Comprado</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100 animate-delay-3">
-                <div class="card-body text-center">
-                    <i class="bi bi-star-fill text-warning fs-1 mb-3"></i>
-                    <div class="metric-value" id="contadorFavoritosMetric">{{ $productos_favoritos->count() }}</div>
-                    <div class="metric-label">Productos Favoritos</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card metric-card h-100 animate-delay-4">
-                <div class="card-body text-center">
-                    <i class="bi bi-people text-info fs-1 mb-3"></i>
-                    <div class="metric-value">{{ number_format($stats['total_referidos'] ?? 0) }}</div>
-                    <div class="metric-label">Amigos Referidos</div>
-                    @if(($stats['total_referidos'] ?? 0) > 0)
-                    <small class="text-success">¡Gracias por recomendarnos!</small>
                     @endif
                 </div>
+                <div class="col-lg-4 text-center d-none d-lg-block">
+                    <div style="font-size: 8rem; opacity: 0.9;">🫓</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Contenido Principal -->
-        <div class="col-xl-8 mb-4">
-            <!-- Acciones Rápidas -->
-            <div class="card mb-4 animate-fade-in">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-lightning-fill me-2"></i>
-                        Acciones Rápidas
-                    </h5>
+    <!-- Estadísticas -->
+    <div class="stats-grid">
+        <a href="{{ route('cliente.pedidos.index') }}" style="text-decoration: none;">
+            <div class="stat-card animate-fade-in animate-delay-1">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="bi bi-box-seam-fill"></i>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="{{ route('cliente.pedidos.create') }}" class="quick-action">
-                                <i class="bi bi-cart-plus fs-2 mb-2 d-block"></i>
-                                <div class="fw-bold">Hacer Pedido</div>
-                                <small>Crear nuevo pedido</small>
-                            </a>
-                        </div>
-                        <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="{{ route('cliente.pedidos.index') }}" class="quick-action">
-                                <i class="bi bi-clock-history fs-2 mb-2 d-block"></i>
-                                <div class="fw-bold">Mis Pedidos</div>
-                                <small>Ver historial completo</small>
-                            </a>
-                        </div>
-                        <div class="col-md-4 col-sm-6 mb-3">
-                            <a href="javascript:void(0)" class="quick-action" onclick="clienteDashboard.toggleCarrito()">
-                                <i class="bi bi-cart3 fs-2 mb-2 d-block"></i>
-                                <div class="fw-bold">Ver Carrito</div>
-                                <small>Productos seleccionados</small>
-                            </a>
-                        </div>
+                <div class="stat-value">{{ number_format($stats['total_pedidos'] ?? 0) }}</div>
+                <div class="stat-label">Pedidos Realizados</div>
+                <div class="stat-detail">
+                    <i class="bi bi-arrow-right-circle me-1"></i>
+                    Ver historial completo
+                </div>
+            </div>
+        </a>
+
+        <div class="stat-card animate-fade-in animate-delay-2">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #722F37, #8b3c44);">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-value">${{ number_format($stats['total_gastado'] ?? 0, 0) }}</div>
+            <div class="stat-label">Total Invertido</div>
+            <div class="stat-detail">
+                Gracias por tu confianza
+            </div>
+        </div>
+
+        <div class="stat-card animate-fade-in animate-delay-3">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="bi bi-star-fill"></i>
+            </div>
+            <div class="stat-value" id="contadorFavoritosMetric">{{ $productos_favoritos->count() }}</div>
+            <div class="stat-label">Productos Favoritos</div>
+            <div class="stat-detail">
+                <i class="bi bi-heart me-1"></i>
+                Tus preferidos
+            </div>
+        </div>
+
+        <div class="stat-card animate-fade-in animate-delay-4">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-value">{{ number_format($stats['total_referidos'] ?? 0) }}</div>
+            <div class="stat-label">Amigos Referidos</div>
+            <div class="stat-detail">
+                @if(($stats['total_referidos'] ?? 0) > 0)
+                    <i class="bi bi-trophy me-1"></i>¡Excelente!
+                @else
+                    Invita amigos
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="quick-actions">
+        <a href="{{ route('cliente.pedidos.create') }}" class="action-card">
+            <div class="action-icon">
+                <i class="bi bi-plus-circle-fill"></i>
+            </div>
+            <div class="action-title">Nuevo Pedido</div>
+            <div class="action-description">
+                Crea un nuevo pedido y recíbelo en la puerta de tu casa
+            </div>
+        </a>
+
+        <a href="{{ route('catalogo.index') }}" class="action-card">
+            <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="bi bi-shop"></i>
+            </div>
+            <div class="action-title">Ver Catálogo</div>
+            <div class="action-description">
+                Explora todos nuestros productos disponibles
+            </div>
+        </a>
+
+        <a href="{{ route('cliente.pedidos.index') }}" class="action-card">
+            <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="action-title">Mis Pedidos</div>
+            <div class="action-description">
+                Revisa el estado de tus pedidos
+            </div>
+        </a>
+    </div>
+
+    <!-- Pedidos Recientes -->
+    <div class="pedidos-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="bi bi-clock-history"></i>
+                Pedidos Recientes
+            </div>
+            @if($pedidos_recientes->count() > 0)
+            <a href="{{ route('cliente.pedidos.index') }}" class="section-badge">
+                Ver todos
+            </a>
+            @endif
+        </div>
+
+        @if($pedidos_recientes->count() > 0)
+            @foreach($pedidos_recientes as $pedido)
+            <div class="pedido-item">
+                <div class="pedido-numero">
+                    #{{ $loop->iteration }}
+                </div>
+                <div class="pedido-info">
+                    <div class="pedido-title">Pedido {{ $pedido->numero_pedido }}</div>
+                    <div class="pedido-meta">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ $pedido->created_at->format('d/m/Y H:i') }}
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-currency-dollar me-1"></i>
+                        ${{ number_format($pedido->total_final, 0) }}
                     </div>
                 </div>
+                <span class="pedido-estado estado-{{ $pedido->estado }}">
+                    {{ ucfirst(str_replace('_', ' ', $pedido->estado)) }}
+                </span>
             </div>
-
-            <!-- Catálogo de Productos DINÁMICO -->
-<div class="card mb-4 animate-fade-in animate-delay-1">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-            <i class="bi bi-grid-3x3-gap-fill me-2"></i>
-            Nuestro Catálogo
-        </h5>
-        <button class="btn btn-sm btn-primary" onclick="clienteDashboard.toggleCarrito()">
-            <i class="bi bi-cart3 me-1"></i>
-            Carrito
-            <span class="badge bg-danger ms-1 carrito-count" style="display:none;">0</span>
-        </button>
-    </div>
-    <div class="card-body">
-        <!-- Filtros y búsqueda -->
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" class="form-control" id="buscarProducto" placeholder="Buscar productos...">
+            @endforeach
+        @else
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">Aún no has realizado pedidos</div>
+                <div class="empty-text">
+                    ¡Es hora de probar nuestras deliciosas arepas!
                 </div>
+                <a href="{{ route('cliente.pedidos.create') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Hacer mi Primer Pedido
+                </a>
             </div>
-            <div class="col-md-4 mt-2 mt-md-0">
-                <select class="form-select" id="filtroCategoria">
-                    <option value="">Todas las categorías</option>
-                    @foreach($categorias as $categoria)
-                        <option value="{{ strtolower(str_replace(' ', '-', $categoria)) }}">{{ $categoria }}</option>
-                    @endforeach
-                </select>
+        @endif
+    </div>
+
+    <!-- Productos Destacados -->
+    @if($productos_catalogo->count() > 0)
+    <div class="pedidos-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="bi bi-star-fill"></i>
+                Productos Destacados
             </div>
+            <a href="{{ route('catalogo.index') }}" class="section-badge">
+                Ver catálogo completo
+            </a>
         </div>
 
-        <!-- Grid de productos DINÁMICO -->
-        <div class="row" id="gridProductos">
-            @forelse($productos_catalogo as $producto)
-                @php
-                    $categoria = $producto->categoria_data['nombre'] ?? 'Sin Categoría';
-                    $categoriaSlug = strtolower(str_replace(' ', '-', $categoria));
-                    
-                    // Colores por categoría
+        <div class="productos-grid">
+            @foreach($productos_catalogo->take(6) as $producto)
+            <div class="producto-card">
+                <div class="producto-image">
+                    @if($producto->imagen)
+                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}">
+                    @else
+                        🫓
+                    @endif
+                    @if($producto->destacado)
+                        <span class="producto-badge">Destacado</span>
+                    @endif
+                </div>
+                <div class="producto-content">
+                    <div class="producto-nombre">{{ $producto->nombre }}</div>
+                    <div class="producto-precio">${{ number_format($producto->precio, 0) }}</div>
+                    <button class="btn-agregar" onclick="agregarAlCarrito('{{ $producto->_id }}')">
+                        <i class="bi bi-cart-plus"></i>
+                        Agregar al Pedido
+                    </button>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+</div>
+
+<!-- Floating Shopping Cart Button -->
+<button class="btn btn-primary position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg" 
+        style="width: 60px; height: 60px; z-index: 1000;" 
+        onclick="clienteDashboard.openCarrito()"
+        id="btnCarritoFlotante">
+    <i class="bi bi-cart3 fs-4"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+          id="carritoCount" style="display: none;">
+        0
+    </span>
+</button>
+
+<!-- Carrito Lateral -->
+<div class="carrito-lateral" id="carritoLateral">
+    <div class="carrito-header">
+        <div class="d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">
+                <i class="bi bi-cart3 me-2"></i>
+                Mi Carrito
+            </h5>
+            <button class="btn btn-sm btn-light" onclick="clienteDashboard.closeCarrito()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="carrito-items" id="carritoItems">
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+            <p class="text-muted mt-3">Tu carrito está vacío</p>
+        </div>
+    </div>
+    
+    <div class="carrito-footer">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <small class="text-muted d-block">Total:</small>
+                <strong class="text-success fs-4" id="carritoTotal">$0</strong>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="clienteDashboard.vaciarCarrito()" id="btnVaciarCarrito" style="display:none;">
+                <i class="bi bi-trash"></i> Vaciar
+            </button>
+        </div>
+        <button class="btn btn-success w-100 mb-2" onclick="clienteDashboard.confirmarPedido()" id="btnConfirmarPedido">
+            <i class="bi bi-check-circle me-2"></i>
+            Confirmar Pedido
+        </button>
+        <button class="btn btn-outline-secondary w-100" onclick="clienteDashboard.closeCarrito()">
+            Seguir comprando
+        </button>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script src="{{ asset('js/pages/cliente-dashboard-modern.js') }}?v={{ filemtime(public_path('js/pages/cliente-dashboard-modern.js')) }}"></script>
+@endpush
                     $colores = [
                         'arepas' => 'primary',
                         'arepas-dulces' => 'warning',

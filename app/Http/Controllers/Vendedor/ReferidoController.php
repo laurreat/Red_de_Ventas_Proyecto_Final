@@ -380,8 +380,8 @@ class ReferidoController extends Controller
         }
 
         try {
-            // Crear notificación para el referido
-            $notificacion = \App\Models\Notificacion::create([
+            // Crear notificación para el referido (destinatario)
+            $notificacionReferido = \App\Models\Notificacion::create([
                 'user_id' => $referido->id,
                 'user_data' => [
                     'name' => $referido->name,
@@ -394,7 +394,37 @@ class ReferidoController extends Controller
                 'datos_adicionales' => [
                     'remitente_id' => $vendedor->id,
                     'remitente_nombre' => $vendedor->name . ' ' . ($vendedor->apellidos ?? ''),
-                    'fecha_envio' => now()->toDateTimeString()
+                    'remitente_rol' => 'vendedor',
+                    'destinatario_id' => $referido->id,
+                    'destinatario_nombre' => $referido->name . ' ' . ($referido->apellidos ?? ''),
+                    'fecha_envio' => now()->toDateTimeString(),
+                    'tipo_mensaje' => 'enviado'
+                ],
+                'canal' => 'sistema'
+            ]);
+
+            // Crear notificación para el vendedor (remitente) - Registro de mensaje enviado
+            $notificacionVendedor = \App\Models\Notificacion::create([
+                'user_id' => $vendedor->id,
+                'user_data' => [
+                    'name' => $vendedor->name,
+                    'email' => $vendedor->email
+                ],
+                'titulo' => '📤 Mensaje Enviado: ' . $request->asunto,
+                'mensaje' => 'Enviaste un mensaje a ' . $referido->name . ' ' . ($referido->apellidos ?? '') . ': "' . $request->mensaje . '"',
+                'tipo' => 'mensaje_enviado',
+                'leida' => true, // Ya la marcamos como leída porque el vendedor sabe que lo envió
+                'datos_adicionales' => [
+                    'remitente_id' => $vendedor->id,
+                    'remitente_nombre' => $vendedor->name . ' ' . ($vendedor->apellidos ?? ''),
+                    'destinatario_id' => $referido->id,
+                    'destinatario_nombre' => $referido->name . ' ' . ($referido->apellidos ?? ''),
+                    'destinatario_email' => $referido->email,
+                    'fecha_envio' => now()->toDateTimeString(),
+                    'tipo_mensaje' => 'enviado',
+                    'asunto_original' => $request->asunto,
+                    'mensaje_original' => $request->mensaje,
+                    'notificacion_destinatario_id' => $notificacionReferido->id
                 ],
                 'canal' => 'sistema'
             ]);
@@ -405,7 +435,12 @@ class ReferidoController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Mensaje enviado correctamente. El usuario recibirá una notificación.',
-                'notificacion_id' => $notificacion->id
+                'notificacion_referido_id' => $notificacionReferido->id,
+                'notificacion_vendedor_id' => $notificacionVendedor->id,
+                'destinatario' => [
+                    'nombre' => $referido->name . ' ' . ($referido->apellidos ?? ''),
+                    'email' => $referido->email
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -416,5 +451,45 @@ class ReferidoController extends Controller
                 'message' => 'Error al enviar el mensaje. Por favor intenta nuevamente.'
             ], 500);
         }
+    }
+
+    public function exportarRed()
+    {
+        $vendedor = Auth::user();
+        
+        // Construir estructura de la red
+        $redCompleta = $this->construirEstructuraRed($vendedor);
+        
+        // Calcular estadísticas
+        $nivel1Count = count($redCompleta);
+        $nivel2Count = collect($redCompleta)->sum(function($nodo) { 
+            return $nodo['sub_referidos']->count(); 
+        });
+        $totalRed = $nivel1Count + $nivel2Count;
+        $totalVentas = collect($redCompleta)->sum(function($nodo) { 
+            return $nodo['referido']->total_ventas ?? 0; 
+        });
+        
+        $data = [
+            'vendedor' => $vendedor,
+            'redCompleta' => $redCompleta,
+            'nivel1Count' => $nivel1Count,
+            'nivel2Count' => $nivel2Count,
+            'totalRed' => $totalRed,
+            'totalVentas' => $totalVentas,
+            'fechaExportacion' => now()->format('d/m/Y H:i')
+        ];
+        
+        // Generar PDF
+        $pdf = \PDF::loadView('vendedor.referidos.pdf-red', $data);
+        
+        // Configurar orientación y tamaño
+        $pdf->setPaper('A4', 'portrait');
+        
+        // Nombre del archivo
+        $filename = 'red_referidos_' . $vendedor->name . '_' . date('Y-m-d') . '.pdf';
+        
+        // Descargar
+        return $pdf->download($filename);
     }
 }

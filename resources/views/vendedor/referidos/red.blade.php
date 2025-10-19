@@ -917,17 +917,33 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('js/vendedor/referidos-modern.js') }}?v={{ filemtime(public_path('js/vendedor/referidos-modern.js')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const exportTreeBtn = document.getElementById('export-tree-btn');
     if (exportTreeBtn) {
         exportTreeBtn.addEventListener('click', function() {
-            referidosManager.showLoading('Exportando árbol de red...');
+            // Mostrar notificación
+            if (window.Livewire) {
+                Livewire.dispatch('show-toast', { 
+                    type: 'info', 
+                    message: 'Generando PDF del árbol de red...'
+                });
+            }
+            
+            // Redirigir a la ruta de exportación
             setTimeout(() => {
-                referidosManager.hideLoading();
-                referidosManager.showToast('Exportación Completa', 'El árbol de tu red se ha exportado correctamente', 'success');
-            }, 1500);
+                window.location.href = '{{ route('vendedor.referidos.red.exportar') }}';
+                
+                // Mostrar notificación de éxito después de un tiempo
+                setTimeout(() => {
+                    if (window.Livewire) {
+                        Livewire.dispatch('show-toast', { 
+                            type: 'success', 
+                            message: 'Exportación Completa: El árbol de tu red se ha exportado correctamente en PDF'
+                        });
+                    }
+                }, 2000);
+            }, 500);
         });
     }
 });

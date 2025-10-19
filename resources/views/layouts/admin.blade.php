@@ -643,15 +643,22 @@
             </div>
 
             <div class="nav-item">
-                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <i class="bi bi-people-fill"></i>
                     <span>Usuarios</span>
                 </a>
             </div>
 
             <div class="nav-item">
+                <a href="{{ route('admin.roles.index') }}" class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Roles y Permisos</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
                 <a href="{{ route('admin.productos.index') }}" class="nav-link {{ request()->routeIs('admin.productos.*') ? 'active' : '' }}">
-                    <i class="bi bi-boxes"></i>
+                    <i class="bi bi-box-seam-fill"></i>
                     <span>Productos</span>
                 </a>
             </div>
