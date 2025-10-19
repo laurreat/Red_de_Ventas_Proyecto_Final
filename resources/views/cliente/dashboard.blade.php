@@ -74,7 +74,7 @@
             <div class="card metric-card h-100 animate-delay-3">
                 <div class="card-body text-center">
                     <i class="bi bi-star-fill text-warning fs-1 mb-3"></i>
-                    <div class="metric-value">{{ $productos_favoritos->count() }}</div>
+                    <div class="metric-value" id="contadorFavoritosMetric">{{ $productos_favoritos->count() }}</div>
                     <div class="metric-label">Productos Favoritos</div>
                 </div>
             </div>
@@ -293,13 +293,15 @@
                                 </div>
                             </div>
 
-                            <button class="btn btn-primary btn-sm w-100" 
+                            <button class="btn btn-primary btn-sm w-100 {{ $producto->stock <= 0 ? 'disabled' : '' }}" 
                                     onclick="agregarAlCarrito('{{ $producto->_id }}')"
                                     data-nombre="{{ $producto->nombre }}"
                                     data-precio="{{ $producto->precio }}"
-                                    data-imagen="{{ $producto->imagen_principal }}">
+                                    data-imagen="{{ $producto->imagen_principal }}"
+                                    data-stock="{{ $producto->stock }}"
+                                    {{ $producto->stock <= 0 ? 'disabled' : '' }}>
                                 <i class="bi bi-cart-plus me-1"></i>
-                                Agregar al carrito
+                                {{ $producto->stock <= 0 ? 'Agotado' : 'Agregar al carrito' }}
                             </button>
 
                             <!-- Tags -->
@@ -345,17 +347,29 @@
                         Ver todos
                     </a>
                 </div>
+                {{-- Debug temporal --}}
+                @if(config('app.debug'))
+                <div class="alert alert-info m-3">
+                    <strong>Debug:</strong> Total de pedidos: {{ $pedidos_recientes->count() }}
+                    @if($pedidos_recientes->count() > 0)
+                        | Primer pedido: {{ $pedidos_recientes->first()->numero_pedido ?? 'N/A' }}
+                    @endif
+                </div>
+                @endif
                 <div class="card-body">
                     @if($pedidos_recientes->count() > 0)
                         <div class="row">
                             @foreach($pedidos_recientes as $pedido)
                             <div class="col-md-6 mb-3">
-                                <div class="order-card card">
+                                <div class="order-card card h-100">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div>
+                                            <div class="flex-grow-1">
                                                 <div class="fw-bold">Pedido #{{ $pedido->numero_pedido }}</div>
-                                                <small class="text-muted">{{ $pedido->created_at->format('d/m/Y H:i') }}</small>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar3"></i>
+                                                    {{ $pedido->created_at->format('d/m/Y H:i') }}
+                                                </small>
                                             </div>
                                             @php
                                                 $statusColors = [
@@ -367,15 +381,62 @@
                                                     'entregado' => 'success',
                                                     'cancelado' => 'danger'
                                                 ];
+                                                $statusIcons = [
+                                                    'pendiente' => 'clock-history',
+                                                    'confirmado' => 'check-circle',
+                                                    'en_preparacion' => 'hourglass-split',
+                                                    'listo' => 'check-circle-fill',
+                                                    'en_camino' => 'truck',
+                                                    'entregado' => 'check-all',
+                                                    'cancelado' => 'x-circle'
+                                                ];
+                                                $statusColor = $statusColors[$pedido->estado] ?? 'secondary';
+                                                $statusIcon = $statusIcons[$pedido->estado] ?? 'circle';
                                             @endphp
-                                            <span class="status-badge bg-{{ $statusColors[$pedido->estado] ?? 'secondary' }} text-white">
+                                            <span class="status-badge bg-{{ $statusColor }} text-white">
+                                                <i class="bi bi-{{ $statusIcon }} me-1"></i>
                                                 {{ ucfirst(str_replace('_', ' ', $pedido->estado)) }}
                                             </span>
                                         </div>
                                         
-                                        <div class="d-flex justify-content-between align-items-end">
+                                        <!-- Información adicional del pedido -->
+                                        @php
+                                            // Intentar obtener productos de diferentes campos posibles
+                                            $productos_pedido = $pedido->productos ?? $pedido->items ?? $pedido->detalles ?? [];
+                                            if (is_object($productos_pedido)) {
+                                                $productos_pedido = (array) $productos_pedido;
+                                            }
+                                            $total_productos = is_array($productos_pedido) ? count($productos_pedido) : 0;
+                                        @endphp
+                                        
+                                        @if($total_productos > 0)
+                                        <div class="mb-2">
+                                            <small class="text-muted d-block mb-1">
+                                                <i class="bi bi-box-seam"></i>
+                                                {{ $total_productos }} {{ $total_productos == 1 ? 'producto' : 'productos' }}
+                                            </small>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                @foreach(array_slice($productos_pedido, 0, 3) as $producto)
+                                                    @php
+                                                        $nombreProducto = 'Producto';
+                                                        if (is_array($producto)) {
+                                                            $nombreProducto = $producto['nombre'] ?? $producto['producto_nombre'] ?? $producto['nombre_producto'] ?? 'Producto';
+                                                        } elseif (is_object($producto)) {
+                                                            $nombreProducto = $producto->nombre ?? $producto->producto_nombre ?? $producto->nombre_producto ?? 'Producto';
+                                                        }
+                                                    @endphp
+                                                    <span class="badge bg-light text-dark small">{{ $nombreProducto }}</span>
+                                                @endforeach
+                                                @if($total_productos > 3)
+                                                    <span class="badge bg-light text-dark small">+{{ $total_productos - 3 }} más</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @endif
+                                        
+                                        <div class="d-flex justify-content-between align-items-end mt-3">
                                             <div>
-                                                <small class="text-muted">Total pagado</small>
+                                                <small class="text-muted d-block">Total pagado</small>
                                                 <div class="fw-bold text-success fs-5">${{ number_format($pedido->total_final, 0) }}</div>
                                             </div>
                                             <a href="{{ route('cliente.pedidos.show', $pedido->_id) }}" class="btn btn-sm btn-outline-primary">
@@ -487,22 +548,54 @@
                         Tus Favoritos
                     </h6>
                 </div>
+                {{-- Debug temporal --}}
+                @if(config('app.debug'))
+                <div class="alert alert-warning m-3">
+                    <strong>Debug Favoritos:</strong> Total: {{ $productos_favoritos->count() }}
+                    @if(auth()->user()->favoritos)
+                        | IDs guardados: {{ count(auth()->user()->favoritos ?? []) }}
+                        @if(count(auth()->user()->favoritos ?? []) > 0)
+                            | Primer ID: {{ auth()->user()->favoritos[0] ?? 'N/A' }}
+                        @endif
+                    @else
+                        | Campo favoritos no existe en usuario
+                    @endif
+                </div>
+                @endif
                 <div class="card-body">
                     @if($productos_favoritos->count() > 0)
                         @foreach($productos_favoritos->take(3) as $producto)
-                        <div class="d-flex align-items-center py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                        <div class="d-flex align-items-center py-2 {{ !$loop->last ? 'border-bottom' : '' }}" data-favorito-id="{{ $producto->_id }}">
                             <div class="bg-primary text-white rounded me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                 <i class="bi bi-heart-fill"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-medium">{{ $producto->nombre }}</div>
                                 <small class="text-muted">${{ number_format($producto->precio, 0) }}</small>
+                                @if($producto->stock !== null)
+                                    <small class="d-block {{ $producto->stock <= 0 ? 'text-danger' : ($producto->stock <= 5 ? 'text-warning' : 'text-muted') }}">
+                                        <i class="bi bi-box-seam"></i> Stock: {{ $producto->stock }}
+                                    </small>
+                                @endif
                             </div>
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="agregarAlCarrito('{{ $producto->_id }}')"
-                                    data-producto-id="{{ $producto->_id }}">
-                                <i class="bi bi-cart-plus"></i>
-                            </button>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-primary {{ $producto->stock <= 0 ? 'disabled' : '' }}" 
+                                        onclick="agregarAlCarritoFromFavorito('{{ $producto->_id }}')"
+                                        data-producto-id="{{ $producto->_id }}"
+                                        data-nombre="{{ $producto->nombre }}"
+                                        data-precio="{{ $producto->precio }}"
+                                        data-imagen="{{ $producto->imagen_principal ?? '' }}"
+                                        data-stock="{{ $producto->stock ?? 0 }}"
+                                        {{ $producto->stock <= 0 ? 'disabled' : '' }}
+                                        title="{{ $producto->stock <= 0 ? 'Producto agotado' : 'Agregar al carrito' }}">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarFavorito('{{ $producto->_id }}')"
+                                        title="Quitar de favoritos">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                            </div>
                         </div>
                         @endforeach
                         
@@ -529,6 +622,7 @@
 </div>
 
 <!-- Carrito Sidebar -->
+<div id="carritoBackdrop" class="carrito-backdrop" onclick="clienteDashboard.closeCarrito()"></div>
 <div id="carritoSidebar">
     <div class="carrito-header">
         <div class="d-flex justify-content-between align-items-center">
@@ -550,11 +644,16 @@
     </div>
     
     <div class="carrito-footer">
-        <div class="d-flex justify-content-between mb-3">
-            <strong>Total:</strong>
-            <strong class="text-success fs-5" id="carritoTotal">$0</strong>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <small class="text-muted d-block">Total:</small>
+                <strong class="text-success fs-4" id="carritoTotal">$0</strong>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="clienteDashboard.vaciarCarrito()" id="btnVaciarCarrito" style="display:none;">
+                <i class="bi bi-trash"></i> Vaciar
+            </button>
         </div>
-        <button class="btn btn-success w-100 mb-2" onclick="clienteDashboard.confirmarPedido()">
+        <button class="btn btn-success w-100 mb-2" onclick="clienteDashboard.confirmarPedido()" id="btnConfirmarPedido">
             <i class="bi bi-check-circle me-2"></i>
             Confirmar Pedido
         </button>

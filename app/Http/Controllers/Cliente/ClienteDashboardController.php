@@ -42,6 +42,20 @@ class ClienteDashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Si no hay pedidos con cliente_id, buscar con user_id
+        if ($pedidos_recientes->isEmpty()) {
+            $pedidos_recientes = Pedido::where('user_id', $user->_id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        }
+
+        // Log para debugging (temporal)
+        \Log::info('Pedidos encontrados para usuario: ' . $user->_id, [
+            'total' => $pedidos_recientes->count(),
+            'pedidos' => $pedidos_recientes->pluck('numero_pedido')
+        ]);
+
         // Obtener productos favoritos del cliente
         $productos_favoritos = $this->getProductosFavoritos($user);
 
@@ -117,13 +131,25 @@ class ClienteDashboardController extends Controller
      */
     private function getProductosFavoritos(User $user)
     {
+        // Log para debugging
+        \Log::info('Obteniendo favoritos para usuario: ' . $user->_id, [
+            'tiene_campo_favoritos' => isset($user->favoritos),
+            'favoritos_raw' => $user->favoritos ?? 'null',
+            'es_array' => is_array($user->favoritos ?? null)
+        ]);
+
         // Si el usuario tiene campo favoritos en MongoDB
-        if (isset($user->favoritos) && is_array($user->favoritos)) {
-            return Producto::whereIn('_id', $user->favoritos)
+        if (isset($user->favoritos) && is_array($user->favoritos) && count($user->favoritos) > 0) {
+            $productos = Producto::whereIn('_id', $user->favoritos)
                 ->where('activo', true)
                 ->get();
+            
+            \Log::info('Productos favoritos encontrados: ' . $productos->count());
+            
+            return $productos;
         }
 
+        \Log::info('No se encontraron favoritos para el usuario');
         return collect();
     }
 

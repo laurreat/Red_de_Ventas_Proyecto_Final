@@ -81,7 +81,10 @@ class User extends Authenticatable
         'widgets_activos',
         'layout_dashboard',
         'densidade_informacion',
-        'mostrar_tips'
+        'mostrar_tips',
+        // Favoritos y preferencias del cliente
+        'favoritos',
+        'productos_recientes'
     ];
 
     protected $hidden = [
@@ -104,7 +107,9 @@ class User extends Authenticatable
         'zonas_asignadas' => 'array',
         'referidos_data' => 'array',
         'historial_ventas' => 'array',
-        'configuracion_personal' => 'array'
+        'configuracion_personal' => 'array',
+        'favoritos' => 'array',
+        'productos_recientes' => 'array'
     ];
 
     // Relaciones embebidas - En MongoDB podemos embeber los referidos directamente
