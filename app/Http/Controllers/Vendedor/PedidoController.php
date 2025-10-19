@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pedido;
 use App\Models\User;
 use App\Models\Producto;
+use App\Services\ComisionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -112,12 +113,6 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'cliente_id' => 'required|string',
-            'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|string',
-            'productos.*.cantidad' => 'required|integer|min:1',
-            'productos.*.precio' => 'required|numeric|min:0',
         // Normalizar y filtrar productos válidos antes de validar
         $productosFiltrados = collect($request->input('productos', []))
             ->filter(function ($p) {
@@ -131,6 +126,12 @@ class PedidoController extends Controller
             ->all();
         $request->merge(['productos' => $productosFiltrados]);
 
+        $request->validate([
+            'cliente_id' => 'required|string',
+            'productos' => 'required|array|min:1',
+            'productos.*.id' => 'required|string',
+            'productos.*.cantidad' => 'required|integer|min:1',
+            'productos.*.precio' => 'required|numeric|min:0',
             'direccion_entrega' => 'nullable|string|max:500',
             'telefono_entrega' => 'nullable|string|max:20',
             'notas' => 'nullable|string|max:500',
@@ -205,6 +206,7 @@ class PedidoController extends Controller
                 'notas' => $request->notas,
                 'stock_devuelto' => false
             ]);
+            // La comisión se crea automáticamente mediante el Observer
 
             return redirect()->route('vendedor.pedidos.show', $pedido->_id)
                            ->with('success', 'Pedido creado exitosamente.');
@@ -376,6 +378,7 @@ class PedidoController extends Controller
                 'telefono_entrega' => $request->telefono_entrega,
                 'notas' => $request->notas
             ]);
+            // La comisión se actualiza automáticamente mediante el Observer
 
             return redirect()->route('vendedor.pedidos.show', $pedido->_id)
                            ->with('success', 'Pedido actualizado exitosamente.');
@@ -390,42 +393,83 @@ class PedidoController extends Controller
     public function updateEstado(Request $request, $id)
     {
         $request->validate([
-            'estado' => 'required|in:pendiente,procesando,completado,cancelado',
-            'motivo_cancelacion' => 'required_if:estado,cancelado|string|max:255'
+            'estado' => 'required|in:pendiente,confirmado,en_preparacion,listo,en_camino,entregado,cancelado',
+            'motivo_cancelacion' => 'nullable|string|max:255'
         ]);
 
         $vendedor = Auth::user();
-        $pedido = Pedido::where('vendedor_id', $vendedor->id)
-                       ->where('id', $id)
+        $pedido = Pedido::where('vendedor_id', $vendedor->_id)
+                       ->where('_id', $id)
                        ->firstOrFail();
 
         $estadoAnterior = $pedido->estado;
         $stockDevuelto = $pedido->stock_devuelto ?? ($estadoAnterior === 'cancelado');
 
+        // Leer detalles directamente de MongoDB
+        $detalles = $pedido->getRawDetalles() ?? [];
+
+        \Log::info('=== INICIO updateEstado (Vendedor) ===', [
+            'pedido_id' => $pedido->_id,
+            'numero_pedido' => $pedido->numero_pedido,
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $request->estado,
+            'stock_devuelto_actual' => $stockDevuelto,
+            'cantidad_detalles' => count($detalles)
+        ]);
+
         // Si se cancela el pedido y NO se ha devuelto el stock anteriormente
         if ($request->estado === 'cancelado' && $estadoAnterior !== 'cancelado' && !$stockDevuelto) {
-            foreach ($pedido->detalles ?? [] as $detalle) {
+            \Log::info('>>> Iniciando devolución de stock por cancelación');
+
+            foreach ($detalles as $detalle) {
+                \Log::info('Procesando detalle', [
+                    'producto_id' => $detalle['producto_id'] ?? 'no definido',
+                    'cantidad' => $detalle['cantidad'] ?? 'no definido'
+                ]);
+
                 $producto = Producto::find($detalle['producto_id']);
                 if ($producto) {
                     $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
                     $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+
+                    \Log::info('Devolviendo stock', [
+                        'producto' => $producto->nombre,
+                        'stock_antes' => $stockActual,
+                        'cantidad_devuelta' => $detalle['cantidad'],
+                        'stock_despues' => $nuevoStock
+                    ]);
+
                     $producto->update(['stock' => $nuevoStock]);
+                } else {
+                    \Log::warning('Producto no encontrado', ['producto_id' => $detalle['producto_id']]);
                 }
             }
             $pedido->stock_devuelto = true;
+            \Log::info('Stock devuelto, marcando bandera stock_devuelto = true');
         }
 
         // Si se reactiva un pedido que estaba cancelado, restar stock
         if ($estadoAnterior === 'cancelado' && $request->estado !== 'cancelado' && $stockDevuelto) {
-            foreach ($pedido->detalles ?? [] as $detalle) {
+            \Log::info('>>> Iniciando resta de stock por reactivación');
+
+            foreach ($detalles as $detalle) {
                 $producto = Producto::find($detalle['producto_id']);
                 if ($producto) {
                     $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
                     $nuevoStock = $stockActual - (int)$detalle['cantidad'];
+
+                    \Log::info('Restando stock por reactivación', [
+                        'producto' => $producto->nombre,
+                        'stock_antes' => $stockActual,
+                        'cantidad_restada' => $detalle['cantidad'],
+                        'stock_despues' => $nuevoStock
+                    ]);
+
                     $producto->update(['stock' => max(0, $nuevoStock)]);
                 }
             }
             $pedido->stock_devuelto = false;
+            \Log::info('Stock restado, marcando bandera stock_devuelto = false');
         }
 
         $pedido->update([
@@ -433,42 +477,97 @@ class PedidoController extends Controller
             'motivo_cancelacion' => $request->motivo_cancelacion,
             'stock_devuelto' => $pedido->stock_devuelto ?? false
         ]);
+        // Las comisiones se gestionan automáticamente mediante el Observer
 
-        return redirect()->back()->with('success', 'Estado del pedido actualizado.');
+        \Log::info('=== FIN updateEstado (Vendedor) ===');
+
+        return redirect()->back()->with('success', 'Estado del pedido actualizado exitosamente.');
     }
 
     public function destroy($id)
     {
         $vendedor = Auth::user();
-        $pedido = Pedido::where('vendedor_id', $vendedor->id)
-                       ->where('id', $id)
-                       ->where('estado', 'pendiente') // Solo pendientes se pueden eliminar
-                       ->firstOrFail();
+        
+        // Primero buscar el pedido sin restricción de estado
+        $pedido = Pedido::where('vendedor_id', $vendedor->_id)
+                       ->where('_id', $id)
+                       ->first();
+        
+        if (!$pedido) {
+            return redirect()->back()
+                           ->with('error', 'Pedido no encontrado o no tienes permisos para eliminarlo.');
+        }
+        
+        // Verificar si el pedido puede ser eliminado
+        if ($pedido->estado === 'entregado') {
+            return redirect()->back()
+                           ->with('error', 'No se pueden eliminar pedidos que ya fueron entregados.');
+        }
+
+        // Para pedidos antiguos sin el campo stock_devuelto, asumimos false si el estado no es 'cancelado'
+        $stockDevuelto = $pedido->stock_devuelto ?? ($pedido->estado === 'cancelado');
+
+        // Leer detalles directamente de MongoDB
+        $detalles = $pedido->getRawDetalles() ?? [];
+
+        \Log::info('=== INICIO destroy (Vendedor) ===', [
+            'pedido_id' => $pedido->_id,
+            'numero_pedido' => $pedido->numero_pedido,
+            'estado' => $pedido->estado,
+            'stock_devuelto' => $stockDevuelto,
+            'cantidad_detalles' => count($detalles)
+        ]);
 
         try {
-            // Para pedidos antiguos sin el campo stock_devuelto, asumimos false si el estado no es 'cancelado'
-            $stockDevuelto = $pedido->stock_devuelto ?? ($pedido->estado === 'cancelado');
-
             // Devolver stock solo si NO se devolvió anteriormente (por cancelación)
+            \Log::info('Verificando si devolver stock', ['stock_devuelto' => $stockDevuelto]);
+
             if (!$stockDevuelto) {
-                foreach ($pedido->detalles ?? [] as $detalle) {
+                \Log::info('>>> Iniciando devolución de stock por eliminación');
+
+                foreach ($detalles as $detalle) {
+                    \Log::info('Procesando detalle para devolución', [
+                        'producto_id' => $detalle['producto_id'] ?? 'no definido',
+                        'cantidad' => $detalle['cantidad'] ?? 'no definido'
+                    ]);
+
                     $producto = Producto::find($detalle['producto_id']);
                     if ($producto) {
                         $stockActual = is_numeric($producto->stock) ? (int)$producto->stock : 0;
                         $nuevoStock = $stockActual + (int)$detalle['cantidad'];
+
+                        \Log::info('Devolviendo stock por eliminación', [
+                            'producto' => $producto->nombre,
+                            'stock_antes' => $stockActual,
+                            'cantidad_devuelta' => $detalle['cantidad'],
+                            'stock_despues' => $nuevoStock
+                        ]);
+
                         $producto->update(['stock' => $nuevoStock]);
+                    } else {
+                        \Log::warning('Producto no encontrado al eliminar', ['producto_id' => $detalle['producto_id']]);
                     }
                 }
+            } else {
+                \Log::info('No se devuelve stock porque ya fue devuelto anteriormente (stock_devuelto = true)');
             }
 
-            // MongoDB: usar arrays embebidos
-            // $pedido->productos()->detach();
+            // Las comisiones se eliminan automáticamente mediante el Observer
             $pedido->delete();
+            
+            \Log::info('Pedido eliminado exitosamente');
+            \Log::info('=== FIN destroy (Vendedor) ===');
 
             return redirect()->route('vendedor.pedidos.index')
-                           ->with('success', 'Pedido eliminado exitosamente.');
+                           ->with('success', 'Pedido eliminado exitosamente. El stock ha sido devuelto al inventario.');
 
         } catch (\Exception $e) {
+            \Log::error('Error al eliminar pedido', [
+                'pedido_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()->back()
                            ->with('error', 'Error al eliminar el pedido: ' . $e->getMessage());
         }
@@ -493,5 +592,47 @@ class PedidoController extends Controller
         // Aquí implementarías la lógica de exportación (CSV, Excel, PDF)
         // Por ahora retornamos un JSON
         return response()->json($pedidos);
+    }
+
+    /**
+     * Buscar cliente por cédula
+     */
+    public function searchCliente(Request $request)
+    {
+        $request->validate([
+            'cedula' => 'required|string'
+        ]);
+
+        try {
+            $cedula = $request->cedula;
+
+            // Buscar usuario con rol cliente por cédula
+            $cliente = User::where('cedula', $cedula)
+                          ->where('rol', 'cliente')
+                          ->first();
+
+            if ($cliente) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'id' => $cliente->_id,
+                        'name' => $cliente->name,
+                        'email' => $cliente->email,
+                        'cedula' => $cliente->cedula
+                    ],
+                    'message' => 'Cliente encontrado correctamente'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró un cliente con esa cédula'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar el cliente: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

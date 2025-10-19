@@ -62,7 +62,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('password.email') }}">
+                <form method="POST" action="{{ route('password.email') }}" id="forgotPasswordForm">
                     @csrf
 
                     <div class="form-group">
@@ -83,9 +83,9 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-login text-white">
+                    <button type="submit" class="btn btn-login text-white" id="submitBtn">
                         <i class="bi bi-send me-2"></i>
-                        Enviar Enlace de Restablecimiento
+                        <span id="btnText">Enviar Enlace de Restablecimiento</span>
                     </button>
 
                     <div class="login-links">
@@ -108,3 +108,64 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('forgotPasswordForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const emailInput = document.getElementById('email');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            // Verificar conexión a internet antes de enviar
+            if (!navigator.onLine) {
+                e.preventDefault();
+                
+                // Mostrar alerta de error
+                const existingAlert = document.querySelector('.alert-danger');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <i class="bi bi-wifi-off me-2"></i>
+                    <strong>Sin conexión a internet.</strong> Por favor, verifica tu conexión e intenta nuevamente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const loginHeader = document.querySelector('.login-header');
+                loginHeader.insertAdjacentElement('afterend', alertDiv);
+                
+                // Auto-cerrar alerta después de 5 segundos
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+                
+                return false;
+            }
+            
+            // Deshabilitar botón para evitar múltiples envíos
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+        });
+        
+        // Monitorear el estado de conexión
+        window.addEventListener('online', function() {
+            console.log('✅ Conexión restaurada');
+        });
+        
+        window.addEventListener('offline', function() {
+            console.log('⚠️ Sin conexión a internet');
+            if (submitBtn.disabled) {
+                submitBtn.disabled = false;
+                btnText.textContent = 'Enviar Enlace de Restablecimiento';
+            }
+        });
+    }
+});
+</script>
+@endpush

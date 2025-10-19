@@ -226,17 +226,25 @@
                                 @endif
                             </a>
                         @elseif(Auth::user()->esLider())
-                            <a href="#" class="profile-menu-item" onclick="showComingSoon('Mi Perfil')">
+                            <a href="{{ route('lider.perfil.index') }}" class="profile-menu-item">
                                 <i class="bi bi-person"></i>
                                 <span class="menu-item-text">Mi Perfil</span>
                             </a>
-                            <a href="#" class="profile-menu-item" onclick="showComingSoon('Configuración')">
+                            <a href="{{ route('lider.configuracion.index') }}" class="profile-menu-item">
                                 <i class="bi bi-gear"></i>
                                 <span class="menu-item-text">Configuración</span>
                             </a>
-                            <a href="#" class="profile-menu-item" onclick="showComingSoon('Notificaciones')">
+                            <a href="{{ route('lider.notificaciones.index') }}" class="profile-menu-item">
                                 <i class="bi bi-bell"></i>
                                 <span class="menu-item-text">Notificaciones</span>
+                                @php
+                                    $unreadCount = \App\Models\Notificacion::where('user_id', Auth::id())
+                                        ->where('leida', false)
+                                        ->count();
+                                @endphp
+                                @if($unreadCount > 0)
+                                    <span class="menu-item-badge">{{ $unreadCount }}</span>
+                                @endif
                             </a>
                         @else
                             <a href="{{ route('vendedor.perfil.index') }}" class="profile-menu-item">

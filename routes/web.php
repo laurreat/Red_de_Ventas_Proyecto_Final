@@ -313,6 +313,7 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('vendedor/pedidos', [\App\Http\Controllers\Vendedor\PedidoController::class, 'index'])->name('vendedor.pedidos.index');
         Route::get('vendedor/pedidos/crear', [\App\Http\Controllers\Vendedor\PedidoController::class, 'create'])->name('vendedor.pedidos.create');
         Route::post('vendedor/pedidos', [\App\Http\Controllers\Vendedor\PedidoController::class, 'store'])->name('vendedor.pedidos.store');
+        Route::post('vendedor/pedidos/search-cliente', [\App\Http\Controllers\Vendedor\PedidoController::class, 'searchCliente'])->name('vendedor.pedidos.search-cliente');
         Route::get('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'show'])->name('vendedor.pedidos.show');
         Route::get('vendedor/pedidos/{id}/editar', [\App\Http\Controllers\Vendedor\PedidoController::class, 'edit'])->name('vendedor.pedidos.edit');
         Route::put('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'update'])->name('vendedor.pedidos.update');
@@ -320,14 +321,15 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::delete('vendedor/pedidos/{id}', [\App\Http\Controllers\Vendedor\PedidoController::class, 'destroy'])->name('vendedor.pedidos.destroy');
         Route::post('vendedor/pedidos/exportar', [\App\Http\Controllers\Vendedor\PedidoController::class, 'exportar'])->name('vendedor.pedidos.exportar');
 
-        // Gestión de Ventas (Nuevo Módulo)
-        Route::get('vendedor/ventas', [\App\Http\Controllers\Vendedor\VentaController::class, 'index'])->name('vendedor.ventas.index');
-        Route::get('vendedor/ventas/create', [\App\Http\Controllers\Vendedor\VentaController::class, 'create'])->name('vendedor.ventas.create');
-        Route::post('vendedor/ventas', [\App\Http\Controllers\Vendedor\VentaController::class, 'store'])->name('vendedor.ventas.store');
-        Route::get('vendedor/ventas/{id}', [\App\Http\Controllers\Vendedor\VentaController::class, 'show'])->name('vendedor.ventas.show');
-        Route::post('vendedor/ventas/exportar', [\App\Http\Controllers\Vendedor\VentaController::class, 'exportar'])->name('vendedor.ventas.exportar');
-        Route::get('vendedor/ventas/buscar-cliente', [\App\Http\Controllers\Vendedor\VentaController::class, 'buscarCliente'])->name('vendedor.ventas.buscar-cliente');
-        Route::get('vendedor/ventas/buscar-producto', [\App\Http\Controllers\Vendedor\VentaController::class, 'buscarProducto'])->name('vendedor.ventas.buscar-producto');
+        // Gestión de Ventas - Redirigir a Pedidos (mismo sistema)
+        Route::redirect('vendedor/ventas', 'vendedor/pedidos')->name('vendedor.ventas.index');
+        Route::redirect('vendedor/ventas/create', 'vendedor/pedidos/crear')->name('vendedor.ventas.create');
+
+        // Catálogo de Productos para Vendedor
+        Route::get('vendedor/productos', [\App\Http\Controllers\Vendedor\ProductoController::class, 'index'])->name('vendedor.productos.index');
+        Route::get('vendedor/productos/buscar', [\App\Http\Controllers\Vendedor\ProductoController::class, 'buscar'])->name('vendedor.productos.buscar');
+        Route::get('vendedor/productos/{id}', [\App\Http\Controllers\Vendedor\ProductoController::class, 'show'])->name('vendedor.productos.show');
+        Route::get('vendedor/productos/{id}/detalle', [\App\Http\Controllers\Vendedor\ProductoController::class, 'detalle'])->name('vendedor.productos.detalle');
 
         // Gestión de Clientes
         Route::get('vendedor/clientes', [\App\Http\Controllers\Vendedor\ClienteController::class, 'index'])->name('vendedor.clientes.index');

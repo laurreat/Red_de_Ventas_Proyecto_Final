@@ -7,6 +7,7 @@ use App\Models\Pedido;
 use App\Models\User;
 use App\Models\Producto;
 use App\Services\NotificationService;
+use App\Services\ComisionService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -282,6 +283,8 @@ class PedidoController extends Controller
             'primer_detalle' => (is_array($detallesGuardados) && count($detallesGuardados) > 0) ? $detallesGuardados[0] : null
         ]);
 
+        // La comisión se crea automáticamente mediante el Observer
+
         // 🔔 Enviar notificaciones automáticas
         try {
             // Recargar relaciones para notificaciones
@@ -466,6 +469,7 @@ class PedidoController extends Controller
             'estado' => $request->estado,
             'stock_devuelto' => $pedido->stock_devuelto ?? false
         ]);
+        // Las comisiones se gestionan automáticamente mediante el Observer
 
         // 🔔 Enviar notificación de cambio de estado
         try {
@@ -555,6 +559,7 @@ class PedidoController extends Controller
             \Log::info('No se devuelve stock porque ya fue devuelto anteriormente (stock_devuelto = true)');
         }
 
+        // Las comisiones se eliminan automáticamente mediante el Observer
         $pedido->delete();
         \Log::info('Pedido eliminado exitosamente');
         \Log::info('=== FIN destroy ===');

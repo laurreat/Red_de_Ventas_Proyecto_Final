@@ -280,7 +280,7 @@
         @if($productos->hasPages())
         <div class="p-4 border-top">
             <div class="d-flex justify-content-center">
-                {{ $productos->appends(request()->query())->links() }}
+                {{ $productos->appends(request()->query())->links('vendor.pagination.custom') }}
             </div>
         </div>
         @endif

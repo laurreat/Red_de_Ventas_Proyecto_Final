@@ -4,11 +4,12 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/vendedor/pedidos-professional.css') }}?v={{ filemtime(public_path('css/vendedor/pedidos-professional.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/admin/pedidos-modern.css') }}?v={{ filemtime(public_path('css/admin/pedidos-modern.css')) }}">
 @endpush
 
 @section('content')
 <!-- Header Hero Mejorado -->
-<div class="pedidos-header fade-in-up">
+<div class="pedido-header fade-in-up">
     <div class="row align-items-center">
         <div class="col-lg-8">
             <div class="pedidos-header-icon-badge">
@@ -40,7 +41,7 @@
 <!-- Stats Cards Grid Mejorado -->
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="pedidos-stat-card animate-delay-1 fade-in-up">
+        <div class="pedidos-stat-card fade-in-up" style="animation-delay:0.1s;opacity:0;animation-fill-mode:forwards;">
             <div class="pedidos-stat-header">
                 <div class="pedidos-stat-icon stat-total">
                     <i class="bi bi-clipboard-data"></i>
@@ -61,9 +62,9 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-xl-3 col-md-6">
-        <div class="pedidos-stat-card animate-delay-2 fade-in-up">
+        <div class="pedidos-stat-card fade-in-up" style="animation-delay:0.2s;opacity:0;animation-fill-mode:forwards;">
             <div class="pedidos-stat-header">
                 <div class="pedidos-stat-icon stat-pending">
                     <i class="bi bi-hourglass-split"></i>
@@ -86,7 +87,7 @@
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="pedidos-stat-card animate-delay-3 fade-in-up">
+        <div class="pedidos-stat-card fade-in-up" style="animation-delay:0.3s;opacity:0;animation-fill-mode:forwards;">
             <div class="pedidos-stat-header">
                 <div class="pedidos-stat-icon stat-confirmed">
                     <i class="bi bi-check-circle-fill"></i>
@@ -109,7 +110,7 @@
     </div>
     
     <div class="col-xl-3 col-md-6">
-        <div class="pedidos-stat-card animate-delay-4 fade-in-up">
+        <div class="pedidos-stat-card fade-in-up" style="animation-delay:0.4s;opacity:0;animation-fill-mode:forwards;">
             <div class="pedidos-stat-header">
                 <div class="pedidos-stat-icon stat-sales">
                     <i class="bi bi-currency-dollar"></i>
@@ -374,9 +375,69 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             @endif
-                            <button class="pedidos-action-btn pedidos-action-btn-more" title="Más opciones">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
+
+                            {{-- Dropdown de más opciones --}}
+                            <div class="dropdown d-inline-block">
+                                <button class="pedidos-action-btn pedidos-action-btn-more dropdown-toggle"
+                                        type="button"
+                                        id="dropdownPedido{{ $pedido->_id }}"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                        title="Más opciones">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownPedido{{ $pedido->_id }}">
+                                    @if(!in_array($pedido->estado, ['entregado', 'cancelado']))
+                                    <li>
+                                        <button class="dropdown-item"
+                                                type="button"
+                                                data-action="status-pedido"
+                                                data-pedido-id="{{ $pedido->_id }}"
+                                                data-numero-pedido="{{ $pedido->numero_pedido }}"
+                                                data-cliente-nombre="{{ $pedido->cliente_data['name'] ?? 'Cliente' }}"
+                                                data-estado-actual="{{ $pedido->estado }}"
+                                                data-estados='{{ json_encode(['pendiente' => 'Pendiente', 'confirmado' => 'Confirmado', 'en_preparacion' => 'En Preparación', 'listo' => 'Listo', 'en_camino' => 'En Camino', 'entregado' => 'Entregado', 'cancelado' => 'Cancelado']) }}'>
+                                            <i class="bi bi-arrow-repeat text-info me-2"></i>
+                                            Cambiar Estado
+                                        </button>
+                                    </li>
+                                    @endif
+                                    @if($pedido->estado != 'entregado')
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger"
+                                                type="button"
+                                                data-action="delete-pedido"
+                                                data-pedido-id="{{ $pedido->_id }}"
+                                                data-numero-pedido="{{ $pedido->numero_pedido }}"
+                                                data-cliente-nombre="{{ $pedido->cliente_data['name'] ?? 'Cliente' }}"
+                                                data-total-final="${{ number_format(to_float($pedido->total_final ?? 0), 0) }}"
+                                                data-estado="{{ ucfirst($pedido->estado) }}">
+                                            <i class="bi bi-trash me-2"></i>
+                                            Eliminar Pedido
+                                        </button>
+                                    </li>
+                                    @endif
+                                </ul>
+                            </div>
+
+                            {{-- Formularios ocultos --}}
+                            <form id="status-form-{{ $pedido->_id }}"
+                                  action="{{ route('vendedor.pedidos.update-estado', $pedido->_id) }}"
+                                  method="POST"
+                                  class="d-none">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="estado" id="estado-{{ $pedido->_id }}">
+                            </form>
+
+                            <form id="delete-form-{{ $pedido->_id }}"
+                                  action="{{ route('vendedor.pedidos.destroy', $pedido->_id) }}"
+                                  method="POST"
+                                  class="d-none">
+                                @csrf
+                                @method('DELETE')
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -412,18 +473,27 @@
     </div>
     @endif
 </div>
+
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/vendedor/pedidos-modern.js') }}?v={{ filemtime(public_path('js/vendedor/pedidos-modern.js')) }}"></script>
+<script src="{{ asset('js/admin/pedidos-modern.js') }}?v={{ filemtime(public_path('js/admin/pedidos-modern.js')) }}"></script>
+
 <script>
+// Inicializar PedidosManager
+window.pedidosManager = new PedidosManager();
+
 document.addEventListener('DOMContentLoaded', function() {
     @if(session('success'))
-    pedidosManager.showToast("{{ session('success') }}", 'success', 3000);
+    if (window.pedidosManager) {
+        pedidosManager.showToast("{{ session('success') }}", 'success', 3000);
+    }
     @endif
-    
+
     @if(session('error'))
-    pedidosManager.showToast("{{ session('error') }}", 'error', 5000);
+    if (window.pedidosManager) {
+        pedidosManager.showToast("{{ session('error') }}", 'error', 5000);
+    }
     @endif
     
     // View switcher

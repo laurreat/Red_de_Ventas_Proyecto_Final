@@ -1,0 +1,391 @@
+/* Enhanced Styles for Create Pedido - Vendedor */
+
+/* Glass Input Styles */
+.glass-input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.glass-input-group .form-control,
+.glass-input-group .form-select {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(114, 47, 55, 0.1);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.glass-input-group .form-control:focus,
+.glass-input-group .form-select:focus {
+    background: #fff;
+    border-color: var(--wine, #722F37);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.15);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.glass-input-group .input-group-text {
+    background: linear-gradient(135deg, var(--wine, #722F37), var(--wine-dark, #5a252a));
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.875rem 1.25rem;
+}
+
+/* Cliente Info Card Enhancement */
+.cliente-info-enhanced {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border: 2px solid #10b981;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    animation: slideInDown 0.4s ease-out;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cliente-avatar-enhanced {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-right: 1.25rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Product Selector Enhancement */
+.product-selector-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 2px solid rgba(114, 47, 55, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.product-selector-card .btn-add-product {
+    background: linear-gradient(135deg, var(--wine, #722F37), var(--wine-dark, #5a252a));
+    border: none;
+    color: white;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+}
+
+.product-selector-card .btn-add-product:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(114, 47, 55, 0.4);
+}
+
+/* Product List Enhancement */
+.producto-item-enhanced {
+    background: white;
+    border: 2px solid rgba(114, 47, 55, 0.1);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.4s ease-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.producto-item-enhanced:hover {
+    border-color: var(--wine, #722F37);
+    transform: translateX(8px);
+    box-shadow: 0 8px 24px rgba(114, 47, 55, 0.15);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.producto-item-enhanced .producto-nombre {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gray-900, #111827);
+    margin-bottom: 0.375rem;
+}
+
+.producto-item-enhanced .producto-detalles {
+    font-size: 0.875rem;
+    color: var(--gray-600, #6b7280);
+}
+
+.producto-item-enhanced .producto-precio {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--wine, #722F37);
+    background: linear-gradient(135deg, var(--wine, #722F37), var(--wine-dark, #5a252a));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.producto-item-enhanced .btn-remove {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid #ef4444;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.producto-item-enhanced .btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* Summary Card Enhancement */
+.resumen-card-enhanced {
+    background: linear-gradient(135deg, rgba(114, 47, 55, 0.05) 0%, rgba(92, 37, 43, 0.02) 100%);
+    border: 2px solid rgba(114, 47, 55, 0.15);
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: sticky;
+    top: 20px;
+    box-shadow: 0 8px 24px rgba(114, 47, 55, 0.1);
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid rgba(114, 47, 55, 0.1);
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+}
+
+.resumen-item .label {
+    font-size: 0.95rem;
+    color: var(--gray-700, #374151);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.resumen-item .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gray-900, #111827);
+}
+
+.resumen-total {
+    background: linear-gradient(135deg, var(--wine, #722F37), var(--wine-dark, #5a252a));
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+
+.resumen-total .label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+}
+
+.resumen-total .value {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button Enhancements */
+.btn-crear-pedido {
+    background: linear-gradient(135deg, var(--wine, #722F37), var(--wine-dark, #5a252a));
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(114, 47, 55, 0.35);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn-crear-pedido:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(114, 47, 55, 0.45);
+}
+
+.btn-crear-pedido:disabled {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-cancelar {
+    background: white;
+    border: 2px solid var(--gray-300, #d1d5db);
+    color: var(--gray-700, #374151);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn-cancelar:hover {
+    background: var(--gray-50, #f9fafb);
+    border-color: var(--gray-400, #9ca3af);
+    transform: translateY(-2px);
+}
+
+/* Help Card */
+.help-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.03) 100%);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.help-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.help-card h6 {
+    color: #1e40af;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.help-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-card li {
+    padding: 0.5rem 0;
+    color: var(--gray-700, #374151);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.help-card li::before {
+    content: "✓";
+    color: #3b82f6;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Empty State Enhancement */
+.empty-state-enhanced {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, rgba(156, 163, 175, 0.05) 0%, rgba(107, 114, 128, 0.02) 100%);
+    border: 2px dashed rgba(156, 163, 175, 0.3);
+    border-radius: 16px;
+    margin: 1rem 0;
+}
+
+.empty-state-enhanced .icon {
+    font-size: 4rem;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.empty-state-enhanced h4 {
+    color: var(--gray-700, #374151);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-enhanced p {
+    color: var(--gray-500, #6b7280);
+    font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .resumen-card-enhanced {
+        position: static;
+        margin-top: 2rem;
+    }
+
+    .producto-item-enhanced {
+        padding: 1rem;
+    }
+
+    .btn-crear-pedido,
+    .btn-cancelar {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+}

@@ -47,8 +47,8 @@ class Pedido extends Model
         'total' => 'decimal:2',
         'total_final' => 'decimal:2',
         'fecha_entrega_estimada' => 'datetime',
-        'productos' => 'array',
-        'detalles' => 'array',
+        // 'productos' y 'detalles' no necesitan cast porque MongoDB los maneja como arrays nativos
+        // y ya tenemos accessors personalizados que manejan la conversión
         'historial_estados' => 'array',
         'cliente_data' => 'array',
         'vendedor_data' => 'array',

@@ -48,37 +48,66 @@ class ForgotPasswordController extends Controller
 
             if (!$user) {
                 // No revelar si el email existe o no por seguridad
+                Log::info('Solicitud de restablecimiento para email no registrado', [
+                    'email' => $request->email
+                ]);
                 return back()->with('status', 'Si el correo está registrado, recibirás un enlace de restablecimiento.');
             }
 
-            // Crear token usando el servicio
+            // Crear token usando el servicio (SIEMPRE genera uno nuevo)
             $passwordResetService = new PasswordResetService();
-            $passwordResetService->ensureDirectoryExists();
+            
+            Log::info('Iniciando creación de token', [
+                'user_id' => $user->_id,
+                'email' => $user->email
+            ]);
+            
             $token = $passwordResetService->createToken($request->email);
+            
+            Log::info('Token generado', [
+                'user_id' => $user->_id,
+                'email' => $user->email,
+                'token_length' => strlen($token),
+                'token_preview' => substr($token, 0, 10) . '...'
+            ]);
 
             // Enviar correo
             try {
                 $this->sendResetEmail($user, $token);
-                $mailSent = true;
-            } catch (\Exception $mailError) {
-                Log::error('Error enviando correo', [
+                
+                Log::info('Correo de restablecimiento enviado exitosamente', [
                     'user_id' => $user->_id,
                     'email' => $user->email,
-                    'error' => $mailError->getMessage()
+                    'token_preview' => substr($token, 0, 10) . '...'
                 ]);
-                $mailSent = false;
+
+                return back()->with('status', 'Se ha enviado un enlace de restablecimiento a tu correo electrónico. Por favor, revisa tu bandeja de entrada. El enlace es válido por 1 hora.');
+
+            } catch (\Exception $mailError) {
+                Log::error('Error enviando correo de restablecimiento', [
+                    'user_id' => $user->_id,
+                    'email' => $user->email,
+                    'error' => $mailError->getMessage(),
+                    'trace' => $mailError->getTraceAsString()
+                ]);
+
+                // Mensaje más específico sobre el error de correo
+                throw ValidationException::withMessages([
+                    'email' => ['No se pudo enviar el correo electrónico. Por favor, verifica tu conexión a internet e intenta nuevamente. Si el problema persiste, contacta al soporte técnico.'],
+                ]);
             }
 
-            return back()->with('status', 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.');
-
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            Log::error('Error enviando correo de restablecimiento', [
+            Log::error('Error general al procesar solicitud de restablecimiento', [
                 'email' => $request->email,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             throw ValidationException::withMessages([
-                'email' => ['Error al procesar la solicitud. Por favor, intente nuevamente.'],
+                'email' => ['Error al procesar la solicitud. Por favor, verifica tu conexión a internet e intenta nuevamente.'],
             ]);
         }
     }

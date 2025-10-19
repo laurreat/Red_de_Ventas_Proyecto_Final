@@ -489,146 +489,56 @@
 
         <div class="sidebar-nav">
             <!-- Dashboard -->
-            <div class="nav-section">Dashboard</div>
+            <div class="nav-section">Principal</div>
             <div class="nav-item">
                 <a href="{{ route('vendedor.dashboard') }}" class="nav-link {{ request()->routeIs('vendedor.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i>
-                    Panel Principal
+                    Dashboard
                 </a>
             </div>
 
-            <!-- Ventas -->
+            <!-- Gestión de Ventas -->
             <div class="nav-section">Ventas</div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle {{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'active' : '' }}" data-bs-toggle="collapse" data-bs-target="#ventasSubmenu" aria-expanded="{{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'true' : 'false' }}">
+                <a href="{{ route('vendedor.pedidos.index') }}" class="nav-link {{ request()->routeIs('vendedor.pedidos.index') || request()->routeIs('vendedor.pedidos.show') ? 'active' : '' }}">
                     <i class="bi bi-cart-check"></i>
-                    Mis Ventas
+                    Mis Pedidos
                 </a>
-                <div class="collapse {{ request()->is('vendedor/pedidos*') || request()->is('vendedor/ventas*') ? 'show' : '' }}" id="ventasSubmenu">
-                    <a href="{{ route('vendedor.pedidos.index') }}" class="dropdown-item {{ request()->routeIs('vendedor.pedidos.*') ? 'active' : '' }}">
-                        <i class="bi bi-list-check"></i>
-                        Gestión de Pedidos
-                    </a>
-                    <a href="{{ route('vendedor.ventas.create') }}" class="dropdown-item {{ request()->routeIs('vendedor.ventas.create') ? 'active' : '' }}">
-                        <i class="bi bi-plus-circle-fill"></i>
-                        Nueva Venta
-                    </a>
-                    <a href="{{ route('vendedor.ventas.index') }}" class="dropdown-item {{ request()->routeIs('vendedor.ventas.index') || request()->routeIs('vendedor.ventas.show') ? 'active' : '' }}">
-                        <i class="bi bi-clock-history"></i>
-                        Historial de Ventas
-                    </a>
-                </div>
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Productos')">
+                <a href="{{ route('vendedor.pedidos.create') }}" class="nav-link {{ request()->routeIs('vendedor.pedidos.create') ? 'active' : '' }}">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Crear Pedido
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('vendedor.productos.index') }}" class="nav-link {{ request()->routeIs('vendedor.productos.*') ? 'active' : '' }}">
                     <i class="bi bi-boxes"></i>
                     Productos
                 </a>
             </div>
 
-            <!-- Clientes -->
-            <div class="nav-section">Clientes</div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#clientesSubmenu" aria-expanded="false">
-                    <i class="bi bi-people"></i>
-                    Mis Clientes
-                </a>
-                <div class="collapse" id="clientesSubmenu">
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Lista de Clientes')">
-                        <i class="bi bi-list"></i>
-                        Lista de Clientes
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Nuevo Cliente')">
-                        <i class="bi bi-person-plus"></i>
-                        Nuevo Cliente
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Seguimiento')">
-                        <i class="bi bi-graph-up"></i>
-                        Seguimiento
-                    </a>
-                </div>
-            </div>
-
-            <!-- Comisiones y Ganancias -->
+            <!-- Ganancias -->
             <div class="nav-section">Ganancias</div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#comisionesSubmenu" aria-expanded="false">
+                <a href="#" class="nav-link" onclick="showComingSoon('Mis Comisiones')">
                     <i class="bi bi-cash-coin"></i>
-                    Comisiones
+                    Mis Comisiones
                 </a>
-                <div class="collapse" id="comisionesSubmenu">
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mis Comisiones')">
-                        <i class="bi bi-list"></i>
-                        Mis Comisiones
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Solicitar Retiro')">
-                        <i class="bi bi-wallet2"></i>
-                        Solicitar Retiro
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Historial de Pagos')">
-                        <i class="bi bi-clock-history"></i>
-                        Historial de Pagos
-                    </a>
-                </div>
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#referidosSubmenu" aria-expanded="false">
+                <a href="#" class="nav-link" onclick="showComingSoon('Red de Referidos')">
                     <i class="bi bi-diagram-3"></i>
-                    Red de Referidos
-                </a>
-                <div class="collapse" id="referidosSubmenu">
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mi Red')">
-                        <i class="bi bi-diagram-2"></i>
-                        Mi Red
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Invitar Nuevos')">
-                        <i class="bi bi-person-plus"></i>
-                        Invitar Nuevos
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Ganancias por Referidos')">
-                        <i class="bi bi-currency-dollar"></i>
-                        Ganancias por Referidos
-                    </a>
-                </div>
-            </div>
-
-            <!-- Reportes y Análisis -->
-            <div class="nav-section">Análisis</div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#reportesSubmenu" aria-expanded="false">
-                    <i class="bi bi-graph-up"></i>
-                    Reportes
-                </a>
-                <div class="collapse" id="reportesSubmenu">
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Reporte de Ventas')">
-                        <i class="bi bi-bar-chart"></i>
-                        Reporte de Ventas
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Mi Rendimiento')">
-                        <i class="bi bi-speedometer"></i>
-                        Mi Rendimiento
-                    </a>
-                    <a href="#" class="dropdown-item" onclick="showComingSoon('Reporte de Comisiones')">
-                        <i class="bi bi-cash-stack"></i>
-                        Reporte de Comisiones
-                    </a>
-                </div>
-            </div>
-
-            <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Mis Metas')">
-                    <i class="bi bi-target"></i>
-                    Mis Metas
+                    Mis Referidos
                 </a>
             </div>
 
-            <!-- Configuración -->
+            <!-- Perfil -->
             <div class="nav-section">Configuración</div>
 
             <div class="nav-item">

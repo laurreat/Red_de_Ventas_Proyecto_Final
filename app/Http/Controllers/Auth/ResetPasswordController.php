@@ -33,7 +33,19 @@ class ResetPasswordController extends Controller
     {
         $email = $request->email;
 
+        Log::info('showResetForm llamado', [
+            'token' => $token ? substr($token, 0, 10) . '...' : 'NULL',
+            'email' => $email,
+            'url' => $request->fullUrl(),
+            'query' => $request->query()
+        ]);
+
         if (!$token || !$email) {
+            Log::warning('Token o email faltante', [
+                'token' => $token,
+                'email' => $email
+            ]);
+            
             return redirect()->route('password.request')
                 ->with('error', 'Enlace de restablecimiento inválido.');
         }
@@ -41,9 +53,19 @@ class ResetPasswordController extends Controller
         // Verificar que el token existe y es válido
         $passwordResetService = new PasswordResetService();
         if (!$passwordResetService->verifyToken($email, $token)) {
+            Log::warning('Token inválido o expirado al cargar formulario', [
+                'token' => substr($token, 0, 10) . '...',
+                'email' => $email
+            ]);
+            
             return redirect()->route('password.request')
                 ->with('error', 'El enlace de restablecimiento ha expirado o es inválido.');
         }
+
+        Log::info('Mostrando formulario de restablecimiento', [
+            'token' => substr($token, 0, 10) . '...',
+            'email' => $email
+        ]);
 
         return view('auth.passwords.reset', [
             'token' => $token,
@@ -76,8 +98,13 @@ class ResetPasswordController extends Controller
             // Verificar token
             $passwordResetService = new PasswordResetService();
             if (!$passwordResetService->verifyToken($request->email, $request->token)) {
+                Log::warning('Token de restablecimiento inválido o expirado', [
+                    'email' => $request->email,
+                    'token' => substr($request->token, 0, 10) . '...'
+                ]);
+                
                 throw ValidationException::withMessages([
-                    'email' => ['El enlace de restablecimiento ha expirado o es inválido.'],
+                    'email' => ['El enlace de restablecimiento ha expirado o es inválido. Por favor, solicita uno nuevo.'],
                 ]);
             }
 
@@ -85,6 +112,10 @@ class ResetPasswordController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
+                Log::warning('Intento de restablecimiento para usuario inexistente', [
+                    'email' => $request->email
+                ]);
+                
                 throw ValidationException::withMessages([
                     'email' => ['No se encontró un usuario con este correo electrónico.'],
                 ]);
@@ -99,7 +130,8 @@ class ResetPasswordController extends Controller
 
             Log::info('Contraseña restablecida exitosamente', [
                 'user_id' => $user->_id,
-                'email' => $user->email
+                'email' => $user->email,
+                'timestamp' => now()->toDateTimeString()
             ]);
 
             // Loguear automáticamente al usuario
@@ -113,11 +145,12 @@ class ResetPasswordController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al restablecer contraseña', [
                 'email' => $request->email,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             throw ValidationException::withMessages([
-                'email' => ['Error al restablecer la contraseña. Por favor, intente nuevamente.'],
+                'email' => ['Error al restablecer la contraseña. Por favor, verifica tu conexión e intenta nuevamente.'],
             ]);
         }
     }
