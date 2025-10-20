@@ -1,6 +1,7 @@
 @extends('layouts.vendedor')
 
 @section('title', ' - Mi Red de Referidos')
+@section('header-title', 'Mi Red de Referidos')
 
 @section('content')
 <div class="container-fluid">

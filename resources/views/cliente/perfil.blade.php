@@ -1,19 +1,13 @@
-{{-- 
-    ARCHIVO: resources/views/cliente/perfil/index.blade.php
-    DESCRIPCIÓN: Vista principal del perfil del cliente
-    COPIA TODO EL CONTENIDO DE ESTE ARCHIVO
---}}
-
 @extends('layouts.cliente')
 
 @section('title', '- Mi Perfil')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/cliente/perfil-professional.css') }}?v={{ time() }}">
+<link rel="stylesheet" href="{{ asset('css/cliente/perfil-modern.css') }}?v={{ filemtime(public_path('css/cliente/perfil-modern.css')) }}">
 @endpush
 
 @section('content')
-<div class="profile-container">
+<div class="profile-container fade-in-up">
     
     {{-- Banner Superior --}}
     <div class="profile-banner">
@@ -27,19 +21,19 @@
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-container">
                     @if($user->foto)
-                        <img src="{{ Storage::url($user->foto) }}" alt="{{ $user->name }}" class="profile-avatar">
+                        <img src="{{ Storage::url($user->foto) }}" alt="{{ $user->name }}" class="profile-avatar" loading="lazy">
                     @else
                         <div class="profile-avatar profile-avatar-placeholder">
                             <span>{{ strtoupper(substr($user->name, 0, 2)) }}</span>
                         </div>
                     @endif
                     <div class="profile-avatar-status"></div>
-                    <button class="profile-avatar-edit" onclick="document.getElementById('fotoInput').click()">
+                    <button class="profile-avatar-edit" onclick="document.getElementById('fotoInput').click()" title="Cambiar foto">
                         <i class="bi bi-camera"></i>
                     </button>
                     <form action="{{ route('cliente.perfil.actualizar-foto') }}" method="POST" enctype="multipart/form-data" id="fotoForm">
                         @csrf
-                        <input type="file" name="foto" id="fotoInput" accept="image/*" style="display: none" onchange="handleAvatarUpload(this)">
+                        <input type="file" name="foto" id="fotoInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
                     </form>
                 </div>
             </div>
@@ -87,10 +81,10 @@
                         <span>Cambiar Contraseña</span>
                     </button>
                     @if($user->foto)
-                    <form action="{{ route('cliente.perfil.eliminar-foto') }}" method="POST" style="display: inline;">
+                    <form action="{{ route('cliente.perfil.eliminar-foto') }}" method="POST" style="display:inline" onsubmit="return confirm('¿Eliminar foto de perfil?')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn-profile btn-outline" onclick="return confirm('¿Eliminar foto de perfil?')">
+                        <button type="submit" class="btn-profile btn-outline">
                             <i class="bi bi-trash"></i>
                             <span>Eliminar Foto</span>
                         </button>
@@ -102,7 +96,7 @@
 
         {{-- Tarjetas de Estadísticas --}}
         <div class="profile-stats-grid">
-            <div class="stat-card stat-card-primary">
+            <div class="stat-card stat-card-primary animate-delay-1 fade-in-up">
                 <div class="stat-icon">
                     <i class="bi bi-bag-check-fill"></i>
                 </div>
@@ -114,10 +108,9 @@
                         <span>Total de compras</span>
                     </div>
                 </div>
-                <div class="stat-sparkline"></div>
             </div>
             
-            <div class="stat-card stat-card-success">
+            <div class="stat-card stat-card-success animate-delay-2 fade-in-up">
                 <div class="stat-icon">
                     <i class="bi bi-check-circle-fill"></i>
                 </div>
@@ -129,10 +122,9 @@
                         <span>Completados exitosamente</span>
                     </div>
                 </div>
-                <div class="stat-sparkline"></div>
             </div>
             
-            <div class="stat-card stat-card-warning">
+            <div class="stat-card stat-card-warning animate-delay-3 fade-in-up">
                 <div class="stat-icon">
                     <i class="bi bi-currency-dollar"></i>
                 </div>
@@ -144,10 +136,9 @@
                         <span>En todas tus compras</span>
                     </div>
                 </div>
-                <div class="stat-sparkline"></div>
             </div>
             
-            <div class="stat-card stat-card-info">
+            <div class="stat-card stat-card-info animate-delay-3 fade-in-up">
                 <div class="stat-icon">
                     <i class="bi bi-calendar-event"></i>
                 </div>
@@ -159,7 +150,6 @@
                         <span>Desde {{ $stats['fecha_registro']->format('d/m/Y') }}</span>
                     </div>
                 </div>
-                <div class="stat-sparkline"></div>
             </div>
         </div>
 
@@ -228,6 +218,7 @@
                             <h3><i class="bi bi-geo-fill"></i> Ubicación</h3>
                         </div>
                         <div class="card-body">
+                            @if($user->direccion || $user->ciudad)
                             <div class="info-grid">
                                 @if($user->direccion)
                                 <div class="info-item-full">
@@ -248,7 +239,7 @@
                                 </div>
                                 @endif
                             </div>
-                            @if(!$user->direccion && !$user->ciudad)
+                            @else
                             <div class="empty-state-small">
                                 <i class="bi bi-geo"></i>
                                 <p>No has registrado una dirección</p>
@@ -279,7 +270,9 @@
                                 <h4>Dirección Principal</h4>
                                 <p>{{ $user->direccion }}</p>
                                 <div class="address-meta">
-                                    <span><i class="bi bi-geo-alt"></i> {{ $user->ciudad }}, {{ $user->departamento }}</span>
+                                    @if($user->ciudad)
+                                    <span><i class="bi bi-geo-alt"></i> {{ $user->ciudad }}{{ $user->departamento ? ', '.$user->departamento : '' }}</span>
+                                    @endif
                                     @if($user->telefono)
                                     <span><i class="bi bi-phone"></i> {{ $user->telefono }}</span>
                                     @endif
@@ -310,9 +303,11 @@
                 <div class="card">
                     <div class="card-header card-header-flex">
                         <h3><i class="bi bi-bag-check-fill"></i> Historial de Pedidos</h3>
+                        @if(Route::has('cliente.pedidos.index'))
                         <a href="{{ route('cliente.pedidos.index') }}" class="btn-secondary btn-sm">
                             Ver Todos
                         </a>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="quick-stats">
@@ -321,7 +316,7 @@
                                     <i class="bi bi-box2"></i>
                                 </div>
                                 <div class="quick-stat-content">
-                                    <span class="quick-stat-value">{{ $stats['total_pedidos'] }}</span>
+                                    <span class="quick-stat-value">{{ $stats['total_pedidos'] ?? 0 }}</span>
                                     <span class="quick-stat-label">Total Pedidos</span>
                                 </div>
                             </div>
@@ -330,7 +325,7 @@
                                     <i class="bi bi-check-circle"></i>
                                 </div>
                                 <div class="quick-stat-content">
-                                    <span class="quick-stat-value">{{ $stats['pedidos_entregados'] }}</span>
+                                    <span class="quick-stat-value">{{ $stats['pedidos_entregados'] ?? 0 }}</span>
                                     <span class="quick-stat-label">Entregados</span>
                                 </div>
                             </div>
@@ -339,16 +334,18 @@
                                     <i class="bi bi-wallet2"></i>
                                 </div>
                                 <div class="quick-stat-content">
-                                    <span class="quick-stat-value">${{ number_format($stats['total_gastado'], 0, ',', '.') }}</span>
+                                    <span class="quick-stat-value">${{ number_format($stats['total_gastado'] ?? 0, 0, ',', '.') }}</span>
                                     <span class="quick-stat-label">Total Gastado</span>
                                 </div>
                             </div>
                         </div>
+                        @if(Route::has('cliente.pedidos.index'))
                         <div class="text-center mt-4">
                             <a href="{{ route('cliente.pedidos.index') }}" class="btn-primary">
                                 <i class="bi bi-list-ul"></i> Ver Historial Completo
                             </a>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -366,9 +363,11 @@
                             </div>
                             <h4>Aún no tienes favoritos</h4>
                             <p>Marca tus productos preferidos para encontrarlos fácilmente</p>
+                            @if(Route::has('cliente.dashboard'))
                             <a href="{{ route('cliente.dashboard') }}" class="btn-primary">
                                 <i class="bi bi-shop"></i> Explorar Productos
                             </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -610,5 +609,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/cliente/perfil-professional.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/cliente/perfil-modern.js') }}?v={{ filemtime(public_path('js/cliente/perfil-modern.js')) }}"></script>
 @endpush

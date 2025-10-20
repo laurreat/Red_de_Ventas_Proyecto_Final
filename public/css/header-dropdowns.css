@@ -690,6 +690,19 @@
     font-weight: 600;
 }
 
+.profile-menu-item .menu-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-left: auto;
+}
+
+.profile-menu-item .badge-success-small {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
 .profile-menu-divider {
     margin: 8px 0;
     border: none;

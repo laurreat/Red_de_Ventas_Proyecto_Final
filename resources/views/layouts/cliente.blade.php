@@ -808,14 +808,19 @@
                 </a>
             </div>
 
-            @if(Auth::user()->codigo_referido)
+            <!-- Referidos Section -->
+            <div class="nav-section">
+                <i class="bi bi-people-fill"></i>
+                <span>Referidos</span>
+            </div>
+
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Mis Referidos')">
+                <a href="{{ route('cliente.referidos.index') }}" class="nav-link {{ request()->routeIs('cliente.referidos.*') ? 'active' : '' }}">
                     <i class="bi bi-diagram-3-fill"></i>
                     <span>Mis Referidos</span>
+                    <span class="nav-badge badge-success">Nuevo</span>
                 </a>
             </div>
-            @endif
         </div>
 
         <!-- Sidebar Footer -->
@@ -919,14 +924,13 @@
                                 <span class="menu-item-text">Mi Perfil</span>
                             </a>
                         </li>
-                        @if(Auth::user()->codigo_referido)
                         <li class="profile-menu-section">
-                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Mis Referidos'); return false;">
-                                <i class="bi bi-diagram-3"></i>
+                            <a class="profile-menu-item" href="{{ route('cliente.referidos.index') }}">
+                                <i class="bi bi-diagram-3-fill"></i>
                                 <span class="menu-item-text">Mis Referidos</span>
+                                <span class="menu-badge badge-success-small">Nuevo</span>
                             </a>
                         </li>
-                        @endif
                         <li><hr class="profile-menu-divider"></li>
                         <li class="profile-menu-section">
                             <a class="profile-menu-item" href="#" onclick="showComingSoon('Configuración'); return false;">
