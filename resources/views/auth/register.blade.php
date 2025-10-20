@@ -65,6 +65,19 @@
                     <p class="register-subtitle">Completa tus datos para comenzar</p>
                 </div>
 
+                @if(request()->get('ref'))
+                <!-- Banner de Referido -->
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="bi bi-gift-fill" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">¡Has sido invitado!</h4>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.95;">Registrate ahora y disfruta de beneficios especiales</p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <div class="register-form-container">
                     <!-- Formulario -->
                     <form method="POST" action="{{ route('register') }}" novalidate
@@ -297,13 +310,19 @@
                                    class="form-control @error('codigo_referido_usado') is-invalid @enderror" 
                                    id="codigo_referido_usado" 
                                    name="codigo_referido_usado" 
-                                   value="{{ old('codigo_referido_usado') }}" 
+                                   value="{{ old('codigo_referido_usado', request()->get('ref')) }}" 
                                    placeholder="REF1234">
                             <label for="codigo_referido_usado">Código de Referido (Opcional)</label>
                             <div class="form-text text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
                                 Si tienes un código de referido, ¡ingresalo aquí para obtener beneficios!
                             </div>
+                            @if(request()->get('ref'))
+                                <div class="alert alert-success mt-2 py-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    <strong>¡Excelente!</strong> Has sido referido. Disfruta de beneficios especiales al registrarte.
+                                </div>
+                            @endif
                             @error('codigo_referido_usado')
                                 <div class="invalid-feedback">
                                     {{ $message }}

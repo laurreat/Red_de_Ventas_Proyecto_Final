@@ -94,13 +94,21 @@
             // Mostrar modal
             bsModal.show();
             
-            // Asegurar que el backdrop esté debajo del modal
+            // Asegurar z-index máximo para el modal y backdrop
             setTimeout(() => {
-                const backdrop = document.querySelector('.modal-backdrop');
+                const backdrop = document.querySelector('.modal-backdrop.show');
                 if (backdrop) {
-                    backdrop.style.zIndex = '1040';
+                    backdrop.style.zIndex = '10099';
                 }
-                modal.style.zIndex = '1055';
+                modal.style.zIndex = '10100';
+                const modalDialog = modal.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.style.zIndex = '10101';
+                }
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.zIndex = '10102';
+                }
             }, 50);
         }
 
@@ -120,27 +128,42 @@
         const showCancel = type === 'confirm';
 
         const modalHTML = `
-            <div class="modal fade" id="glassConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
-                <div class="modal-dialog modal-dialog-centered" style="z-index: 1056;">
-                    <div class="modal-content glass-modal" style="background: rgba(255, 255, 255, 0.98) !important; border-radius: 20px !important; overflow: visible !important; z-index: 1057 !important;">
-                        <div class="modal-glass-bg" style="pointer-events: none; z-index: 0;"></div>
-                        <div class="modal-body text-center" style="padding: 3rem 2rem; position: relative; z-index: 10;">
-                            <div class="confirm-icon-wrapper mx-auto mb-3" 
-                                 style="width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid; background: ${iconBg}; border-color: ${iconColor}40; position: relative; z-index: 10;">
-                                <i class="${icon}" style="font-size: 3rem; color: ${iconColor};"></i>
+            <div class="modal fade" id="glassConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true" style="z-index: 10100 !important;">
+                <div class="modal-dialog modal-dialog-centered" style="z-index: 10101 !important;">
+                    <div class="modal-content glass-modal-enhanced" style="z-index: 10102 !important;">
+                        <!-- Fondos decorativos glassmorphism -->
+                        <div class="glass-bg-layer-1"></div>
+                        <div class="glass-bg-layer-2"></div>
+                        <div class="glass-bg-gradient"></div>
+                        
+                        <!-- Contenido del modal -->
+                        <div class="modal-body text-center glass-modal-body-enhanced">
+                            <!-- Icono animado con anillos -->
+                            <div class="glass-icon-container">
+                                <div class="glass-icon-ring-outer" style="border-color: ${iconColor}30;"></div>
+                                <div class="glass-icon-ring-middle" style="border-color: ${iconColor}20;"></div>
+                                <div class="glass-icon-wrapper" style="background: ${iconBg}; border-color: ${iconColor}40; box-shadow: 0 8px 32px ${iconColor}25;">
+                                    <i class="${icon}" style="color: ${iconColor};"></i>
+                                </div>
                             </div>
-                            <h3 class="confirm-title mb-3" style="font-weight: 700; color: #2c2c2c; font-size: 1.75rem; position: relative; z-index: 10;">${title}</h3>
-                            <p class="confirm-message mb-4" style="color: #6c757d; font-size: 1.1rem; line-height: 1.6; position: relative; z-index: 10;">${message}</p>
-                            <div class="d-flex gap-2 justify-content-center" style="position: relative; z-index: 10;">
+                            
+                            <!-- Título y mensaje -->
+                            <div class="glass-content-wrapper">
+                                <h3 class="glass-modal-title">${title}</h3>
+                                <p class="glass-modal-message">${message}</p>
+                            </div>
+                            
+                            <!-- Botones de acción -->
+                            <div class="glass-actions-wrapper">
                                 ${showCancel ? `
-                                    <button type="button" class="btn-glass btn-cancel btn-glass-secondary" style="position: relative; z-index: 10; pointer-events: auto;">
-                                        <i class="bi bi-x-circle me-1"></i>
-                                        ${cancelText}
+                                    <button type="button" class="btn-glass-enhanced btn-cancel btn-glass-secondary-enhanced">
+                                        <i class="bi bi-x-circle"></i>
+                                        <span>${cancelText}</span>
                                     </button>
                                 ` : ''}
-                                <button type="button" class="btn-glass btn-confirm ${confirmClass}" style="position: relative; z-index: 10; pointer-events: auto;">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    ${confirmText}
+                                <button type="button" class="btn-glass-enhanced btn-confirm ${confirmClass}-enhanced">
+                                    <i class="bi ${type === 'confirm' ? 'bi-check-circle' : 'bi-check2'}"></i>
+                                    <span>${confirmText}</span>
                                 </button>
                             </div>
                         </div>

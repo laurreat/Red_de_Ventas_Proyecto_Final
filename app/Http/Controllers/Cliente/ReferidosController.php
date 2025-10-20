@@ -97,7 +97,7 @@ class ReferidosController extends Controller
             $user->save();
         }
 
-        return url('/registro?ref=' . $codigo);
+        return route('register') . '?ref=' . $codigo;
     }
 
     /**
@@ -123,7 +123,11 @@ class ReferidosController extends Controller
         $user = Auth::user();
         $link = $this->generarLinkReferido($user);
         
-        $mensaje = "¡Hola! Te invito a registrarte en nuestra tienda. Usa mi link de referido: {$link}";
+        $mensaje = "🎉 ¡Hola! Te invito a unirte a Arepa la Llanerita\n\n";
+        $mensaje .= "✨ Registrate con mi código de referido y disfruta de beneficios especiales:\n\n";
+        $mensaje .= "🔗 {$link}\n\n";
+        $mensaje .= "¡No te lo pierdas! 🌟";
+        
         $whatsappUrl = "https://wa.me/?text=" . urlencode($mensaje);
 
         return response()->json([

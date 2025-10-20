@@ -187,11 +187,11 @@
 </div>
 
 <!-- Modal de Detalles de Notificación - Glassmorphism -->
-<div class="modal fade" id="notificacionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" style="z-index: 1056;">
-        <div class="modal-content glass-modal" style="background: rgba(255, 255, 255, 0.98) !important; overflow: visible !important; z-index: 1057 !important;">
+<div class="modal fade" id="notificacionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true" style="z-index: 9999 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="z-index: 10000 !important;">
+        <div class="modal-content glass-modal" style="background: rgba(255, 255, 255, 0.98) !important; overflow: visible !important; z-index: 10001 !important; pointer-events: auto !important;">
             <div class="modal-glass-bg" style="pointer-events: none !important; z-index: 0 !important;"></div>
-            <div class="modal-header glass-header" style="position: relative; z-index: 10;">
+            <div class="modal-header glass-header" style="position: relative; z-index: 10; pointer-events: auto !important;">
                 <div class="modal-title-wrapper">
                     <div class="modal-icon-wrapper" id="modalIconWrapper">
                         <i class="bi bi-bell" id="modalIcono"></i>
@@ -204,11 +204,11 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn-close-glass" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 20; pointer-events: auto;">
+                <button type="button" class="btn-close-glass" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 20; pointer-events: auto !important;">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            <div class="modal-body glass-body" style="position: relative; z-index: 10;">
+            <div class="modal-body glass-body" style="position: relative; z-index: 10; pointer-events: auto !important;">
                 <div class="modal-content-wrapper">
                     <div id="modalContenido"></div>
                 </div>
@@ -229,12 +229,12 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer glass-footer" style="position: relative; z-index: 10;">
-                <button type="button" class="btn-glass btn-glass-danger" id="btnEliminarNotificacion" style="position: relative; z-index: 20; pointer-events: auto;">
+            <div class="modal-footer glass-footer" style="position: relative; z-index: 10; pointer-events: auto !important;">
+                <button type="button" class="btn-glass btn-glass-danger" id="btnEliminarNotificacion" style="position: relative; z-index: 20; pointer-events: auto !important;">
                     <i class="bi bi-trash"></i>
                     <span>Eliminar</span>
                 </button>
-                <button type="button" class="btn-glass btn-glass-secondary" data-bs-dismiss="modal" style="position: relative; z-index: 20; pointer-events: auto;">
+                <button type="button" class="btn-glass btn-glass-secondary" data-bs-dismiss="modal" style="position: relative; z-index: 20; pointer-events: auto !important;">
                     <i class="bi bi-x-circle"></i>
                     <span>Cerrar</span>
                 </button>

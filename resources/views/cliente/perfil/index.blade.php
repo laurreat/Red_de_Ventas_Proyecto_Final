@@ -9,16 +9,9 @@
 
 @section('content')
 <div class="profile-container fade-in-up">
-    
-    {{-- Banner Superior --}}
-    <div class="profile-banner">
-        <div class="profile-banner-overlay"></div>
-        <div class="profile-banner-pattern"></div>
-    </div>
-
     <div class="profile-main">
-        {{-- Header con Avatar --}}
-        <div class="profile-header">
+        {{-- Sección de Avatar y Acciones Rápidas --}}
+        <div class="profile-header-compact">
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-container">
                     @if($user->foto)
@@ -39,9 +32,9 @@
                 </div>
             </div>
             
-            <div class="profile-info">
+            <div class="profile-info-compact">
                 <div class="profile-name-section">
-                    <h1 class="profile-name">{{ $user->name }} {{ $user->apellidos ?? '' }}</h1>
+                    <h2 class="profile-name">{{ $user->name }} {{ $user->apellidos ?? '' }}</h2>
                     @if($user->email_verified_at)
                     <span class="profile-badge profile-badge-verified">
                         <i class="bi bi-patch-check-fill"></i> Verificado
@@ -60,41 +53,26 @@
                         <span>{{ $user->telefono }}</span>
                     </div>
                     @endif
-                    @if($user->ciudad)
-                    <div class="profile-meta-item">
-                        <i class="bi bi-geo-alt-fill"></i>
-                        <span>{{ $user->ciudad }}</span>
-                    </div>
-                    @endif
-                    <div class="profile-meta-item">
-                        <i class="bi bi-calendar-check-fill"></i>
-                        <span>Cliente desde {{ $user->created_at->format('M Y') }}</span>
-                    </div>
-                </div>
-                
-                <div class="profile-actions">
-                    <button onclick="showEditModal()" class="btn-profile btn-primary">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Editar Perfil</span>
-                    </button>
-                    <button onclick="showPasswordModal()" class="btn-profile btn-secondary">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        <span>Cambiar Contraseña</span>
-                    </button>
-                    @if($user->foto)
-                    <form action="{{ route('cliente.perfil.eliminar-foto') }}" method="POST" style="display:inline" onsubmit="return confirm('¿Eliminar foto de perfil?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-profile btn-outline">
-                            <i class="bi bi-trash"></i>
-                            <span>Eliminar Foto</span>
-                        </button>
-                    </form>
-                    @endif
                 </div>
             </div>
-        </div>
 
+            <div class="profile-actions">
+                <button onclick="showEditModal()" class="btn-profile btn-primary">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Editar Perfil</span>
+                </button>
+                <button onclick="showPasswordModal()" class="btn-profile btn-secondary">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Cambiar Contraseña</span>
+                </button>
+                @if($user->foto)
+                <button type="button" class="btn-profile btn-outline" onclick="showDeletePhotoModal()">
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar Foto</span>
+                </button>
+                @endif
+            </div>
+        </div>
 
         {{-- Tarjetas de Estadísticas --}}
         <div class="profile-stats-grid">
@@ -576,6 +554,37 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Modal: Confirmar Eliminar Foto (Glassmorphism) --}}
+<div class="glass-modal-overlay" id="deletePhotoModal">
+    <div class="glass-modal-container animate-scale-in">
+        <div class="glass-modal-icon-wrapper">
+            <div class="glass-modal-icon danger">
+                <i class="bi bi-trash3-fill"></i>
+            </div>
+        </div>
+        <div class="glass-modal-content">
+            <h3 class="glass-modal-title">¿Eliminar foto de perfil?</h3>
+            <p class="glass-modal-text">
+                Esta acción no se puede deshacer. Tu foto de perfil será eliminada permanentemente y se mostrará tu avatar predeterminado.
+            </p>
+        </div>
+        <div class="glass-modal-actions">
+            <button type="button" class="glass-btn glass-btn-secondary" onclick="closeDeletePhotoModal()">
+                <i class="bi bi-x-circle"></i>
+                <span>Cancelar</span>
+            </button>
+            <form action="{{ route('cliente.perfil.eliminar-foto') }}" method="POST" style="display:inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="glass-btn glass-btn-danger">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span>Sí, eliminar</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

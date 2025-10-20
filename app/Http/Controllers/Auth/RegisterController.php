@@ -173,6 +173,7 @@ class RegisterController extends Controller
     {
         // Buscar el referidor si existe código de referido
         $referidoPor = null;
+        $referidor = null;
         if (!empty($data['codigo_referido_usado'])) {
             $referidor = User::where('codigo_referido', $data['codigo_referido_usado'])->first();
             if ($referidor) {
@@ -180,7 +181,7 @@ class RegisterController extends Controller
             }
         }
 
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'apellidos' => $data['apellidos'],
             'cedula' => $data['cedula'],
@@ -196,6 +197,13 @@ class RegisterController extends Controller
             'referido_por' => $referidoPor,
             'codigo_referido' => $this->generarCodigoReferido(),
         ]);
+
+        // Notificar al referidor si existe
+        if ($referidor) {
+            $this->notifyReferrer($user, $referidor);
+        }
+
+        return $user;
     }
 
     /**
@@ -270,6 +278,71 @@ class RegisterController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al enviar notificación al administrador', [
                 'user_id' => $user->_id,
+                'error' => $e->getMessage()
+            ]);
+            // No lanzamos la excepción para que no afecte el registro del usuario
+        }
+    }
+
+    /**
+     * Enviar notificación al referidor sobre nuevo referido
+     */
+    private function notifyReferrer(User $newUser, User $referrer): void
+    {
+        try {
+            // Crear notificación para el referidor
+            $notificacion = new \App\Models\Notificacion();
+            $notificacion->user_id = $referrer->_id;
+            $notificacion->tipo = 'nuevo_referido';
+            $notificacion->titulo = '¡Nuevo Referido Registrado!';
+            $notificacion->mensaje = "¡Felicitaciones! {$newUser->name} {$newUser->apellidos} se ha registrado usando tu código de referido.";
+            $notificacion->datos_adicionales = [
+                'referido_id' => $newUser->_id,
+                'referido_nombre' => $newUser->name . ' ' . $newUser->apellidos,
+                'referido_email' => $newUser->email,
+                'referido_telefono' => $newUser->telefono,
+                'referido_ciudad' => $newUser->ciudad,
+                'fecha_registro' => now()->format('d/m/Y H:i:s'),
+                'codigo_usado' => $referrer->codigo_referido,
+                'url' => route('cliente.referidos.detalle', ['id' => $newUser->_id]),
+            ];
+            $notificacion->leida = false;
+            $notificacion->canal = 'sistema';
+            $notificacion->save();
+
+            Log::info('Notificación de nuevo referido creada', [
+                'referrer_id' => $referrer->_id,
+                'new_user_id' => $newUser->_id
+            ]);
+
+            // Enviar correo electrónico al referidor (opcional)
+            if ($referrer->email) {
+                try {
+                    Mail::send('emails.nuevo-referido-notification', [
+                        'referrer' => $referrer,
+                        'newUser' => $newUser
+                    ], function ($message) use ($referrer, $newUser) {
+                        $message->to($referrer->email)
+                                ->subject('¡Nuevo Referido Registrado! - ' . $newUser->name . ' ' . $newUser->apellidos);
+                    });
+
+                    Log::info('Correo de notificación enviado al referidor', [
+                        'referrer_id' => $referrer->_id,
+                        'referrer_email' => $referrer->email,
+                        'new_user_id' => $newUser->_id
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('No se pudo enviar correo al referidor', [
+                        'referrer_id' => $referrer->_id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error al enviar notificación al referidor', [
+                'referrer_id' => $referrer->_id,
+                'new_user_id' => $newUser->_id,
                 'error' => $e->getMessage()
             ]);
             // No lanzamos la excepción para que no afecte el registro del usuario

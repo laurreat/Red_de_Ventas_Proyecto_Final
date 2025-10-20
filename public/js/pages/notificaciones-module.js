@@ -308,8 +308,9 @@ class NotificacionesModule {
         
         modal.show();
         
-        // Limpiar backdrop adicional si existe después de mostrar
+        // Asegurar z-index correcto para modal de detalles después de mostrar
         setTimeout(() => {
+            // Limpiar backdrops duplicados
             const backdrops = document.querySelectorAll('.modal-backdrop');
             if (backdrops.length > 1) {
                 // Mantener solo el último backdrop
@@ -317,10 +318,30 @@ class NotificacionesModule {
                     backdrops[i].remove();
                 }
             }
-            // Asegurar z-index correcto
-            const backdrop = document.querySelector('.modal-backdrop');
+            
+            // Asegurar z-index correcto para el backdrop del modal de detalles
+            const backdrop = document.querySelector('.modal-backdrop.show');
             if (backdrop) {
-                backdrop.style.zIndex = '1040';
+                backdrop.style.zIndex = '9998';
+            }
+            
+            // Asegurar z-index para el modal
+            const modalElement = document.getElementById('notificacionModal');
+            if (modalElement) {
+                modalElement.style.zIndex = '9999';
+                modalElement.style.pointerEvents = 'auto';
+                
+                // Asegurar que el contenido sea interactivo
+                const modalContent = modalElement.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.pointerEvents = 'auto';
+                    modalContent.style.zIndex = '10001';
+                }
+                
+                const modalDialog = modalElement.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.style.zIndex = '10000';
+                }
             }
         }, 100);
 
@@ -441,11 +462,11 @@ class NotificacionesModule {
         // Esperar a que el modal se cierre completamente antes de mostrar la confirmación
         setTimeout(() => {
             GlassModal.confirm({
-                title: '¿Eliminar notificación?',
-                message: 'Esta acción no se puede deshacer',
-                icon: 'bi-trash',
+                title: '¿Eliminar esta notificación?',
+                message: 'Esta acción no se puede deshacer. La notificación será eliminada permanentemente de tu historial.',
+                icon: 'bi-trash3-fill',
                 iconColor: '#ef4444',
-                iconBg: 'rgba(239, 68, 68, 0.2)',
+                iconBg: 'rgba(239, 68, 68, 0.15)',
                 confirmText: 'Sí, eliminar',
                 cancelText: 'Cancelar',
                 confirmClass: 'btn-glass-danger',
