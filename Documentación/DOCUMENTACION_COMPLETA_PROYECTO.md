@@ -3,17 +3,87 @@
 
 ## 📋 ÍNDICE
 
-1. [Resumen Ejecutivo](#resumen-ejecutivo)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Módulos del Sistema](#módulos-del-sistema)
-4. [Base de Datos MongoDB](#base-de-datos-mongodb)
-5. [Modelos y Relaciones](#modelos-y-relaciones)
-6. [Controladores Detallados](#controladores-detallados)
-7. [Interfaces de Usuario](#interfaces-de-usuario)
-8. [Servicios y Utilidades](#servicios-y-utilidades)
-9. [Seguridad y Autenticación](#seguridad-y-autenticación)
-10. [API y Rutas](#api-y-rutas)
-11. [Configuración y Despliegue](#configuración-y-despliegue)
+### 1. [RESUMEN EJECUTIVO](#1-resumen-ejecutivo)
+- 1.1 [Descripción del Proyecto](#11-descripción-del-proyecto)
+- 1.2 [Características Principales](#12-características-principales)
+- 1.3 [Stack Tecnológico](#13-stack-tecnológico)
+- 1.4 [Estadísticas del Proyecto](#14-estadísticas-del-proyecto)
+
+### 2. [ARQUITECTURA DEL SISTEMA](#2-arquitectura-del-sistema)
+- 2.1 [Arquitectura General - Diagrama](#21-arquitectura-general---diagrama)
+- 2.2 [Flujo de Datos](#22-flujo-de-datos)
+  - Flujo de Autenticación
+  - Flujo de Creación de Pedido
+  - Flujo de Sistema MLM
+
+### 3. [MÓDULOS DEL SISTEMA](#3-módulos-del-sistema)
+- 3.1 [Módulo de Administración (Admin)](#31-módulo-de-administración-admin)
+  - 3.1.1 [Gestión de Usuarios](#311-gestión-de-usuarios)
+  - 3.1.2 [Gestión de Productos](#312-gestión-de-productos)
+  - 3.1.3 [Gestión de Pedidos](#313-gestión-de-pedidos)
+  - 3.1.4 [Sistema de Comisiones](#314-sistema-de-comisiones)
+  - 3.1.5 [Red de Referidos](#315-red-de-referidos)
+  - 3.1.6 [Reportes y Analytics](#316-reportes-y-analytics)
+  - 3.1.7 [Configuración del Sistema](#317-configuración-del-sistema)
+- 3.2 [Módulo de Líder](#32-módulo-de-líder)
+  - 3.2.1 [Dashboard del Líder](#321-dashboard-del-líder)
+  - 3.2.2 [Gestión de Equipo](#322-gestión-de-equipo)
+  - 3.2.3 [Comisiones del Líder](#323-comisiones-del-líder)
+  - 3.2.4 [Metas y Objetivos](#324-metas-y-objetivos)
+  - 3.2.5 [Capacitación del Equipo](#325-capacitación-del-equipo)
+- 3.3 [Módulo de Vendedor](#33-módulo-de-vendedor)
+  - 3.3.1 [Dashboard del Vendedor](#331-dashboard-del-vendedor)
+  - 3.3.2 [Gestión de Pedidos del Vendedor](#332-gestión-de-pedidos-del-vendedor)
+  - 3.3.3 [Gestión de Clientes](#333-gestión-de-clientes)
+  - 3.3.4 [Catálogo de Productos para Vendedor](#334-catálogo-de-productos-para-vendedor)
+  - 3.3.5 [Comisiones del Vendedor](#335-comisiones-del-vendedor)
+  - 3.3.6 [Red de Referidos del Vendedor](#336-red-de-referidos-del-vendedor)
+- 3.4 [Módulo de Cliente](#34-módulo-de-cliente)
+  - 3.4.1 [Dashboard del Cliente](#341-dashboard-del-cliente)
+  - 3.4.2 [Gestión de Pedidos del Cliente](#342-gestión-de-pedidos-del-cliente)
+
+### 4. [BASE DE DATOS MONGODB](#4-base-de-datos-mongodb)
+- 4.1 [Estructura General](#41-estructura-general)
+- 4.2 [Colecciones Principales](#42-colecciones-principales)
+  - 4.2.1 [Colección: users](#421-colección-users)
+  - 4.2.2 [Colección: productos](#422-colección-productos)
+  - 4.2.3 [Colección: pedidos](#423-colección-pedidos)
+  - 4.2.4 [Colección: comisiones](#424-colección-comisiones)
+  - 4.2.5 [Colección: referidos](#425-colección-referidos)
+- 4.3 [Características de MongoDB Implementadas](#43-características-de-mongodb-implementadas)
+  - 4.3.1 [Documentos Embebidos](#431-documentos-embebidos)
+  - 4.3.2 [Índices Optimizados](#432-índices-optimizados)
+  - 4.3.3 [Agregaciones](#433-agregaciones)
+
+### 5. [MODELOS Y RELACIONES](#5-modelos-y-relaciones)
+- 5.1 [Modelo User](#51-modelo-user)
+- 5.2 [Modelo Producto](#52-modelo-producto)
+- 5.3 [Modelo Pedido](#53-modelo-pedido)
+- 5.4 [Modelo Comision](#54-modelo-comision)
+
+### 6. [SERVICIOS Y UTILIDADES](#6-servicios-y-utilidades)
+- 6.1 [ComisionService](#61-comisionservice)
+- 6.2 [NotificationService](#62-notificationservice)
+- 6.3 [CacheService](#63-cacheservice)
+
+### 7. [SEGURIDAD Y AUTENTICACIÓN](#7-seguridad-y-autenticación)
+- 7.1 [Sistema de Roles](#71-sistema-de-roles)
+- 7.2 [Protección CSRF](#72-protección-csrf)
+- 7.3 [Validación de Datos](#73-validación-de-datos)
+- 7.4 [Encriptación de Contraseñas](#74-encriptación-de-contraseñas)
+
+### 8. [CONFIGURACIÓN Y DESPLIEGUE](#8-configuración-y-despliegue)
+- 8.1 [Requisitos del Sistema](#81-requisitos-del-sistema)
+- 8.2 [Instalación](#82-instalación)
+- 8.3 [Configuración de MongoDB](#83-configuración-de-mongodb)
+- 8.4 [Configuración de Comisiones](#84-configuración-de-comisiones)
+- 8.5 [Comandos Artisan Personalizados](#85-comandos-artisan-personalizados)
+
+### 9. [CONCLUSIÓN](#9-conclusión)
+- Tecnologías Implementadas
+- Métricas del Proyecto
+
+### 10. [CONTACTO Y SOPORTE](#contacto-y-soporte)
 
 ---
 
