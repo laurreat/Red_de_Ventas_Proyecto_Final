@@ -5,16 +5,21 @@
 
 ## 📋 ÍNDICE
 
-1. [Introducción](#introducción)
-2. [Acceso al Sistema](#acceso-al-sistema)
-3. [Manual del Administrador](#manual-del-administrador)
-4. [Manual del Líder](#manual-del-líder)
-5. [Manual del Vendedor](#manual-del-vendedor)
-6. [Manual del Cliente](#manual-del-cliente)
-7. [Catálogo Público](#catálogo-público)
-8. [Preguntas Frecuentes](#preguntas-frecuentes)
-9. [Solución de Problemas](#solución-de-problemas)
-10. [Glosario de Términos](#glosario)
+1. [Introducción](#1-introducción)
+2. [Acceso al Sistema](#2-acceso-al-sistema)
+3. [Manual del Administrador](#3-manual-del-administrador)
+4. [Manual del Líder](#4-manual-del-líder)
+5. [Manual del Vendedor](#5-manual-del-vendedor)
+6. [Manual del Cliente](#6-manual-del-cliente)
+7. [Preguntas Frecuentes](#7-preguntas-frecuentes-faq)
+8. [Solución de Problemas](#8-solución-de-problemas)
+9. [Glosario de Términos](#9-glosario-de-términos)
+10. [Contacto y Soporte](#10-contacto-y-soporte)
+11. [Actualizaciones y Novedades](#11-actualizaciones-y-novedades)
+12. [Tips y Mejores Prácticas](#12-tips-y-mejores-prácticas)
+13. [Recursos Adicionales](#13-recursos-adicionales)
+
+
 
 ---
 
@@ -41,7 +46,7 @@ El sistema cuenta con 4 roles principales:
 | Rol | Descripción | Permisos |
 |-----|-------------|----------|
 | **👑 Administrador** | Gestión completa del sistema | Acceso total a todas las funciones |
-| **👔 Líder** | Gestión de equipos de vendedores | Gestión de equipo, metas, capacitaciones |
+| **👔 Líder** | Gestión de equipos de vendedores | Gestión de equipo, asignación de metas, supervisión de ventas |
 | **💼 Vendedor** | Ventas y gestión de clientes | Crear pedidos, gestionar clientes, ver comisiones |
 | **👤 Cliente** | Realización de compras | Ver catálogo, hacer pedidos, ver historial |
 
@@ -109,11 +114,11 @@ En la página de login encontrará un formulario con:
 - El sistema validará sus credenciales
 - Si son correctas, será redirigido a su dashboard
 
-#### Paso 3: Acceso al Dashboard
+**Paso 3**: Acceso al Dashboard
 Una vez autenticado, verá su panel de control según su rol:
 - **Administrador**: Dashboard de administración
 - **Líder**: Dashboard del líder
-- **Vendedor**: Dashboard del vendedor
+- **Vendedor**: Dashboard del vendedor  
 - **Cliente**: Dashboard del cliente
 
 ---
@@ -351,7 +356,7 @@ Rol*:              [▼ Seleccionar rol]
                    • Cliente
 
 Código Referido:   [_____________________]
-(Opcional - Solo para vendedores)
+(Opcional - Solo para vendedores y líderes)
 
 Estado:            ☑ Activo
 ```
@@ -406,7 +411,7 @@ Zonas Asignadas:   ☐ Zona Norte
 - Último acceso
 - Estado de la cuenta
 
-**Pestaña "Estadísticas"** (para Vendedores/Líderes):
+**Pestaña "Estadísticas"** (para Vendedores y Líderes):
 - Total de ventas
 - Comisiones ganadas
 - Comisiones disponibles
@@ -1185,9 +1190,752 @@ Pendiente ───✓─── Confirmado ───✓─── En Prep. ──
 
 ---
 
-## 4. MANUAL DEL VENDEDOR
+## 4. MANUAL DEL LÍDER
 
-### 4.1 Introducción para Vendedores
+### 4.1 Introducción para Líderes
+
+Como **Líder**, usted tiene un rol clave en el sistema. Además de todas las funciones de un vendedor, usted puede:
+
+✅ Gestionar y supervisar equipos de vendedores  
+✅ Asignar y dar seguimiento a metas  
+✅ Analizar el rendimiento del equipo  
+✅ Capacitar y motivar a su equipo  
+✅ Generar reportes de equipo  
+✅ Realizar todas las funciones de un vendedor  
+
+---
+
+### 4.2 Dashboard del Líder
+
+**Al iniciar sesión verá**:
+
+**Métricas de Equipo**:
+```
+┌─────────────┬─────────────┬─────────────┬─────────────┐
+│ Ventas Equipo│ Vendedores │ Meta Equipo │ Comisiones  │
+│ $2,850,000  │ Activos: 12│ 95% ✓       │ $427,500    │
+└─────────────┴─────────────┴─────────────┴─────────────┘
+```
+
+**Métricas Personales**:
+```
+┌─────────────┬─────────────┬─────────────┬─────────────┐
+│ Mis Ventas  │ Ventas Mes  │ Mi Meta     │ Mis Com.    │
+│ $45,000     │ $850,000    │ 85% ✓       │ $127,500    │
+└─────────────┴─────────────┴─────────────┴─────────────┘
+```
+
+**Panel de Control de Equipo**:
+```
+┌────────────────────────────────────────────────┐
+│ 👥 MI EQUIPO (12 vendedores)                   │
+├────────────────────────────────────────────────┤
+│                                                │
+│ Top Performers Este Mes:                       │
+│ 🥇 Carlos Ruiz ......... $450,000 (150%)     │
+│ 🥈 Ana López ........... $380,000 (127%)     │
+│ 🥉 Luis Martínez ....... $340,000 (113%)     │
+│                                                │
+│ ⚠️ Necesitan Atención:                        │
+│ • Pedro Santos ......... $120,000 (40%)      │
+│ • Laura Gómez .......... $90,000 (30%)       │
+│                                                │
+│ [Ver Equipo Completo] [Asignar Metas]         │
+└────────────────────────────────────────────────┘
+```
+
+**Gráficos y Estadísticas**:
+- Evolución de ventas del equipo (mensual)
+- Cumplimiento de metas por vendedor
+- Ranking de vendedores
+- Productos más vendidos por el equipo
+- Distribución geográfica de ventas
+
+**Accesos Rápidos**:
+```
+┌──────────────────────────────────────────────┐
+│  [👥 Gestionar Equipo]  [📊 Reportes]        │
+│  [🎯 Metas]  [📚 Capacitaciones]  [🛒 Vender]│
+└──────────────────────────────────────────────┘
+```
+
+---
+
+### 4.3 Gestionar Equipo de Vendedores
+
+#### 4.3.1 Ver Mi Equipo
+
+**Paso 1**: Haga clic en "Mi Equipo" en el menú
+
+**Paso 2**: Verá la lista completa de vendedores a su cargo:
+
+**Vista de Tarjetas**:
+```
+┌────────────────────────────────────────┐
+│ 👤 Carlos Ruiz                         │
+│ 💼 Vendedor Senior                     │
+├────────────────────────────────────────┤
+│ Ventas del Mes: $450,000               │
+│ Meta: $300,000 (150% ✅)               │
+│ Pedidos: 45                            │
+│ Comisiones: $67,500                    │
+│ Referidos: 8 activos                   │
+│ Última venta: Hace 2 horas             │
+│                                        │
+│ [Ver Detalle] [Asignar Meta] [Chat]   │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────┐
+│ 👤 Ana López                           │
+│ 💼 Vendedora                           │
+├────────────────────────────────────────┤
+│ Ventas del Mes: $380,000               │
+│ Meta: $300,000 (127% ✅)               │
+│ Pedidos: 38                            │
+│ Comisiones: $57,000                    │
+│ Referidos: 5 activos                   │
+│ Última venta: Hace 1 día               │
+│                                        │
+│ [Ver Detalle] [Asignar Meta] [Chat]   │
+└────────────────────────────────────────┘
+```
+
+**Filtros Disponibles**:
+```
+Estado: [▼ Todos]
+        • Activos
+        • Inactivos
+        • En riesgo (bajo 50% meta)
+
+Rendimiento: [▼ Todos]
+             • Superando meta (>100%)
+             • En meta (80-100%)
+             • Bajo meta (<80%)
+
+Ordenar por: [▼ Ventas (Mayor a Menor)]
+```
+
+---
+
+#### 4.3.2 Ver Perfil Detallado de Vendedor
+
+**Paso 1**: Haga clic en "Ver Detalle" de un vendedor
+
+**Dashboard Individual del Vendedor**:
+
+**Sección 1: Información Personal**
+```
+┌──────────────────────────────────────────┐
+│ 👤 Carlos Ruiz                           │
+│ 📧 carlos.ruiz@email.com                 │
+│ 📞 300 123 4567                          │
+│ 📍 Zona Sur                              │
+│                                          │
+│ En el equipo desde: 01/2024             │
+│ Estado: 🟢 Activo                       │
+│ Último acceso: Hace 1 hora               │
+└──────────────────────────────────────────┘
+```
+
+**Sección 2: Métricas de Rendimiento**
+```
+┌──────────── Rendimiento Este Mes ───────────┐
+│                                              │
+│ Ventas Totales: $450,000                    │
+│ Meta Asignada: $300,000                     │
+│ Cumplimiento: 150% ✅                       │
+│                                              │
+│ Pedidos Creados: 45                         │
+│ Ticket Promedio: $10,000                    │
+│ Clientes Atendidos: 32                      │
+│                                              │
+│ Comisiones Generadas: $67,500               │
+│ • Venta Directa: $55,000                    │
+│ • Referidos N1: $9,000                      │
+│ • Referidos N2: $3,500                      │
+│                                              │
+│ Red de Referidos: 8 activos                 │
+│ • Nivel 1: 5 vendedores                     │
+│ • Nivel 2: 3 vendedores                     │
+└──────────────────────────────────────────────┘
+```
+
+**Sección 3: Gráficos**
+```
+┌─── Evolución de Ventas (Últimos 6 meses) ───┐
+│                                              │
+│    450K ┤              ●                     │
+│    400K ┤         ●                          │
+│    350K ┤    ●                               │
+│    300K ┤●                                   │
+│    250K ┤                                    │
+│         ├─────────────────────────────       │
+│         Ene Feb Mar Abr May Jun              │
+│                                              │
+│ Tendencia: ↗️ Creciente                     │
+└──────────────────────────────────────────────┘
+```
+
+**Sección 4: Actividad Reciente**
+```
+┌──────────── Últimos Pedidos ────────────────┐
+│ PED-001 │ Juan Pérez  │ $45,000 │ Hoy 10:30│
+│ PED-002 │ Ana López   │ $32,000 │ Hoy 09:15│
+│ PED-003 │ Luis Gómez  │ $28,000 │ Ayer     │
+│                                              │
+│ [Ver Todos los Pedidos]                     │
+└──────────────────────────────────────────────┘
+```
+
+**Acciones Disponibles**:
+```
+[📝 Asignar Meta] [💬 Enviar Mensaje]
+[📊 Ver Reportes] [⚙️ Editar Perfil]
+```
+
+---
+
+#### 4.3.3 Ranking del Equipo
+
+**Vista de Ranking**:
+```
+┌────────────────────────────────────────────────────┐
+│ 🏆 RANKING DEL EQUIPO - OCTUBRE 2024               │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│ Pos │ Vendedor        │ Ventas    │ Meta  │ %     │
+├─────┼─────────────────┼───────────┼───────┼───────┤
+│ 🥇  │ Carlos Ruiz     │ $450,000  │ 150%  │ ⭐⭐⭐│
+│ 🥈  │ Ana López       │ $380,000  │ 127%  │ ⭐⭐  │
+│ 🥉  │ Luis Martínez   │ $340,000  │ 113%  │ ⭐⭐  │
+│ 4   │ María García    │ $310,000  │ 103%  │ ⭐    │
+│ 5   │ Juan Pérez      │ $280,000  │  93%  │ ⭐    │
+│ 6   │ Sofia Rodríguez │ $250,000  │  83%  │       │
+│ 7   │ Pedro Santos    │ $120,000  │  40%  │ ⚠️    │
+│ 8   │ Laura Gómez     │  $90,000  │  30%  │ ⚠️    │
+└────────────────────────────────────────────────────┘
+
+⭐⭐⭐ Excelente (>140%)
+⭐⭐  Muy Bien (>120%)
+⭐    Bien (>100%)
+⚠️    Necesita Atención (<50%)
+```
+
+---
+
+### 4.4 Asignar y Gestionar Metas
+
+#### 4.4.1 Asignar Meta Individual
+
+**Paso 1**: Desde el perfil del vendedor, haga clic en "Asignar Meta"
+
+**Formulario de Meta**:
+```
+┌─────────────────────────────────────────────┐
+│ 🎯 Asignar Meta a Carlos Ruiz               │
+├─────────────────────────────────────────────┤
+│                                             │
+│ Período:                                    │
+│ [▼ Mensual]                                 │
+│ • Semanal                                   │
+│ • Quincenal                                 │
+│ • Mensual                                   │
+│ • Trimestral                                │
+│                                             │
+│ Mes: [▼ Noviembre 2024]                    │
+│                                             │
+│ Histórico de Ventas:                        │
+│ • Mes Actual: $450,000                     │
+│ • Mes Anterior: $400,000                   │
+│ • Promedio 3 meses: $380,000               │
+│                                             │
+│ Meta Sugerida: $420,000 (Basado en datos) │
+│                                             │
+│ Meta Asignada*:                             │
+│ $ [____________] COP                        │
+│                                             │
+│ Descripción/Notas:                          │
+│ ┌─────────────────────────────────────┐   │
+│ │ Meta para consolidar crecimiento    │   │
+│ └─────────────────────────────────────┘   │
+│                                             │
+│ Recompensa por Cumplimiento (Opcional):    │
+│ [Bonificación especial del 10%]           │
+│                                             │
+│ ☑ Notificar al vendedor por email          │
+│                                             │
+│ [Cancelar]  [Asignar Meta]                 │
+└─────────────────────────────────────────────┘
+```
+
+**Paso 2**: El vendedor recibe notificación:
+```
+────────────────────────────────
+📧 Email de Notificación
+────────────────────────────────
+De: Tu Líder
+Asunto: Nueva Meta Asignada
+
+¡Hola Carlos!
+
+Tu líder te ha asignado una nueva
+meta para Noviembre 2024:
+
+Meta: $420,000
+Período: 01/11/2024 - 30/11/2024
+
+Basándonos en tu excelente 
+rendimiento, confiamos en que
+alcanzarás esta meta.
+
+¡Éxitos!
+────────────────────────────────
+```
+
+---
+
+#### 4.4.2 Asignar Meta Grupal
+
+**Paso 1**: En "Mi Equipo", haga clic en "Asignar Metas Grupales"
+
+**Formulario de Metas Grupales**:
+```
+┌─────────────────────────────────────────────┐
+│ 🎯 Asignar Metas al Equipo                  │
+├─────────────────────────────────────────────┤
+│                                             │
+│ Período: [▼ Noviembre 2024]                │
+│                                             │
+│ Meta Total del Equipo: $ [3,600,000]       │
+│                                             │
+│ Distribución:                               │
+│ ⦿ Automática (basada en rendimiento)       │
+│ ⚪ Manual (asignar individualmente)         │
+│ ⚪ Uniforme (igual para todos)              │
+│                                             │
+│ ┌─── Vista Previa de Distribución ───┐    │
+│ │ Carlos Ruiz ........... $420,000    │    │
+│ │ Ana López ............. $380,000    │    │
+│ │ Luis Martínez ......... $360,000    │    │
+│ │ María García .......... $330,000    │    │
+│ │ Juan Pérez ............ $300,000    │    │
+│ │ ... (7 más)                         │    │
+│ │                                     │    │
+│ │ Total: $3,600,000                   │    │
+│ └─────────────────────────────────────┘    │
+│                                             │
+│ ☑ Notificar a todo el equipo               │
+│                                             │
+│ [Cancelar]  [Asignar Metas]                │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+#### 4.4.3 Monitorear Cumplimiento de Metas
+
+**Dashboard de Metas**:
+```
+┌──────────────────────────────────────────────────┐
+│ 📊 CUMPLIMIENTO DE METAS - OCTUBRE 2024          │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│ Meta Total Equipo: $3,500,000                   │
+│ Alcanzado: $3,330,000 (95%)                     │
+│ Faltan: $170,000                                │
+│                                                  │
+│ [████████████████████░] 95%                     │
+│                                                  │
+│ Días restantes: 3                               │
+│ Promedio diario necesario: $56,667              │
+│                                                  │
+│ Estado por Vendedores:                          │
+│ ✅ Cumplieron (>100%): 5 vendedores            │
+│ 🟡 En camino (80-99%): 4 vendedores            │
+│ ⚠️ En riesgo (<80%): 3 vendedores              │
+│                                                  │
+│ [Ver Detalle] [Generar Reporte]                │
+└──────────────────────────────────────────────────┘
+```
+
+---
+
+### 4.5 Reportes de Equipo
+
+#### 4.5.1 Generar Reportes
+
+**Paso 1**: Haga clic en "Reportes de Equipo"
+
+**Tipos de Reportes Disponibles**:
+
+**1. Reporte de Ventas del Equipo**
+```
+┌─────────────────────────────────────────┐
+│ 📊 Reporte de Ventas del Equipo         │
+├─────────────────────────────────────────┤
+│                                         │
+│ Período:                                │
+│ Desde: [📅 01/10/2024]                  │
+│ Hasta: [📅 31/10/2024]                  │
+│                                         │
+│ Incluir:                                │
+│ ☑ Resumen ejecutivo                     │
+│ ☑ Ventas por vendedor                   │
+│ ☑ Productos más vendidos                │
+│ ☑ Comisiones generadas                  │
+│ ☑ Comparativa con mes anterior          │
+│ ☑ Gráficos y estadísticas               │
+│                                         │
+│ Formato: [▼ PDF]                        │
+│          • PDF                          │
+│          • Excel                        │
+│          • CSV                          │
+│                                         │
+│ [Generar Reporte]                       │
+└─────────────────────────────────────────┘
+```
+
+**2. Reporte de Cumplimiento de Metas**
+```
+Incluye:
+• Metas asignadas vs alcanzadas
+• Porcentaje de cumplimiento
+• Ranking de desempeño
+• Tendencias y proyecciones
+• Análisis de brechas
+```
+
+**3. Reporte de Comisiones del Equipo**
+```
+Incluye:
+• Total de comisiones generadas
+• Desglose por vendedor
+• Desglose por tipo de comisión
+• Comisiones pendientes vs pagadas
+• Proyección mensual
+```
+
+**4. Reporte de Actividad**
+```
+Incluye:
+• Número de pedidos por vendedor
+• Frecuencia de ventas
+• Clientes atendidos
+• Tasa de conversión
+• Productos preferidos por zona
+```
+
+---
+
+#### 4.5.2 Reportes Predefinidos
+
+**Acceso Rápido a Reportes Comunes**:
+```
+┌────────────────────────────────────────┐
+│ 📋 Reportes Rápidos                    │
+├────────────────────────────────────────┤
+│                                        │
+│ [📊 Ventas de Hoy]                     │
+│ Ventas del equipo en tiempo real      │
+│                                        │
+│ [📈 Resumen Semanal]                   │
+│ Últimos 7 días de actividad           │
+│                                        │
+│ [📅 Cierre Mensual]                    │
+│ Reporte completo del mes              │
+│                                        │
+│ [🏆 Top Performers]                    │
+│ Mejores vendedores del período        │
+│                                        │
+│ [⚠️ Alertas de Rendimiento]            │
+│ Vendedores que necesitan apoyo        │
+└────────────────────────────────────────┘
+```
+
+---
+
+### 4.6 Capacitación y Desarrollo
+
+#### 4.6.1 Gestionar Capacitaciones
+
+**Paso 1**: Haga clic en "Capacitaciones"
+
+**Panel de Capacitaciones**:
+```
+┌─────────────────────────────────────────────┐
+│ 📚 CAPACITACIONES DEL EQUIPO                │
+├─────────────────────────────────────────────┤
+│                                             │
+│ [+ Programar Nueva Capacitación]           │
+│                                             │
+│ Próximas Capacitaciones:                    │
+│                                             │
+│ ┌─────────────────────────────────────┐   │
+│ │ 📅 Lunes 23/10 - 10:00 AM           │   │
+│ │ Técnicas de Venta Consultiva        │   │
+│ │ Duración: 2 horas                   │   │
+│ │ Modalidad: Virtual (Zoom)           │   │
+│ │ Inscritos: 8/12                     │   │
+│ │ [Ver] [Editar] [Notificar]         │   │
+│ └─────────────────────────────────────┘   │
+│                                             │
+│ ┌─────────────────────────────────────┐   │
+│ │ 📅 Viernes 27/10 - 3:00 PM          │   │
+│ │ Manejo de Objeciones                │   │
+│ │ Duración: 1.5 horas                 │   │
+│ │ Modalidad: Presencial               │   │
+│ │ Inscritos: 10/15                    │   │
+│ │ [Ver] [Editar] [Notificar]         │   │
+│ └─────────────────────────────────────┘   │
+│                                             │
+│ Historial de Capacitaciones:               │
+│ • Oct 15: Nuevos Productos (12 asist.)    │
+│ • Oct 08: Sistema CRM (10 asist.)         │
+│ • Oct 01: Motivación (11 asist.)          │
+│                                             │
+│ [Ver Historial Completo]                   │
+└─────────────────────────────────────────────┘
+```
+
+**Programar Nueva Capacitación**:
+```
+┌─────────────────────────────────────────┐
+│ 📚 Programar Capacitación               │
+├─────────────────────────────────────────┤
+│                                         │
+│ Título*:                                │
+│ [_____________________________]         │
+│                                         │
+│ Descripción:                            │
+│ ┌─────────────────────────────────┐   │
+│ │                                 │   │
+│ └─────────────────────────────────┘   │
+│                                         │
+│ Fecha*: [📅 __/__/____]                │
+│ Hora*: [🕐 __:__]                      │
+│ Duración: [___] horas                   │
+│                                         │
+│ Modalidad*:                             │
+│ ⦿ Virtual (enlace de reunión)          │
+│ ⚪ Presencial (lugar)                   │
+│ ⚪ Híbrida                              │
+│                                         │
+│ Enlace/Lugar*:                          │
+│ [_____________________________]         │
+│                                         │
+│ Capacidad máxima:                       │
+│ [___] personas                          │
+│                                         │
+│ Dirigido a:                             │
+│ ☑ Todo el equipo                        │
+│ ☐ Solo vendedores en riesgo            │
+│ ☐ Solo top performers                   │
+│ ☐ Selección manual                      │
+│                                         │
+│ ☑ Enviar invitación por email           │
+│ ☑ Recordatorio 1 día antes              │
+│                                         │
+│ [Cancelar]  [Programar]                │
+└─────────────────────────────────────────┘
+```
+
+---
+
+#### 4.6.2 Materiales de Apoyo
+
+**Biblioteca de Recursos**:
+```
+┌─────────────────────────────────────────┐
+│ 📁 MATERIALES DE CAPACITACIÓN           │
+├─────────────────────────────────────────┤
+│                                         │
+│ [+ Subir Nuevo Material]                │
+│                                         │
+│ Categorías:                             │
+│                                         │
+│ 📂 Técnicas de Venta (12 archivos)     │
+│   • Guía de Ventas Consultivas.pdf     │
+│   • Manejo de Objeciones.pptx          │
+│   • Script de Llamadas.docx            │
+│                                         │
+│ 📂 Productos (8 archivos)               │
+│   • Catálogo 2024.pdf                  │
+│   • Fichas Técnicas.zip                │
+│   • Video Demostraciones.mp4           │
+│                                         │
+│ 📂 Sistema (5 archivos)                 │
+│   • Manual de Usuario.pdf              │
+│   • Tutorial Creación Pedidos.mp4      │
+│   • FAQ Sistema.pdf                    │
+│                                         │
+│ 📂 Motivación (6 archivos)              │
+│   • Metas y Objetivos.pdf              │
+│   • Historias de Éxito.docx            │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### 4.7 Comunicación con el Equipo
+
+#### 4.7.1 Enviar Mensajes
+
+**Mensaje Individual**:
+```
+┌─────────────────────────────────────────┐
+│ 💬 Enviar Mensaje a Carlos Ruiz         │
+├─────────────────────────────────────────┤
+│                                         │
+│ Asunto:                                 │
+│ [_____________________________]         │
+│                                         │
+│ Mensaje:                                │
+│ ┌─────────────────────────────────┐   │
+│ │ Hola Carlos,                    │   │
+│ │                                 │   │
+│ │ Felicitaciones por alcanzar     │   │
+│ │ el 150% de tu meta este mes.    │   │
+│ │ ¡Excelente trabajo!             │   │
+│ │                                 │   │
+│ │ Saludos,                        │   │
+│ │ Tu Líder                        │   │
+│ └─────────────────────────────────┘   │
+│                                         │
+│ ☑ Enviar copia a mi email               │
+│ ☐ Marcar como importante                │
+│                                         │
+│ [Cancelar]  [Enviar]                   │
+└─────────────────────────────────────────┘
+```
+
+**Mensaje Grupal**:
+```
+┌─────────────────────────────────────────┐
+│ 📢 Mensaje al Equipo                    │
+├─────────────────────────────────────────┤
+│                                         │
+│ Destinatarios:                          │
+│ ☑ Todo el equipo (12 vendedores)       │
+│ ☐ Solo top performers (5)               │
+│ ☐ Solo en riesgo (3)                    │
+│ ☐ Selección manual                      │
+│                                         │
+│ Asunto*:                                │
+│ [Motivación de Fin de Mes]             │
+│                                         │
+│ Mensaje*:                               │
+│ ┌─────────────────────────────────┐   │
+│ │ Estimado equipo,                │   │
+│ │                                 │   │
+│ │ Quedan 3 días para cerrar el    │   │
+│ │ mes. Estamos al 95% de nuestra  │   │
+│ │ meta. ¡Vamos por ese 100%!      │   │
+│ │                                 │   │
+│ │ Recuerden que cuentan con mi    │   │
+│ │ apoyo para lo que necesiten.    │   │
+│ └─────────────────────────────────┘   │
+│                                         │
+│ Prioridad: [▼ Normal]                   │
+│                                         │
+│ [Cancelar]  [Enviar a Todos]           │
+└─────────────────────────────────────────┘
+```
+
+---
+
+#### 4.7.2 Anuncios y Notificaciones
+
+**Crear Anuncio**:
+```
+┌─────────────────────────────────────────┐
+│ 📣 Crear Anuncio                        │
+├─────────────────────────────────────────┤
+│                                         │
+│ Tipo de Anuncio:                        │
+│ ⦿ Información                           │
+│ ⚪ Alerta/Importante                     │
+│ ⚪ Felicitación                          │
+│ ⚪ Recordatorio                          │
+│                                         │
+│ Título*:                                │
+│ [Nuevo Producto Disponible]            │
+│                                         │
+│ Contenido*:                             │
+│ ┌─────────────────────────────────┐   │
+│ │ Tenemos nuevo producto en el    │   │
+│ │ catálogo: Arepa Integral.       │   │
+│ │ Precio especial de lanzamiento. │   │
+│ └─────────────────────────────────┘   │
+│                                         │
+│ Adjuntar archivo:                       │
+│ [📎 Seleccionar archivo]                │
+│                                         │
+│ Mostrar hasta:                          │
+│ [📅 31/10/2024]                         │
+│                                         │
+│ ☑ Fijar en la parte superior            │
+│ ☑ Enviar notificación push              │
+│                                         │
+│ [Cancelar]  [Publicar Anuncio]         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### 4.8 Análisis y Estadísticas Avanzadas
+
+#### 4.8.1 Dashboard Analítico
+
+**Vista de Análisis Profundo**:
+```
+┌────────────────────────────────────────────┐
+│ 📊 ANÁLISIS DEL EQUIPO - OCTUBRE 2024      │
+├────────────────────────────────────────────┤
+│                                            │
+│ Métricas Clave:                            │
+│ • Tasa de Conversión: 68% (▲ +5%)        │
+│ • Ticket Promedio: $10,500 (▲ +8%)       │
+│ • Pedidos/Vendedor/Día: 1.8 (▼ -0.2)     │
+│ • Retención de Clientes: 85% (▲ +3%)     │
+│                                            │
+│ ┌──────── Ventas por Zona ────────┐      │
+│ │ Zona Norte: $850,000 (26%)      │      │
+│ │ Zona Sur: $1,200,000 (36%)      │      │
+│ │ Zona Este: $750,000 (23%)       │      │
+│ │ Zona Oeste: $530,000 (15%)      │      │
+│ └─────────────────────────────────┘      │
+│                                            │
+│ ┌──── Productos Más Vendidos ─────┐      │
+│ │ 1. Arepa de Queso: 450 uds      │      │
+│ │ 2. Arepa de Carne: 380 uds      │      │
+│ │ 3. Combo Familiar: 220 uds      │      │
+│ │ 4. Arepa de Pollo: 190 uds      │      │
+│ │ 5. Arepa Mixta: 165 uds         │      │
+│ └─────────────────────────────────┘      │
+│                                            │
+│ [Exportar Análisis] [Compartir]           │
+└────────────────────────────────────────────┘
+```
+
+---
+
+### 4.9 Funciones de Vendedor
+
+**Importante**: Como líder, usted también tiene acceso a todas las funciones de un vendedor:
+
+✅ Crear y gestionar pedidos  
+✅ Administrar cartera de clientes  
+✅ Consultar sus propias comisiones  
+✅ Gestionar su red de referidos  
+✅ Ver catálogo de productos  
+
+**Para estas funciones, consulte la sección [5. Manual del Vendedor](#5-manual-del-vendedor)**
+
+---
+
+## 5. MANUAL DEL VENDEDOR
+
+### 5.1 Introducción para Vendedores
 
 Como **Vendedor**, usted es el corazón del sistema. Sus funciones incluyen:
 
@@ -1199,7 +1947,7 @@ Como **Vendedor**, usted es el corazón del sistema. Sus funciones incluyen:
 
 ---
 
-### 4.2 Dashboard del Vendedor
+### 5.2 Dashboard del Vendedor
 
 **Al iniciar sesión verá**:
 
@@ -1243,7 +1991,7 @@ Promedio diario necesario: $7,500
 
 ---
 
-### 4.3 Crear Pedido como Vendedor
+### 5.3 Crear Pedido como Vendedor
 
 #### Guía Paso a Paso
 
@@ -1327,9 +2075,9 @@ Datos básicos requeridos:
 
 ---
 
-### 4.4 Gestionar Clientes
+### 5.4 Gestionar Clientes
 
-#### 4.4.1 Ver Mis Clientes
+#### 5.4.1 Ver Mis Clientes
 
 **Paso 1**: Haga clic en "Mis Clientes"
 
@@ -1355,7 +2103,7 @@ Datos básicos requeridos:
 - **Buscar**: Por nombre, email o teléfono
 - **Ordenar**: Por total de compras, última compra, etc.
 
-#### 4.4.2 Ver Perfil de Cliente
+#### 5.4.2 Ver Perfil de Cliente
 
 **Click en "Ver"** para ver:
 - Historial completo de compras
@@ -1364,7 +2112,7 @@ Datos básicos requeridos:
 - Información de contacto completa
 - Notas personales (solo usted las ve)
 
-#### 4.4.3 Agregar Notas
+#### 5.4.3 Agregar Notas
 
 **Útil para recordar**:
 - Preferencias del cliente
@@ -1384,9 +2132,9 @@ Ejemplo de nota:
 
 ---
 
-### 4.5 Consultar Comisiones
+### 5.5 Consultar Comisiones
 
-#### 4.5.1 Ver Mis Comisiones
+#### 5.5.1 Ver Mis Comisiones
 
 **Paso 1**: Haga clic en "Comisiones"
 
@@ -1423,7 +2171,7 @@ Ejemplo de nota:
 └────────────────────────────────────────────────┘
 ```
 
-#### 4.5.2 Solicitar Retiro
+#### 5.5.2 Solicitar Retiro
 
 **Paso 1**: Haga clic en "Solicitar Retiro"
 
@@ -1461,9 +2209,9 @@ Ejemplo de nota:
 
 ---
 
-### 4.6 Mi Red de Referidos
+### 5.6 Mi Red de Referidos
 
-#### 4.6.1 Ver Mi Red
+#### 5.6.1 Ver Mi Red
 
 **Paso 1**: Haga clic en "Mi Red de Referidos"
 
@@ -1502,7 +2250,7 @@ Ejemplo de nota:
   ✅$15K  ✅$12K   ✅$18K    ✅$8K
 ```
 
-#### 4.6.2 Invitar Nuevos Referidos
+#### 5.6.2 Invitar Nuevos Referidos
 
 **Paso 1**: Haga clic en "Invitar Nuevo"
 
@@ -1542,9 +2290,9 @@ register?ref=VEN-MG-2024
 
 ---
 
-## 5. MANUAL DEL CLIENTE
+## 6. MANUAL DEL CLIENTE
 
-### 5.1 Introducción para Clientes
+### 6.1 Introducción para Clientes
 
 Como **Cliente**, usted puede:
 
@@ -1556,7 +2304,7 @@ Como **Cliente**, usted puede:
 
 ---
 
-### 5.2 Dashboard del Cliente
+### 6.2 Dashboard del Cliente
 
 **Al iniciar sesión verá**:
 
@@ -1584,7 +2332,7 @@ Como **Cliente**, usted puede:
 
 ---
 
-### 5.3 Hacer un Pedido
+### 6.3 Hacer un Pedido
 
 **Paso 1**: Haga clic en "Hacer Pedido" o "Catálogo"
 
@@ -1635,7 +2383,7 @@ Notas: [Opcional - Ej: Sin cebolla]
 
 ---
 
-### 5.4 Ver Estado de Pedido
+### 6.4 Ver Estado de Pedido
 
 **Paso 1**: Vaya a "Mis Pedidos"
 
@@ -1666,7 +2414,7 @@ Notas: [Opcional - Ej: Sin cebolla]
 
 ---
 
-### 5.5 Productos Favoritos
+### 6.5 Productos Favoritos
 
 #### Marcar como Favorito
 
@@ -1690,9 +2438,9 @@ Notas: [Opcional - Ej: Sin cebolla]
 ---
 
 
-## 6. PREGUNTAS FRECUENTES (FAQ)
+## 7. PREGUNTAS FRECUENTES (FAQ)
 
-### 6.1 Preguntas Generales
+### 7.1 Preguntas Generales
 
 **P: ¿Cómo recupero mi contraseña?**  
 R: En la página de login, haga clic en "¿Olvidaste tu contraseña?", ingrese su email y siga las instrucciones que recibirá por correo.
@@ -1708,7 +2456,7 @@ R: Sí, recibirá emails de confirmación para: registro, pedidos, cambios de es
 
 ---
 
-### 6.2 Preguntas sobre Pedidos
+### 7.2 Preguntas sobre Pedidos
 
 **P: ¿Puedo cancelar un pedido?**  
 R: Sí, puede cancelar pedidos en estado "Pendiente" o "Confirmado". Una vez en preparación, debe contactar al vendedor.
@@ -1724,7 +2472,7 @@ R: Efectivo, transferencia bancaria y otros métodos configurados por el adminis
 
 ---
 
-### 6.3 Preguntas sobre Comisiones
+### 7.3 Preguntas sobre Comisiones
 
 **P: ¿Cuándo se calculan mis comisiones?**  
 R: Las comisiones se calculan automáticamente al crear el pedido.
@@ -1745,7 +2493,7 @@ R: Generalmente 24-48 horas para aprobación y 2-5 días hábiles para el pago.
 
 ---
 
-### 6.4 Preguntas sobre Red de Referidos
+### 7.4 Preguntas sobre Red de Referidos
 
 **P: ¿Cómo invito a alguien a mi red?**  
 R: Comparta su código de referido o enlace único. Lo encuentra en "Mi Red de Referidos".
@@ -1761,9 +2509,9 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-## 7. SOLUCIÓN DE PROBLEMAS
+## 8. SOLUCIÓN DE PROBLEMAS
 
-### 7.1 No puedo iniciar sesión
+### 8.1 No puedo iniciar sesión
 
 **Problema**: Email o contraseña incorrectos  
 **Solución**:
@@ -1777,7 +2525,7 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-### 7.2 No recibo emails del sistema
+### 8.2 No recibo emails del sistema
 
 **Problema**: No llegan notificaciones  
 **Solución**:
@@ -1788,7 +2536,7 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-### 7.3 Error al crear pedido
+### 8.3 Error al crear pedido
 
 **Problema**: Producto sin stock  
 **Solución**: Seleccione otro producto o contacte al administrador
@@ -1802,7 +2550,7 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-### 7.4 No veo mis comisiones
+### 8.4 No veo mis comisiones
 
 **Problema**: Comisiones no aparecen  
 **Solución**:
@@ -1813,7 +2561,7 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-## 8. GLOSARIO DE TÉRMINOS
+## 9. GLOSARIO DE TÉRMINOS
 
 **Administrador**: Usuario con acceso completo al sistema.
 
@@ -1871,9 +2619,9 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-## 9. CONTACTO Y SOPORTE
+## 10. CONTACTO Y SOPORTE
 
-### 9.1 Información de Contacto
+### 10.1 Información de Contacto
 
 **Soporte Técnico**:
 - 📧 Email: soporte@arepalallanerita.com
@@ -1886,7 +2634,7 @@ R: Sí, en su dashboard de red verá estadísticas de cada referido.
 
 ---
 
-### 9.2 Reportar un Problema
+### 10.2 Reportar un Problema
 
 Para reportar un problema o error:
 
@@ -1902,7 +2650,7 @@ Para reportar un problema o error:
 
 ---
 
-### 9.3 Sugerencias y Mejoras
+### 10.3 Sugerencias y Mejoras
 
 ¿Tiene una idea para mejorar el sistema?
 
@@ -1911,7 +2659,7 @@ Para reportar un problema o error:
 
 ---
 
-## 10. ACTUALIZACIONES Y NOVEDADES
+## 11. ACTUALIZACIONES Y NOVEDADES
 
 ### Versión Actual: 2.0
 
@@ -1930,7 +2678,7 @@ Para reportar un problema o error:
 
 ---
 
-## 11. TIPS Y MEJORES PRÁCTICAS
+## 12. TIPS Y MEJORES PRÁCTICAS
 
 ### Para Vendedores:
 
@@ -1940,6 +2688,14 @@ Para reportar un problema o error:
 ✅ **Revise diariamente su dashboard**: Manténgase al día con sus metas  
 ✅ **Responda rápido**: Atienda pedidos y consultas con prontitud  
 
+### Para Líderes:
+
+✅ **Capacite su equipo**: Use el módulo de capacitaciones  
+✅ **Establezca metas realistas**: Basadas en histórico de rendimiento  
+✅ **Monitoree el rendimiento**: Identifique áreas de mejora tempranamente  
+✅ **Motive su equipo**: Reconozca logros y buenos resultados  
+✅ **Comuníquese constantemente**: Mantenga canales abiertos con su equipo  
+
 ### Para Clientes:
 
 ✅ **Use los favoritos**: Marque productos que compra frecuentemente  
@@ -1947,16 +2703,9 @@ Para reportar un problema o error:
 ✅ **Proporcione feedback**: Ayude a mejorar el servicio  
 ✅ **Actualice sus datos**: Mantenga dirección y teléfono actualizados  
 
-### Para Líderes:
-
-✅ **Capacite su equipo**: Use el módulo de capacitaciones  
-✅ **Establezca metas realistas**: Basadas en histórico  
-✅ **Monitoree el rendimiento**: Identifique áreas de mejora  
-✅ **Motive su equipo**: Reconozca logros y buenos resultados  
-
 ---
 
-## 12. RECURSOS ADICIONALES
+## 13. RECURSOS ADICIONALES
 
 ### Videos Tutoriales
 
