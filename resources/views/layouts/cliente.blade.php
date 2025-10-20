@@ -933,15 +933,9 @@
                         </li>
                         <li><hr class="profile-menu-divider"></li>
                         <li class="profile-menu-section">
-                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Configuración'); return false;">
-                                <i class="bi bi-gear"></i>
-                                <span class="menu-item-text">Configuración</span>
-                            </a>
-                        </li>
-                        <li class="profile-menu-section">
-                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Ayuda'); return false;">
+                            <a class="profile-menu-item" href="{{ route('cliente.ayuda.index') }}">
                                 <i class="bi bi-question-circle"></i>
-                                <span class="menu-item-text">Ayuda</span>
+                                <span class="menu-item-text">Ayuda y Soporte</span>
                             </a>
                         </li>
                         <li><hr class="profile-menu-divider"></li>
