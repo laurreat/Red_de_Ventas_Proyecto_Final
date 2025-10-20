@@ -47,8 +47,8 @@ class Pedido extends Model
         'total' => 'decimal:2',
         'total_final' => 'decimal:2',
         'fecha_entrega_estimada' => 'datetime',
-        // 'productos' y 'detalles' no necesitan cast porque MongoDB los maneja como arrays nativos
-        // y ya tenemos accessors personalizados que manejan la conversión
+        // MongoDB maneja arrays nativamente, no necesita cast 'array'
+        // 'productos' y 'detalles' se manejan directamente como arrays en MongoDB
         'historial_estados' => 'array',
         'cliente_data' => 'array',
         'vendedor_data' => 'array',
@@ -79,67 +79,20 @@ class Pedido extends Model
         return $this->hasMany(DetallePedido::class, 'pedido_id');
     }
 
-    // Accessor para garantizar que productos siempre sea un array
-    public function getProductosAttribute($value)
+    // Mutadores simples - solo asignan el valor directamente
+    public function setDetallesAttribute($detalles)
     {
-        // Si ya tiene valor como array, devolverlo
-        if (is_array($value) && !empty($value)) {
-            return $value;
-        }
-        
-        // Intentar obtener de 'detalles' primero (estructura MongoDB estándar)
-        $detalles = $this->attributes['detalles'] ?? null;
-        if (is_array($detalles) && !empty($detalles)) {
-            return $detalles;
-        }
-        
-        // Si value es string, intentar decodificar JSON
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-        }
-        
-        // Si nada funciona, devolver array vacío
-        return [];
+        $this->attributes['detalles'] = $detalles;
     }
 
-    // Override para manejar tanto embebidos como relación
-    public function getDetallesAttribute($value)
+    public function setProductosAttribute($productos)
     {
-        // Si value ya es un array, devolverlo directamente
-        if (is_array($value)) {
-            return $value;
-        }
-
-        // Si es una colección, devolverla
-        if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
-            return $value;
-        }
-
-        // Para MongoDB, intentar obtener directamente del array de attributes
-        if (isset($this->attributes['detalles'])) {
-            $rawDetalles = $this->attributes['detalles'];
-            if (is_array($rawDetalles)) {
-                return $rawDetalles;
-            }
-        }
-
-        // Si no hay detalles, intentar con productos
-        if (isset($this->attributes['productos'])) {
-            $rawProductos = $this->attributes['productos'];
-            if (is_array($rawProductos)) {
-                return $rawProductos;
-            }
-        }
-
-        // Si no hay nada, devolver array vacío
-        return [];
+        $this->attributes['productos'] = $productos;
     }
 
     /**
      * Obtener detalles directamente desde los atributos (sin pasar por getter)
+     * Este método NO es un accessor, es un método normal
      */
     public function getRawDetalles()
     {
@@ -147,9 +100,37 @@ class Pedido extends Model
             return [];
         }
 
-        $detalles = $this->attributes['detalles'] ?? [];
+        // Intentar primero con detalles
+        if (isset($this->attributes['detalles'])) {
+            $detalles = $this->attributes['detalles'];
+            
+            // Si es un objeto MongoDB, convertir a array
+            if (is_object($detalles)) {
+                $detalles = json_decode(json_encode($detalles), true);
+            }
+            
+            // Asegurar que es un array
+            if (is_array($detalles) && count($detalles) > 0) {
+                return $detalles;
+            }
+        }
 
-        return is_array($detalles) ? $detalles : [];
+        // Si no, intentar con productos
+        if (isset($this->attributes['productos'])) {
+            $productos = $this->attributes['productos'];
+            
+            // Si es un objeto MongoDB, convertir a array
+            if (is_object($productos)) {
+                $productos = json_decode(json_encode($productos), true);
+            }
+            
+            // Asegurar que es un array
+            if (is_array($productos) && count($productos) > 0) {
+                return $productos;
+            }
+        }
+
+        return [];
     }
 
     /**
@@ -157,17 +138,19 @@ class Pedido extends Model
      */
     public function getDetallesEmbebidosAttribute()
     {
-        return $this->getRawDetalles();
-    }
-
-    public function setDetallesAttribute($detalles)
-    {
-        $this->attributes['detalles'] = $detalles;
+        $detalles = $this->getRawDetalles();
+        
+        // Asegurar que siempre devuelve un array, no un objeto
+        if (is_object($detalles) && !is_array($detalles)) {
+            return [];
+        }
+        
+        return is_array($detalles) ? $detalles : [];
     }
 
     public function agregarDetalle($productoData, $cantidad, $precioUnitario)
     {
-        $detalles = $this->detalles;
+        $detalles = $this->detalles_embebidos;
         $subtotal = $cantidad * $precioUnitario;
 
         $detalle = [
@@ -191,12 +174,14 @@ class Pedido extends Model
     public function recalcularTotales()
     {
         $total = 0;
-        foreach ($this->detalles as $detalle) {
+        $detalles = $this->detalles_embebidos;
+        
+        foreach ($detalles as $detalle) {
             $total += $detalle['subtotal'] ?? 0;
         }
 
         $this->total = $total;
-        $this->total_final = $total - $this->descuento;
+        $this->total_final = $total - ($this->descuento ?? 0);
     }
 
     // Scopes
@@ -263,20 +248,15 @@ class Pedido extends Model
 
     public function totalItems(): int
     {
-        // Verificar si detalles existe y no está vacío
-        if (!isset($this->detalles) || empty($this->detalles)) {
-            // Intentar con 'items' en su lugar
-            if (!isset($this->items) || empty($this->items)) {
-                return 0;
-            }
-            
-            // Si items es un array, usarlo
-            $items = is_array($this->items) ? $this->items : $this->items->toArray();
-            return array_sum(array_column($items, 'cantidad'));
+        // Obtener detalles embebidos usando el accessor
+        $detalles = $this->detalles_embebidos;
+        
+        // Verificar que sea un array y no esté vacío
+        if (!is_array($detalles) || empty($detalles)) {
+            return 0;
         }
         
-        // Convertir detalles a array si es necesario
-        $detalles = is_array($this->detalles) ? $this->detalles : $this->detalles->toArray();
+        // Sumar las cantidades
         return array_sum(array_column($detalles, 'cantidad'));
     }
 

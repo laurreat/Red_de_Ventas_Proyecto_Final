@@ -1,63 +1,533 @@
-@extends('layouts.app')
+@extends('layouts.cliente')
 
-@section('title', '- Crear Nuevo Pedido')
+@section('title', ' - Crear Nuevo Pedido')
+@section('header-title', 'Crear Nuevo Pedido')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-modern.css') }}?v={{ filemtime(public_path('css/pages/pedidos-cliente-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-glassmorphism.css') }}?v={{ time() }}">
+<style>
+/* Estilos específicos para crear pedido */
+.create-pedido-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.create-pedido-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: var(--transition-base);
+    border: 2px solid;
+    cursor: pointer;
+}
+
+.create-pedido-btn-primary {
+    background: rgba(114, 47, 55, 0.1);
+    border-color: rgba(114, 47, 55, 0.3);
+    color: var(--wine);
+}
+
+.create-pedido-btn-primary:hover {
+    background: linear-gradient(135deg, var(--wine), var(--wine-dark));
+    border-color: var(--wine);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+}
+
+.create-pedido-btn-secondary {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: var(--info);
+}
+
+.create-pedido-btn-secondary:hover {
+    background: linear-gradient(135deg, var(--info), var(--info-light));
+    border-color: var(--info);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Sección de formulario con glass */
+.pedidos-form-section {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+    transition: var(--transition-base);
+}
+
+.pedidos-form-section:hover {
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.18);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pedidos-form-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.pedidos-form-section-title i {
+    font-size: 1.5rem;
+    color: var(--wine);
+}
+
+/* Inputs y controles */
+.pedidos-form-control {
+    border: 2px solid var(--gray-300);
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+    transition: var(--transition-base);
+    background: white;
+    font-weight: 500;
+}
+
+.pedidos-form-control:focus {
+    border-color: var(--wine);
+    box-shadow: 0 0 0 4px rgba(114, 47, 55, 0.1);
+    outline: none;
+}
+
+.pedidos-form-label {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Producto checkbox mejorado */
+.pedidos-product-checkbox {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition-base);
+    cursor: pointer;
+    position: relative;
+}
+
+.pedidos-product-checkbox:hover {
+    border-color: var(--wine);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.15);
+    transform: translateY(-2px);
+}
+
+.pedidos-product-checkbox.selected {
+    border-color: var(--wine);
+    background: linear-gradient(135deg, rgba(114, 47, 55, 0.05), rgba(114, 47, 55, 0.02));
+    box-shadow: 0 4px 16px rgba(114, 47, 55, 0.2);
+}
+
+.pedidos-product-checkbox input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--wine);
+}
+
+.pedidos-product-image {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pedidos-product-placeholder {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--gray-200), var(--gray-100));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--gray-400);
+}
+
+.pedidos-product-info {
+    flex: 1;
+}
+
+.pedidos-product-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+    text-transform: capitalize;
+}
+
+.pedidos-product-details {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.pedidos-product-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--wine);
+}
+
+.pedidos-product-quantity {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(114, 47, 55, 0.1);
+    padding: 0.5rem;
+    border-radius: 12px;
+}
+
+.pedidos-qty-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+    color: var(--wine);
+    font-weight: 700;
+}
+
+.pedidos-qty-btn:hover {
+    background: var(--wine);
+    color: white;
+    transform: scale(1.1);
+}
+
+.cantidad-input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--wine);
+}
+
+/* Resumen del carrito */
+.pedidos-cart-summary {
+    background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 8px 32px rgba(114, 47, 55, 0.3);
+}
+
+.pedidos-cart-summary-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.pedidos-cart-item {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.pedidos-cart-total {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.pedidos-submit-btn {
+    width: 100%;
+    padding: 1.25rem;
+    background: white;
+    color: var(--wine);
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition-base);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pedidos-submit-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pedidos-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Categoría section */
+.categoria-section h6 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--wine);
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(114, 47, 55, 0.05);
+    border-left: 4px solid var(--wine);
+    border-radius: 8px;
+}
+
+/* Breadcrumb en modal/collapse */
+.breadcrumb {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item a {
+    color: var(--wine);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--wine-dark);
+}
+
+.breadcrumb-item.active {
+    color: var(--gray-600);
+}
+
+/* Input group mejorado */
+.input-group-text {
+    border: 2px solid var(--gray-300);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+}
+
+.input-group .form-control {
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+}
+
+.input-group-lg .input-group-text,
+.input-group-lg .form-control {
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .pedidos-cart-summary {
+        position: static !important;
+        margin-top: 2rem;
+    }
+    
+    .pedidos-form-section {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .create-pedido-actions {
+        flex-direction: column;
+    }
+    
+    .create-pedido-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pedidos-product-checkbox {
+        padding: 1rem;
+    }
+    
+    .pedidos-product-image,
+    .pedidos-product-placeholder {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* Glass Modal Styles */
+.glass-modal {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.modal-glass-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(114, 47, 55, 0.05) 0%, rgba(114, 47, 55, 0.1) 100%);
+    border-radius: 24px;
+    z-index: -1;
+}
+
+.confirm-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid;
+    margin: 0 auto;
+}
+
+.confirm-icon {
+    font-size: 2.5rem;
+}
+
+.confirm-title {
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.confirm-message {
+    color: var(--gray-600);
+    font-size: 1rem;
+}
+
+.btn-glass {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 2px solid;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.btn-glass-primary {
+    background: rgba(114, 47, 55, 0.1);
+    border-color: rgba(114, 47, 55, 0.3);
+    color: var(--wine);
+}
+
+.btn-glass-primary:hover {
+    background: var(--wine);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+}
+
+.btn-glass-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    border-color: rgba(108, 117, 125, 0.3);
+    color: #6c757d;
+}
+
+.btn-glass-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-glass-danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.3);
+    color: #dc3545;
+}
+
+.btn-glass-danger:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-glass-info {
+    background: rgba(23, 162, 184, 0.1);
+    border-color: rgba(23, 162, 184, 0.3);
+    color: #17a2b8;
+}
+
+.btn-glass-info:hover {
+    background: #17a2b8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+</style>
 @endpush
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header Hero con Navegación -->
-    <div class="pedidos-header fade-in-up">
-        <div class="row align-items-center mb-3">
-            <div class="col-12">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-2">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('cliente.dashboard') }}" class="text-decoration-none">
-                                <i class="bi bi-house-door"></i> Inicio
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('cliente.pedidos.index') }}" class="text-decoration-none">
-                                Mis Pedidos
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">Nuevo Pedido</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <button onclick="volverAtras()" class="btn btn-light btn-sm" title="Volver atrás">
-                        <i class="bi bi-arrow-left"></i>
-                    </button>
-                    <h1 class="pedidos-title mb-0">
-                        <i class="bi bi-cart-plus me-2"></i>
-                        Crear Nuevo Pedido
-                    </h1>
-                </div>
-                <p class="pedidos-subtitle mb-0">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Selecciona tus productos favoritos y completa tu pedido
-                </p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="d-flex gap-2 justify-content-md-end">
-                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="limpiarSeleccion()">
-                        <i class="bi bi-x-circle me-1"></i>
-                        Limpiar
-                    </button>
-                    <button type="button" class="btn btn-outline-info btn-sm" onclick="cargarDesdeCarrito()">
-                        <i class="bi bi-upload me-1"></i>
-                        Desde Carrito
-                    </button>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid">
+    <!-- Breadcrumb mejorado -->
+    <div class="mb-3 fade-in-up">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ route('cliente.dashboard') }}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ route('cliente.pedidos.index') }}">
+                        <i class="bi bi-box-seam"></i> Mis Pedidos
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Nuevo Pedido</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="create-pedido-actions fade-in-up animate-delay-1">
+        <button type="button" class="create-pedido-btn create-pedido-btn-primary" onclick="limpiarSeleccion()">
+            <i class="bi bi-x-circle"></i>
+            Limpiar Selección
+        </button>
+        <button type="button" class="create-pedido-btn create-pedido-btn-secondary" onclick="cargarDesdeCarrito()">
+            <i class="bi bi-upload"></i>
+            Cargar desde Carrito
+        </button>
     </div>
 
     <form id="crearPedidoForm" action="{{ route('cliente.pedidos.store') }}" method="POST">
@@ -67,23 +537,23 @@
             <!-- Columna Principal - Productos -->
             <div class="col-lg-8 mb-4">
                 <!-- Selección de Productos -->
-                <div class="pedidos-form-section fade-in-up">
+                <div class="pedidos-form-section fade-in-up animate-delay-2">
                     <h5 class="pedidos-form-section-title">
-                        <i class="bi bi-box-seam"></i>
+                        <i class="bi bi-box-seam-fill"></i>
                         Selecciona tus Productos
                     </h5>
                     
                     <!-- Buscador y Filtros de Productos -->
                     <div class="mb-4">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-white border-end-0">
+                                    <span class="input-group-text bg-white">
                                         <i class="bi bi-search text-primary"></i>
                                     </span>
                                     <input type="text" 
                                            id="searchProductos" 
-                                           class="form-control border-start-0 ps-0" 
+                                           class="form-control pedidos-form-control" 
                                            placeholder="Buscar productos por nombre..."
                                            autocomplete="off">
                                     <button class="btn btn-outline-secondary" type="button" onclick="limpiarBusqueda()" title="Limpiar búsqueda">
@@ -91,58 +561,13 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <select id="filtroCategoria" class="form-select form-select-lg">
+                            <div class="col-md-5">
+                                <select id="filtroCategoria" class="form-select pedidos-form-control form-select-lg">
                                     <option value="">📂 Todas las categorías</option>
                                     @foreach($productosPorCategoria as $categoria => $productos)
                                         <option value="{{ $categoria }}">{{ $categoria }}</option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-primary btn-lg w-100" onclick="toggleFiltroPrecio()">
-                                    <i class="bi bi-funnel"></i>
-                                    <span class="d-none d-md-inline ms-1">Filtros</span>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Filtros Avanzados (Colapsable) -->
-                        <div id="filtrosAvanzados" class="mt-3 collapse">
-                            <div class="card border-primary">
-                                <div class="card-body">
-                                    <h6 class="mb-3"><i class="bi bi-sliders me-2"></i>Filtros Avanzados</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small">Rango de Precio</label>
-                                            <div class="row g-2">
-                                                <div class="col-6">
-                                                    <input type="number" class="form-control form-control-sm" id="precioMin" placeholder="Mín">
-                                                </div>
-                                                <div class="col-6">
-                                                    <input type="number" class="form-control form-control-sm" id="precioMax" placeholder="Máx">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small">Ordenar por</label>
-                                            <select id="ordenarPor" class="form-select form-select-sm">
-                                                <option value="nombre">Nombre A-Z</option>
-                                                <option value="precio-asc">Precio: Menor a Mayor</option>
-                                                <option value="precio-desc">Precio: Mayor a Menor</option>
-                                                <option value="stock">Mayor Stock</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12 text-end">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="resetearFiltros()">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Resetear
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-primary" onclick="aplicarFiltros()">
-                                                <i class="bi bi-check me-1"></i>Aplicar Filtros
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
@@ -152,8 +577,8 @@
                                 <i class="bi bi-info-circle me-1"></i>
                                 <span id="contadorProductos">Mostrando todos los productos</span>
                             </small>
-                            <small class="text-muted">
-                                <span id="productosSeleccionados" class="badge bg-primary">0 seleccionados</span>
+                            <small>
+                                <span id="productosSeleccionados" class="pedidos-badge pedidos-badge-pendiente">0 seleccionados</span>
                             </small>
                         </div>
                     </div>
@@ -162,8 +587,8 @@
                     <div id="productosContainer">
                         @forelse($productosPorCategoria as $categoria => $productos)
                         <div class="categoria-section mb-4" data-categoria="{{ $categoria }}">
-                            <h6 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-tag me-2"></i>
+                            <h6>
+                                <i class="bi bi-tag-fill me-2"></i>
                                 {{ $categoria }}
                             </h6>
                             
@@ -186,7 +611,14 @@
                                         <img src="{{ asset('storage/' . $producto->imagen_principal) }}" 
                                              alt="{{ $producto->nombre }}"
                                              class="pedidos-product-image"
-                                             onerror="this.onerror=null; this.src='{{ asset('images/producto-default.jpg') }}';">
+                                             loading="lazy"
+                                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'pedidos-product-placeholder\'><i class=\'bi bi-image\'></i></div>';">
+                                        @elseif($producto->imagen)
+                                        <img src="{{ asset('storage/' . $producto->imagen) }}" 
+                                             alt="{{ $producto->nombre }}"
+                                             class="pedidos-product-image"
+                                             loading="lazy"
+                                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'pedidos-product-placeholder\'><i class=\'bi bi-image\'></i></div>';">
                                         @else
                                         <div class="pedidos-product-placeholder">
                                             <i class="bi bi-image"></i>
@@ -198,12 +630,12 @@
                                             <div class="pedidos-product-details">
                                                 @if($producto->stock > 0)
                                                     <span class="text-success">
-                                                        <i class="bi bi-check-circle me-1"></i>
+                                                        <i class="bi bi-check-circle-fill me-1"></i>
                                                         Stock: {{ $producto->stock }}
                                                     </span>
                                                 @else
                                                     <span class="text-danger">
-                                                        <i class="bi bi-x-circle me-1"></i>
+                                                        <i class="bi bi-x-circle-fill me-1"></i>
                                                         Sin stock
                                                     </span>
                                                 @endif
@@ -249,16 +681,16 @@
                 </div>
 
                 <!-- Información de Entrega -->
-                <div class="pedidos-form-section fade-in-up animate-delay-1">
+                <div class="pedidos-form-section fade-in-up animate-delay-3">
                     <h5 class="pedidos-form-section-title">
-                        <i class="bi bi-truck"></i>
+                        <i class="bi bi-truck-fill"></i>
                         Información de Entrega
                     </h5>
                     
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label for="direccion_entrega" class="pedidos-form-label">
-                                <i class="bi bi-geo-alt me-1"></i>
+                                <i class="bi bi-geo-alt-fill"></i>
                                 Dirección de Entrega *
                             </label>
                             <textarea name="direccion_entrega" 
@@ -274,7 +706,7 @@
                         
                         <div class="col-md-6 mb-3">
                             <label for="telefono_entrega" class="pedidos-form-label">
-                                <i class="bi bi-telephone me-1"></i>
+                                <i class="bi bi-telephone-fill"></i>
                                 Teléfono de Contacto *
                             </label>
                             <input type="tel" 
@@ -291,7 +723,7 @@
                         
                         <div class="col-md-6 mb-3">
                             <label for="metodo_pago" class="pedidos-form-label">
-                                <i class="bi bi-credit-card me-1"></i>
+                                <i class="bi bi-credit-card-fill"></i>
                                 Método de Pago *
                             </label>
                             <select name="metodo_pago" 
@@ -316,7 +748,7 @@
                         
                         <div class="col-md-12 mb-3">
                             <label for="notas" class="pedidos-form-label">
-                                <i class="bi bi-chat-left-text me-1"></i>
+                                <i class="bi bi-chat-left-text-fill"></i>
                                 Notas Adicionales (Opcional)
                             </label>
                             <textarea name="notas" 
@@ -334,16 +766,16 @@
 
             <!-- Sidebar - Resumen del Carrito -->
             <div class="col-lg-4">
-                <div class="pedidos-cart-summary fade-in-up animate-delay-2" style="position: sticky; top: 100px;">
+                <div class="pedidos-cart-summary fade-in-up animate-delay-4" style="position: sticky; top: 100px;">
                     <div class="pedidos-cart-summary-title">
-                        <i class="bi bi-cart-check"></i>
+                        <i class="bi bi-cart-check-fill"></i>
                         Resumen del Pedido
                     </div>
                     
                     <div id="cartItems">
-                        <div class="text-center py-4 text-white-50">
+                        <div class="text-center py-4" style="opacity: 0.7;">
                             <i class="bi bi-cart-x fs-1 mb-3 d-block"></i>
-                            <p>No has seleccionado productos</p>
+                            <p class="mb-0">No has seleccionado productos</p>
                         </div>
                     </div>
                     
@@ -356,12 +788,12 @@
                             class="pedidos-submit-btn" 
                             id="submitBtn"
                             disabled>
-                        <i class="bi bi-check-circle me-2"></i>
+                        <i class="bi bi-check-circle-fill me-2"></i>
                         Confirmar Pedido
                     </button>
                     
-                    <div class="mt-3 text-center">
-                        <small class="text-white-50">
+                    <div class="mt-3 text-center" style="opacity: 0.8;">
+                        <small>
                             <i class="bi bi-shield-check me-1"></i>
                             Pedido seguro y protegido
                         </small>
@@ -373,33 +805,103 @@
 </div>
 
 <!-- Loading Overlay -->
-<div class="pedidos-loading-overlay">
+<div class="pedidos-loading-overlay" id="loadingOverlay">
     <div class="pedidos-loading-spinner"></div>
 </div>
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/pages/pedidos-cliente-modern.js') }}?v={{ filemtime(public_path('js/pages/pedidos-cliente-modern.js')) }}"></script>
+<script src="{{ asset('js/modules/glass-modal.js') }}?v={{ time() }}"></script>
 <script>
 // Variable global para el carrito
 window.cart = new Map();
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar el manager pero SIN el carrito interno
-    // El carrito se maneja globalmente
-    if (typeof PedidosClienteManager !== 'undefined') {
-        window.pedidosManager = new PedidosClienteManager();
-    }
-    
+// Formatear número (función global)
+function formatNumber(num) {
+    return new Intl.NumberFormat('es-CO', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(num);
+}
+
+// Función para actualizar el carrito (definida globalmente antes de usarla)
+window.updateCart = function() {
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const submitBtn = document.getElementById('submitBtn');
+    
+    if (!cartItems || !cartTotal || !submitBtn) return;
+    
+    if (window.cart.size === 0) {
+        cartItems.innerHTML = `
+            <div class="text-center py-4" style="opacity: 0.7;">
+                <i class="bi bi-cart-x fs-1 mb-3 d-block"></i>
+                <p class="mb-0">No has seleccionado productos</p>
+            </div>
+        `;
+        cartTotal.textContent = '$0';
+        submitBtn.disabled = true;
+        
+        const productosSeleccionados = document.getElementById('productosSeleccionados');
+        if (productosSeleccionados) {
+            productosSeleccionados.textContent = '0 seleccionados';
+            productosSeleccionados.className = 'pedidos-badge pedidos-badge-pendiente';
+        }
+        return;
+    }
+    
+    let total = 0;
+    let html = '';
+    
+    window.cart.forEach((item, productoId) => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        
+        // Obtener imagen del producto
+        const productoItem = document.querySelector(`.producto-item[data-producto-id="${productoId}"]`);
+        let imagenHtml = '';
+        
+        if (productoItem) {
+            const imagen = productoItem.querySelector('.pedidos-product-image');
+            if (imagen) {
+                imagenHtml = `<img src="${imagen.src}" alt="${item.nombre}" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">`;
+            } else {
+                imagenHtml = `<div class="me-2" style="width: 40px; height: 40px; background: rgba(114, 47, 55, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-image text-muted"></i></div>`;
+            }
+        }
+        
+        html += `
+            <div class="pedidos-cart-item">
+                <div class="d-flex align-items-center flex-grow-1">
+                    ${imagenHtml}
+                    <div>
+                        <div class="fw-semibold text-capitalize">${item.nombre}</div>
+                        <small style="opacity: 0.75;">${item.cantidad} x $${formatNumber(item.precio)}</small>
+                    </div>
+                </div>
+                <div class="fw-bold">$${formatNumber(subtotal)}</div>
+            </div>
+        `;
+    });
+    
+    cartItems.innerHTML = html;
+    cartTotal.textContent = '$' + formatNumber(total);
+    submitBtn.disabled = false;
+    
+    const productosSeleccionados = document.getElementById('productosSeleccionados');
+    if (productosSeleccionados) {
+        productosSeleccionados.textContent = `${window.cart.size} seleccionados`;
+        productosSeleccionados.className = 'pedidos-badge pedidos-badge-confirmado';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
     
     // Pre-cargar productos desde localStorage (si vienen del dashboard)
     const carritoLocalStorage = JSON.parse(localStorage.getItem('carrito')) || [];
     if (carritoLocalStorage.length > 0) {
         carritoLocalStorage.forEach(item => {
-            // Buscar el checkbox del producto
             const checkbox = document.querySelector(`input[value="${item.id}"]`);
             if (checkbox && !checkbox.disabled) {
                 checkbox.checked = true;
@@ -411,8 +913,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 qtyDiv.style.display = 'flex';
                 cantidadInput.value = item.cantidad;
                 
-                // Agregar al carrito local de la página
-                const nombre = container.closest('.producto-item').dataset.nombre;
+                const productoItem = container.closest('.producto-item');
+                const nombre = productoItem ? productoItem.dataset.nombre : item.nombre || 'Producto';
                 const precio = parseFloat(container.dataset.precio);
                 
                 window.cart.set(item.id, {
@@ -423,16 +925,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Actualizar vista del carrito
         updateCart();
-        
-        // Limpiar localStorage después de cargar
         localStorage.removeItem('carrito');
-        
-        // Mostrar mensaje
-        if (window.pedidosManager) {
-            pedidosManager.showToast('success', 'Productos cargados', 'Productos cargados desde tu carrito');
-        }
+        showToast('success', 'Productos cargados desde tu carrito');
     }
     
     // Escuchar cambios en checkboxes
@@ -449,13 +944,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.classList.add('selected');
                 qtyDiv.style.display = 'flex';
                 
-                // Resetear cantidad a 1 al seleccionar
                 const cantidadInput = qtyDiv.querySelector('.cantidad-input');
                 if (cantidadInput) {
                     cantidadInput.value = 1;
                 }
                 
-                // Agregar al carrito
                 window.cart.set(productoId, {
                     nombre: nombre,
                     precio: precio,
@@ -464,8 +957,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 container.classList.remove('selected');
                 qtyDiv.style.display = 'none';
-                
-                // Quitar del carrito
                 window.cart.delete(productoId);
             }
             
@@ -487,137 +978,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.style.display = 'none';
                 }
             });
-        });
-    }
-    
-    // Función para actualizar el carrito
-    window.updateCart = function() {
-        if (window.cart.size === 0) {
-            cartItems.innerHTML = `
-                <div class="text-center py-4 text-white-50">
-                    <i class="bi bi-cart-x fs-1 mb-3 d-block"></i>
-                    <p>No has seleccionado productos</p>
-                </div>
-            `;
-            cartTotal.textContent = '$0';
-            submitBtn.disabled = true;
             
-            const productosSeleccionados = document.getElementById('productosSeleccionados');
-            if (productosSeleccionados) {
-                productosSeleccionados.textContent = '0 seleccionados';
-            }
-            return;
-        }
-        
-        let total = 0;
-        let html = '';
-        
-        window.cart.forEach((item, productoId) => {
-            const subtotal = item.precio * item.cantidad;
-            total += subtotal;
-            
-            html += `
-                <div class="pedidos-cart-item">
-                    <div>
-                        <div class="fw-semibold text-capitalize">${item.nombre}</div>
-                        <small class="opacity-75">${item.cantidad} x $${formatNumber(item.precio)}</small>
-                    </div>
-                    <div class="fw-bold">$${formatNumber(subtotal)}</div>
-                </div>
-            `;
+            actualizarContador();
         });
-        
-        cartItems.innerHTML = html;
-        cartTotal.textContent = '$' + formatNumber(total);
-        submitBtn.disabled = false;
-        
-        const productosSeleccionados = document.getElementById('productosSeleccionados');
-        if (productosSeleccionados) {
-            productosSeleccionados.textContent = `${window.cart.size} seleccionados`;
-        }
-    }
-    
-    // Formatear número
-    function formatNumber(num) {
-        return new Intl.NumberFormat('es-CO', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(num);
     }
     
     // Validación del formulario
     const form = document.getElementById('crearPedidoForm');
     if (form) {
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Siempre prevenir el envío por defecto
+            e.preventDefault();
             
-            // Prevenir múltiples envíos
             if (this.classList.contains('submitting')) {
                 return false;
             }
             
             if (window.cart.size === 0) {
-                if (window.pedidosManager) {
-                    pedidosManager.showToast('warning', 'Carrito vacío', 'Debes seleccionar al menos un producto');
-                } else {
-                    alert('Debes seleccionar al menos un producto');
-                }
+                showToast('warning', 'Debes seleccionar al menos un producto');
                 return false;
             }
             
-            // Validar campos requeridos
             const direccion = document.getElementById('direccion_entrega');
             const telefono = document.getElementById('telefono_entrega');
             const metodoPago = document.getElementById('metodo_pago');
             
             if (!direccion || !direccion.value.trim()) {
-                if (window.pedidosManager) {
-                    pedidosManager.showToast('warning', 'Campo requerido', 'La dirección de entrega es obligatoria');
-                } else {
-                    alert('La dirección de entrega es obligatoria');
-                }
+                showToast('warning', 'La dirección de entrega es obligatoria');
                 direccion?.focus();
                 return false;
             }
             
             if (!telefono || !telefono.value.trim()) {
-                if (window.pedidosManager) {
-                    pedidosManager.showToast('warning', 'Campo requerido', 'El teléfono de contacto es obligatorio');
-                } else {
-                    alert('El teléfono de contacto es obligatorio');
-                }
+                showToast('warning', 'El teléfono de contacto es obligatorio');
                 telefono?.focus();
                 return false;
             }
             
             if (!metodoPago || !metodoPago.value) {
-                if (window.pedidosManager) {
-                    pedidosManager.showToast('warning', 'Campo requerido', 'Debes seleccionar un método de pago');
-                } else {
-                    alert('Debes seleccionar un método de pago');
-                }
+                showToast('warning', 'Debes seleccionar un método de pago');
                 metodoPago?.focus();
                 return false;
             }
             
-            // Eliminar inputs anteriores de productos para evitar duplicados
+            // Eliminar inputs anteriores
             form.querySelectorAll('input[name^="productos["]').forEach(input => {
                 if (!input.classList.contains('cantidad-input') && !input.classList.contains('producto-checkbox')) {
                     input.remove();
                 }
             });
             
-            // Crear campos de formulario dinámicamente desde el carrito
+            // Crear campos dinámicos
             let index = 0;
             window.cart.forEach((item, productoId) => {
-                // Campo para producto_id
                 const inputProductoId = document.createElement('input');
                 inputProductoId.type = 'hidden';
                 inputProductoId.name = `productos[${index}][producto_id]`;
                 inputProductoId.value = productoId;
                 form.appendChild(inputProductoId);
                 
-                // Campo para cantidad
                 const inputCantidad = document.createElement('input');
                 inputCantidad.type = 'hidden';
                 inputCantidad.name = `productos[${index}][cantidad]`;
@@ -627,37 +1045,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 index++;
             });
             
-            // Marcar como enviando
             this.classList.add('submitting');
+            const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Procesando...';
             
-            if (window.pedidosManager) {
-                pedidosManager.showLoading('Procesando tu pedido...');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('active');
             }
             
-            // Ahora sí enviar el formulario
             this.submit();
         });
     }
     
     // Mostrar mensajes flash
     @if(session('success'))
-        if (window.pedidosManager) {
-            pedidosManager.showToast('success', 'Éxito', '{{ session('success') }}');
-        }
+        showToast('success', '{{ session('success') }}');
     @endif
     
     @if(session('error'))
-        if (window.pedidosManager) {
-            pedidosManager.showToast('error', 'Error', '{{ session('error') }}');
-        }
+        showToast('error', '{{ session('error') }}');
     @endif
     
     @if($errors->any())
-        if (window.pedidosManager) {
-            pedidosManager.showToast('error', 'Error', 'Por favor corrige los errores en el formulario');
-        }
+        showToast('error', 'Por favor corrige los errores en el formulario');
     @endif
 });
 
@@ -689,67 +1101,95 @@ function updateProductQty(input) {
     const productoId = checkbox.value;
     const nuevaCantidad = parseInt(input.value);
     
-    // Actualizar en el carrito global
     if (window.cart && window.cart.has(productoId)) {
         const item = window.cart.get(productoId);
         item.cantidad = nuevaCantidad;
         window.cart.set(productoId, item);
         
-        // Actualizar vista del carrito
         if (typeof window.updateCart === 'function') {
             window.updateCart();
         }
     }
 }
 
-// ===========================================
-// FUNCIONES DE NAVEGACIÓN Y UI
-// ===========================================
-
-/**
- * Volver a la página anterior
- */
-function volverAtras() {
-    if (window.history.length > 1) {
-        window.history.back();
-    } else {
-        window.location.href = '{{ route("cliente.dashboard") }}';
-    }
-}
-
-/**
- * Limpiar selección de productos
- */
+// Limpiar selección
 function limpiarSeleccion() {
-    if (!confirm('¿Estás seguro de que deseas limpiar todos los productos seleccionados?')) {
-        return;
+    if (typeof GlassModal !== 'undefined') {
+        GlassModal.show({
+            title: '¿Limpiar selección?',
+            message: 'Se eliminarán todos los productos seleccionados del pedido actual',
+            icon: 'bi-trash',
+            iconColor: '#dc3545',
+            iconBg: 'rgba(220, 53, 69, 0.2)',
+            confirmText: 'Sí, limpiar',
+            cancelText: 'Cancelar',
+            confirmClass: 'btn-glass-danger',
+            onConfirm: () => {
+                document.querySelectorAll('.producto-checkbox:checked').forEach(checkbox => {
+                    checkbox.checked = false;
+                    const event = new Event('change');
+                    checkbox.dispatchEvent(event);
+                });
+                
+                showToast('success', 'Selección de productos limpiada');
+            }
+        });
+    } else {
+        if (!confirm('¿Estás seguro de que deseas limpiar todos los productos seleccionados?')) {
+            return;
+        }
+        
+        document.querySelectorAll('.producto-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+            const event = new Event('change');
+            checkbox.dispatchEvent(event);
+        });
+        
+        showToast('success', 'Selección de productos limpiada');
     }
-    
-    document.querySelectorAll('.producto-checkbox:checked').forEach(checkbox => {
-        checkbox.checked = false;
-        const event = new Event('change');
-        checkbox.dispatchEvent(event);
-    });
-    
-    window.pedidosManager.showToast('success', 'Limpiado', 'Selección de productos limpiada');
 }
 
-/**
- * Cargar productos desde el carrito de localStorage
- */
+// Cargar desde carrito
 function cargarDesdeCarrito() {
     const carritoLS = JSON.parse(localStorage.getItem('carrito')) || [];
     
     if (carritoLS.length === 0) {
-        window.pedidosManager.showToast('info', 'Carrito vacío', 'No hay productos en tu carrito');
+        if (typeof GlassModal !== 'undefined') {
+            GlassModal.warning('Carrito vacío', 'No hay productos en tu carrito para cargar');
+        } else {
+            showToast('info', 'No hay productos en tu carrito');
+        }
         return;
     }
     
+    if (typeof GlassModal !== 'undefined') {
+        GlassModal.show({
+            title: `Cargar ${carritoLS.length} producto(s)`,
+            message: '¿Deseas cargar los productos guardados en tu carrito?',
+            icon: 'bi-upload',
+            iconColor: '#3b82f6',
+            iconBg: 'rgba(59, 130, 246, 0.2)',
+            confirmText: 'Sí, cargar',
+            cancelText: 'Cancelar',
+            confirmClass: 'btn-glass-info',
+            onConfirm: () => {
+                ejecutarCargaCarrito(carritoLS);
+            }
+        });
+    } else {
+        if (confirm(`¿Deseas cargar ${carritoLS.length} producto(s) desde tu carrito?`)) {
+            ejecutarCargaCarrito(carritoLS);
+        }
+    }
+}
+
+// Función auxiliar para ejecutar la carga
+function ejecutarCargaCarrito(carritoLS) {
     let cargados = 0;
     
     carritoLS.forEach(item => {
         const checkbox = document.querySelector(`input[value="${item.id}"]`);
-        if (checkbox && !checkbox.disabled) {
+        if (checkbox && !checkbox.disabled && !checkbox.checked) {
             checkbox.checked = true;
             const container = checkbox.closest('.pedidos-product-checkbox');
             const qtyDiv = container.querySelector('.pedidos-product-quantity');
@@ -759,29 +1199,34 @@ function cargarDesdeCarrito() {
             qtyDiv.style.display = 'flex';
             cantidadInput.value = item.cantidad || 1;
             
-            const event = new Event('change');
-            checkbox.dispatchEvent(event);
+            const productoItem = container.closest('.producto-item');
+            const nombre = productoItem ? productoItem.dataset.nombre : item.nombre || 'Producto';
+            const precio = parseFloat(container.dataset.precio);
+            
+            window.cart.set(item.id, {
+                nombre: nombre,
+                precio: precio,
+                cantidad: item.cantidad || 1
+            });
             
             cargados++;
         }
     });
     
     if (cargados > 0) {
-        window.pedidosManager.showToast('success', '¡Cargado!', `${cargados} producto(s) cargado(s) desde tu carrito`);
-        localStorage.removeItem('carrito'); // Limpiar localStorage
+        updateCart();
+        showToast('success', `${cargados} producto(s) cargado(s) desde tu carrito`);
+        localStorage.removeItem('carrito');
     } else {
-        window.pedidosManager.showToast('warning', 'Aviso', 'No se pudieron cargar productos (sin stock o no disponibles)');
+        showToast('warning', 'No se pudieron cargar productos (sin stock, no disponibles o ya seleccionados)');
     }
 }
 
-/**
- * Limpiar búsqueda
- */
+// Limpiar búsqueda
 function limpiarBusqueda() {
     const searchInput = document.getElementById('searchProductos');
     searchInput.value = '';
     
-    // Mostrar todos los productos
     document.querySelectorAll('.producto-item').forEach(item => {
         item.style.display = 'block';
     });
@@ -789,127 +1234,7 @@ function limpiarBusqueda() {
     actualizarContador();
 }
 
-/**
- * Toggle panel de filtros avanzados
- */
-function toggleFiltroPrecio() {
-    const panel = document.getElementById('filtrosAvanzados');
-    const btn = event.currentTarget;
-    
-    if (panel.classList.contains('show')) {
-        panel.classList.remove('show');
-        btn.querySelector('i').classList.remove('bi-funnel-fill');
-        btn.querySelector('i').classList.add('bi-funnel');
-    } else {
-        panel.classList.add('show');
-        btn.querySelector('i').classList.remove('bi-funnel');
-        btn.querySelector('i').classList.add('bi-funnel-fill');
-    }
-}
-
-/**
- * Aplicar filtros avanzados
- */
-function aplicarFiltros() {
-    const precioMin = parseFloat(document.getElementById('precioMin').value) || 0;
-    const precioMax = parseFloat(document.getElementById('precioMax').value) || Infinity;
-    const ordenar = document.getElementById('ordenarPor').value;
-    const categoriaFiltro = document.getElementById('filtroCategoria').value;
-    const busqueda = document.getElementById('searchProductos').value.toLowerCase();
-    
-    let productosVisibles = [];
-    
-    // Filtrar productos
-    document.querySelectorAll('.producto-item').forEach(item => {
-        const precio = parseFloat(item.closest('.categoria-section')?.querySelector(`[data-producto-id="${item.dataset.productoId}"] .pedidos-product-checkbox`).dataset.precio) || 0;
-        const nombre = item.dataset.nombre;
-        const categoria = item.closest('.categoria-section')?.dataset.categoria || '';
-        
-        let mostrar = true;
-        
-        // Filtro de precio
-        if (precio < precioMin || precio > precioMax) {
-            mostrar = false;
-        }
-        
-        // Filtro de categoría
-        if (categoriaFiltro && categoria !== categoriaFiltro) {
-            mostrar = false;
-        }
-        
-        // Filtro de búsqueda
-        if (busqueda && !nombre.includes(busqueda)) {
-            mostrar = false;
-        }
-        
-        item.style.display = mostrar ? 'block' : 'none';
-        
-        if (mostrar) {
-            productosVisibles.push({
-                element: item,
-                precio: precio,
-                nombre: nombre
-            });
-        }
-    });
-    
-    // Ordenar
-    if (ordenar && productosVisibles.length > 0) {
-        const container = document.getElementById('productosContainer');
-        
-        productosVisibles.sort((a, b) => {
-            switch(ordenar) {
-                case 'precio-asc':
-                    return a.precio - b.precio;
-                case 'precio-desc':
-                    return b.precio - a.precio;
-                case 'nombre':
-                    return a.nombre.localeCompare(b.nombre);
-                case 'stock':
-                    const stockA = parseInt(a.element.querySelector('.pedidos-product-checkbox').dataset.stock) || 0;
-                    const stockB = parseInt(b.element.querySelector('.pedidos-product-checkbox').dataset.stock) || 0;
-                    return stockB - stockA;
-                default:
-                    return 0;
-            }
-        });
-        
-        // Reordenar en el DOM
-        productosVisibles.forEach(item => {
-            const categoriaSection = item.element.closest('.categoria-section');
-            const row = categoriaSection.querySelector('.row');
-            row.appendChild(item.element);
-        });
-    }
-    
-    actualizarContador();
-    
-    window.pedidosManager.showToast('success', 'Filtros', 'Filtros aplicados correctamente');
-}
-
-/**
- * Resetear filtros
- */
-function resetearFiltros() {
-    document.getElementById('precioMin').value = '';
-    document.getElementById('precioMax').value = '';
-    document.getElementById('ordenarPor').value = 'nombre';
-    document.getElementById('filtroCategoria').value = '';
-    document.getElementById('searchProductos').value = '';
-    
-    // Mostrar todos los productos
-    document.querySelectorAll('.producto-item').forEach(item => {
-        item.style.display = 'block';
-    });
-    
-    actualizarContador();
-    
-    window.pedidosManager.showToast('info', 'Resetear', 'Filtros reseteados');
-}
-
-/**
- * Actualizar contador de productos visibles
- */
+// Actualizar contador
 function actualizarContador() {
     const total = document.querySelectorAll('.producto-item').length;
     const visibles = document.querySelectorAll('.producto-item[style*="display: block"], .producto-item:not([style*="display"])').length;
@@ -920,10 +1245,14 @@ function actualizarContador() {
         `Mostrando ${total} producto(s)` : 
         `Mostrando ${visibles} de ${total} producto(s)`;
     
-    document.getElementById('productosSeleccionados').textContent = `${seleccionados} seleccionados`;
+    const badge = document.getElementById('productosSeleccionados');
+    if (badge) {
+        badge.textContent = `${seleccionados} seleccionados`;
+        badge.className = seleccionados > 0 ? 'pedidos-badge pedidos-badge-confirmado' : 'pedidos-badge pedidos-badge-pendiente';
+    }
 }
 
-// Escuchar cambios en filtros
+// Filtro por categoría
 document.getElementById('filtroCategoria')?.addEventListener('change', function() {
     const categoria = this.value;
     
@@ -938,14 +1267,29 @@ document.getElementById('filtroCategoria')?.addEventListener('change', function(
     actualizarContador();
 });
 
-// Actualizar contador al cargar la página
+// Inicializar contador
 document.addEventListener('DOMContentLoaded', () => {
     actualizarContador();
     
-    // Escuchar cambios en checkboxes para actualizar contador
     document.querySelectorAll('.producto-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', actualizarContador);
     });
 });
+
+// Toast function
+function showToast(type, message) {
+    if (typeof showSuccessToast !== 'undefined' && type === 'success') {
+        showSuccessToast(message);
+    } else if (typeof showErrorToast !== 'undefined' && type === 'error') {
+        showErrorToast(message);
+    } else if (typeof showWarningToast !== 'undefined' && type === 'warning') {
+        showWarningToast(message);
+    } else if (typeof showInfoToast !== 'undefined' && type === 'info') {
+        showInfoToast(message);
+    } else {
+        alert(message);
+    }
+}
 </script>
 @endpush
+

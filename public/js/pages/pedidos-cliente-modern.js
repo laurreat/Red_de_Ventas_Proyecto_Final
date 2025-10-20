@@ -225,36 +225,25 @@ class PedidosClienteManager {
    * Mostrar modal de cancelación
    */
   showCancelModal(orderId) {
-    const modal = this.createModal({
-      id: 'cancel-order-modal',
-      type: 'danger',
-      icon: '⚠️',
-      title: '¿Cancelar pedido?',
-      body: `
-        <p class="mb-3">¿Estás seguro de que deseas cancelar este pedido?</p>
-        <p class="text-muted small mb-0">
-          <i class="bi bi-info-circle me-1"></i>
-          Esta acción no se puede deshacer.
-        </p>
-      `,
-      footer: `
-        <button class="pedido-modal-btn pedido-modal-btn-secondary" data-close-modal="cancel-order-modal">
-          <i class="bi bi-x-circle me-1"></i> No, mantener
-        </button>
-        <button class="pedido-modal-btn pedido-modal-btn-danger" onclick="pedidosManager.confirmCancel('${orderId}')">
-          <i class="bi bi-check-circle me-1"></i> Sí, cancelar
-        </button>
-      `
+    GlassModal.confirm({
+      title: 'Cancelar Pedido',
+      message: '¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.',
+      icon: 'bi-exclamation-triangle-fill',
+      iconColor: '#dc3545',
+      iconBg: 'rgba(220, 53, 69, 0.2)',
+      confirmText: 'Sí, cancelar pedido',
+      cancelText: 'No, mantener',
+      confirmClass: 'btn-glass-danger',
+      onConfirm: () => {
+        this.confirmCancel(orderId);
+      }
     });
-    
-    this.showModal('cancel-order-modal');
   }
 
   /**
    * Confirmar cancelación de pedido
    */
   confirmCancel(orderId) {
-    this.closeModal('cancel-order-modal');
     this.showLoading('Cancelando pedido...');
     
     fetch(`/cliente/pedidos/${orderId}/cancelar`, {
@@ -272,16 +261,27 @@ class PedidosClienteManager {
       this.hideLoading();
       
       if (data.success) {
-        this.showToast('success', 'Pedido cancelado', 'El pedido ha sido cancelado exitosamente');
-        setTimeout(() => location.reload(), 1500);
+        GlassModal.success(
+          'Pedido Cancelado',
+          'El pedido ha sido cancelado exitosamente',
+          () => {
+            setTimeout(() => location.reload(), 500);
+          }
+        );
       } else {
-        this.showToast('error', 'Error', data.message || 'No se pudo cancelar el pedido');
+        GlassModal.error(
+          'Error al Cancelar',
+          data.message || 'No se pudo cancelar el pedido. Por favor, intenta nuevamente.'
+        );
       }
     })
     .catch(err => {
       this.hideLoading();
       console.error('Error al cancelar pedido:', err);
-      this.showToast('error', 'Error', 'Ocurrió un error al cancelar el pedido');
+      GlassModal.error(
+        'Error de Conexión',
+        'Ocurrió un error al cancelar el pedido. Verifica tu conexión e intenta nuevamente.'
+      );
     });
   }
 
@@ -289,38 +289,60 @@ class PedidosClienteManager {
    * Repetir un pedido anterior
    */
   repeatOrder(orderId) {
-    this.showLoading('Cargando productos...');
-    
-    fetch(`/cliente/pedidos/${orderId}`)
-      .then(res => res.json())
-      .then(data => {
-        this.hideLoading();
+    GlassModal.confirm({
+      title: 'Repetir Pedido',
+      message: '¿Deseas cargar los productos de este pedido para realizar uno nuevo?',
+      icon: 'bi-arrow-repeat',
+      iconColor: '#3b82f6',
+      iconBg: 'rgba(59, 130, 246, 0.2)',
+      confirmText: 'Sí, repetir pedido',
+      cancelText: 'Cancelar',
+      confirmClass: 'btn-glass-info',
+      onConfirm: () => {
+        this.showLoading('Cargando productos...');
         
-        if (data.pedido && data.pedido.detalles) {
-          // Guardar en localStorage para cargar en crear pedido
-          const productos = data.pedido.detalles.map(d => ({
-            id: d.producto_id,
-            nombre: d.producto_nombre || 'Producto',
-            precio: d.precio_unitario || 0,
-            cantidad: d.cantidad || 1
-          }));
-          
-          localStorage.setItem('carrito', JSON.stringify(productos));
-          
-          this.showToast('success', 'Productos cargados', 'Redirigiendo a crear pedido...');
-          
-          setTimeout(() => {
-            window.location.href = '/cliente/pedidos/create';
-          }, 1000);
-        } else {
-          this.showToast('error', 'Error', 'No se pudo repetir el pedido');
-        }
-      })
-      .catch(err => {
-        this.hideLoading();
-        console.error('Error al repetir pedido:', err);
-        this.showToast('error', 'Error', 'Ocurrió un error al repetir el pedido');
-      });
+        fetch(`/cliente/pedidos/${orderId}`)
+          .then(res => res.json())
+          .then(data => {
+            this.hideLoading();
+            
+            if (data.pedido && data.pedido.detalles) {
+              // Guardar en localStorage para cargar en crear pedido
+              const productos = data.pedido.detalles.map(d => ({
+                id: d.producto_id,
+                nombre: d.producto_nombre || 'Producto',
+                precio: d.precio_unitario || 0,
+                cantidad: d.cantidad || 1
+              }));
+              
+              localStorage.setItem('carrito', JSON.stringify(productos));
+              
+              GlassModal.success(
+                'Productos Cargados',
+                'Los productos han sido cargados en tu carrito. Redirigiendo...',
+                () => {
+                  setTimeout(() => {
+                    window.location.href = '/cliente/pedidos/create';
+                  }, 500);
+                }
+              );
+            } else {
+              GlassModal.error(
+                'Error',
+                'No se pudo cargar los productos del pedido. Por favor, intenta nuevamente.'
+              );
+            }
+          })
+          .catch(err => {
+            this.hideLoading();
+            console.error('Error al repetir pedido:', err);
+            GlassModal.error(
+              'Error de Conexión',
+              'Ocurrió un error al cargar el pedido. Verifica tu conexión e intenta nuevamente.'
+            );
+          });
+      }
+    });
   }
 
   /**

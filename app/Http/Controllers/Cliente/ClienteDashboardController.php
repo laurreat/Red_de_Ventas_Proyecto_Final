@@ -94,33 +94,68 @@ class ClienteDashboardController extends Controller
      */
     private function getClienteStats(User $user): array
     {
-        // Total de pedidos
-        $total_pedidos = Pedido::where('cliente_id', $user->_id)->count();
+        try {
+            // Total de pedidos usando user_id
+            $total_pedidos = Pedido::where('user_id', $user->_id)->count();
+            
+            // Si no hay pedidos, retornar estadísticas en cero
+            if ($total_pedidos === 0) {
+                return [
+                    'total_pedidos' => 0,
+                    'pedidos_pendientes' => 0,
+                    'pedidos_completados' => 0,
+                    'total_gastado' => 0,
+                    'promedio_pedido' => 0,
+                    'ultimo_pedido' => null,
+                ];
+            }
 
-        // Total gastado
-        $total_gastado = Pedido::where('cliente_id', $user->_id)
-            ->where('estado', '!=', 'cancelado')
-            ->sum('total_final') ?? 0;
+            // Total gastado - solo pedidos NO cancelados
+            $total_gastado = to_float(
+                Pedido::where('user_id', $user->_id)
+                    ->whereIn('estado', ['confirmado', 'en_preparacion', 'enviado', 'entregado'])
+                    ->sum('total_final')
+            );
 
-        // Total de referidos
-        $total_referidos = User::where('referido_por', $user->_id)->count();
+            // Pedidos pendientes
+            $pedidos_pendientes = Pedido::where('user_id', $user->_id)
+                ->where('estado', 'pendiente')
+                ->count();
 
-        // Pedidos completados
-        $pedidos_completados = Pedido::where('cliente_id', $user->_id)
-            ->where('estado', 'entregado')
-            ->count();
+            // Pedidos completados (entregados)
+            $pedidos_completados = Pedido::where('user_id', $user->_id)
+                ->where('estado', 'entregado')
+                ->count();
 
-        // Productos más pedidos (para recomendaciones)
-        $productos_frecuentes = $this->getProductosFrecuentes($user);
+            // Promedio por pedido
+            $promedio_pedido = $pedidos_completados > 0 
+                ? $total_gastado / $pedidos_completados 
+                : 0;
 
-        return [
-            'total_pedidos' => $total_pedidos,
-            'total_gastado' => $total_gastado,
-            'total_referidos' => $total_referidos,
-            'pedidos_completados' => $pedidos_completados,
-            'productos_frecuentes' => $productos_frecuentes,
-            'referidos_realizados' => $total_referidos
-        ];
+            // Último pedido
+            $ultimo_pedido = Pedido::where('user_id', $user->_id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            return [
+                'total_pedidos' => $total_pedidos,
+                'pedidos_pendientes' => $pedidos_pendientes,
+                'pedidos_completados' => $pedidos_completados,
+                'total_gastado' => $total_gastado,
+                'promedio_pedido' => $promedio_pedido,
+                'ultimo_pedido' => $ultimo_pedido,
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener estadísticas del cliente: ' . $e->getMessage());
+            return [
+                'total_pedidos' => 0,
+                'pedidos_pendientes' => 0,
+                'pedidos_completados' => 0,
+                'total_gastado' => 0,
+                'promedio_pedido' => 0,
+                'ultimo_pedido' => null,
+            ];
+        }
     }
 
     /**

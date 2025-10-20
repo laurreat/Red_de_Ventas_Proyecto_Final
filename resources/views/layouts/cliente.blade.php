@@ -17,6 +17,9 @@
     <!-- Header Dropdowns CSS -->
     <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
 
+    <!-- Glass Modal CSS -->
+    <link rel="stylesheet" href="{{ asset('css/modules/glass-modal.css') }}?v={{ time() }}">
+
     <!-- Mobile Optimizations -->
     <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
 
@@ -767,9 +770,28 @@
             </div>
 
             <div class="nav-item">
-                <a href="{{ route('catalogo.index') }}" class="nav-link">
-                    <i class="bi bi-basket-fill"></i>
-                    <span>Catálogo</span>
+                <a href="{{ route('cliente.pedidos.create') }}" class="nav-link {{ request()->routeIs('cliente.pedidos.create') ? 'active' : '' }}">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Nuevo Pedido</span>
+                </a>
+            </div>
+
+            <!-- Notificaciones -->
+            <div class="nav-section">
+                <i class="bi bi-bell-fill"></i>
+                <span>Notificaciones</span>
+            </div>
+
+            <div class="nav-item">
+                <a href="{{ route('cliente.notificaciones.modulo') }}" class="nav-link {{ request()->routeIs('cliente.notificaciones.modulo') ? 'active' : '' }}">
+                    <i class="bi bi-bell"></i>
+                    <span>Mis Notificaciones</span>
+                    @php
+                        $unreadCount = \App\Models\Notificacion::where('user_id', Auth::id())->where('leida', false)->count();
+                    @endphp
+                    @if($unreadCount > 0)
+                        <span class="nav-badge badge-warning">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                    @endif
                 </a>
             </div>
 
@@ -780,7 +802,7 @@
             </div>
 
             <div class="nav-item">
-                <a href="#" class="nav-link" onclick="showComingSoon('Mi Perfil')">
+                <a href="{{ route('cliente.perfil.index') }}" class="nav-link {{ request()->routeIs('cliente.perfil.index') ? 'active' : '' }}">
                     <i class="bi bi-person-circle"></i>
                     <span>Mi Perfil</span>
                 </a>
@@ -819,59 +841,48 @@
             </div>
             <div class="header-right">
                 <!-- Notifications Dropdown -->
-                <div class="dropdown">
-                    <button class="header-notifications dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge">3</span>
+                <div class="dropdown header-dropdown">
+                    <button class="header-notifications" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell-fill"></i>
+                        @php
+                            $unreadCount = \App\Models\Notificacion::where('user_id', Auth::id())->where('leida', false)->count();
+                        @endphp
+                        @if($unreadCount > 0)
+                        <span class="notification-badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                        @endif
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end notifications-dropdown" aria-labelledby="notificationsDropdown">
-                        <div class="dropdown-header">
+                    <div class="dropdown-menu dropdown-menu-end notifications-dropdown header-dropdown-menu" aria-labelledby="notificationsDropdown">
+                        <div class="dropdown-header-modern">
                             <h6 class="mb-0">Notificaciones</h6>
-                            <span class="badge bg-primary">3 nuevas</span>
+                            <div class="dropdown-header-actions">
+                                <span class="notification-count-badge" id="notificationCountText">Cargando...</span>
+                            </div>
                         </div>
-                        <div class="dropdown-divider"></div>
-                        <div class="notifications-list">
-                            <a href="#" class="dropdown-item notification-item unread">
-                                <div class="notification-icon bg-success">
-                                    <i class="bi bi-check-circle"></i>
+                        <div class="notifications-list" id="notificationsList">
+                            <!-- Las notificaciones se cargan dinámicamente -->
+                            <div class="notifications-loading text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
                                 </div>
-                                <div class="notification-content">
-                                    <div class="notification-title">Pedido Entregado</div>
-                                    <div class="notification-text">Tu pedido #12345 ha sido entregado</div>
-                                    <div class="notification-time">Hace 5 minutos</div>
-                                </div>
-                            </a>
-                            <a href="#" class="dropdown-item notification-item unread">
-                                <div class="notification-icon bg-info">
-                                    <i class="bi bi-box-seam"></i>
-                                </div>
-                                <div class="notification-content">
-                                    <div class="notification-title">Pedido en Camino</div>
-                                    <div class="notification-text">Tu pedido #12344 está en camino</div>
-                                    <div class="notification-time">Hace 1 hora</div>
-                                </div>
-                            </a>
-                            <a href="#" class="dropdown-item notification-item unread">
-                                <div class="notification-icon bg-warning">
-                                    <i class="bi bi-star"></i>
-                                </div>
-                                <div class="notification-content">
-                                    <div class="notification-title">Nuevo Producto</div>
-                                    <div class="notification-text">¡Nuevas arepas disponibles!</div>
-                                    <div class="notification-time">Hace 2 horas</div>
-                                </div>
+                                <p class="mt-2 mb-0 small text-muted">Cargando notificaciones...</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-footer">
+                            <button class="btn-mark-all-read" id="btnMarkAllRead">
+                                <i class="bi bi-check-all"></i>
+                                Marcar todas como leídas
+                            </button>
+                            <a href="{{ route('cliente.notificaciones.modulo') }}" class="btn-view-all-notifications">
+                                <i class="bi bi-arrow-right"></i>
+                                Ver todas las notificaciones
                             </a>
                         </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item text-center text-primary fw-bold">
-                            Ver todas las notificaciones
-                        </a>
                     </div>
                 </div>
 
                 <!-- User Profile Dropdown -->
-                <div class="dropdown">
-                    <div class="header-profile dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="dropdown header-dropdown">
+                    <div class="header-profile" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" role="button">
                         <div class="profile-avatar">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
@@ -880,65 +891,62 @@
                             <div class="profile-role">Cliente</div>
                         </div>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end user-dropdown" aria-labelledby="userDropdown">
-                        <li class="dropdown-header">
-                            <div class="user-dropdown-info">
-                                <div class="user-avatar-large">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->apellidos ?? '', 0, 1)) }}
-                                </div>
-                                <div class="user-details">
-                                    <div class="user-name">{{ Auth::user()->nombreCompleto() }}</div>
-                                    <div class="user-email">{{ Auth::user()->email }}</div>
-                                </div>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown header-dropdown-menu profile-dropdown" aria-labelledby="userDropdown">
+                        <li class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar">
+                                <span class="avatar-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->apellidos ?? '', 0, 1)) }}</span>
                             </div>
+                            <div class="profile-dropdown-name">{{ Auth::user()->nombreCompleto() }}</div>
+                            <div class="profile-dropdown-email">{{ Auth::user()->email }}</div>
+                            <span class="profile-dropdown-role">Cliente</span>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('cliente.dashboard') }}">
-                                <i class="bi bi-speedometer2 me-2"></i>
-                                Dashboard
+                        <li><hr class="profile-menu-divider"></li>
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="{{ route('cliente.dashboard') }}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span class="menu-item-text">Dashboard</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('cliente.pedidos.index') }}">
-                                <i class="bi bi-box-seam me-2"></i>
-                                Mis Pedidos
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="{{ route('cliente.pedidos.index') }}">
+                                <i class="bi bi-box-seam"></i>
+                                <span class="menu-item-text">Mis Pedidos</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Mi Perfil')">
-                                <i class="bi bi-person-circle me-2"></i>
-                                Mi Perfil
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="{{ route('cliente.perfil.index') }}">
+                                <i class="bi bi-person-circle"></i>
+                                <span class="menu-item-text">Mi Perfil</span>
                             </a>
                         </li>
                         @if(Auth::user()->codigo_referido)
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Mis Referidos')">
-                                <i class="bi bi-diagram-3 me-2"></i>
-                                Mis Referidos
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Mis Referidos'); return false;">
+                                <i class="bi bi-diagram-3"></i>
+                                <span class="menu-item-text">Mis Referidos</span>
                             </a>
                         </li>
                         @endif
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Configuración')">
-                                <i class="bi bi-gear me-2"></i>
-                                Configuración
+                        <li><hr class="profile-menu-divider"></li>
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Configuración'); return false;">
+                                <i class="bi bi-gear"></i>
+                                <span class="menu-item-text">Configuración</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="showComingSoon('Ayuda')">
-                                <i class="bi bi-question-circle me-2"></i>
-                                Ayuda
+                        <li class="profile-menu-section">
+                            <a class="profile-menu-item" href="#" onclick="showComingSoon('Ayuda'); return false;">
+                                <i class="bi bi-question-circle"></i>
+                                <span class="menu-item-text">Ayuda</span>
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        <li><hr class="profile-menu-divider"></li>
+                        <li class="profile-menu-section">
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
                                 @csrf
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="bi bi-box-arrow-right me-2"></i>
-                                    Cerrar Sesión
+                                <button type="submit" class="profile-menu-item danger w-100 text-start border-0 bg-transparent">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span class="menu-item-text">Cerrar Sesión</span>
                                 </button>
                             </form>
                         </li>
@@ -992,55 +1000,39 @@
                 }
             });
 
-            // Initialize Bootstrap dropdowns
+            // Initialize Bootstrap dropdowns with proper configuration
             var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
             var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
                 return new bootstrap.Dropdown(dropdownToggleEl, {
-                    boundary: 'viewport',
-                    popperConfig: {
-                        strategy: 'fixed'
-                    }
+                    autoClose: true,
+                    boundary: 'viewport'
                 });
-            });
-
-            // Add click handlers for dropdowns
-            document.querySelectorAll('.dropdown-toggle').forEach(function(element) {
-                element.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Close other dropdowns
-                    document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
-                        if (menu !== element.nextElementSibling) {
-                            menu.classList.remove('show');
-                        }
-                    });
-                    
-                    // Toggle current dropdown
-                    const menu = element.nextElementSibling;
-                    if (menu && menu.classList.contains('dropdown-menu')) {
-                        menu.classList.toggle('show');
-                    }
-                });
-            });
-
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.dropdown')) {
-                    document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
-                        menu.classList.remove('show');
-                    });
-                }
             });
         });
 
         // Coming soon function
         function showComingSoon(feature) {
-            if (typeof showInfoToast !== 'undefined') {
-                showInfoToast(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
+            if (typeof GlassModal !== 'undefined') {
+                GlassModal.info(
+                    `${feature} - Próximamente`,
+                    `La funcionalidad de ${feature} estará disponible muy pronto. ¡Estamos trabajando en ello para brindarte la mejor experiencia!`
+                );
             } else {
                 alert(`${feature} estará disponible próximamente. ¡Estamos trabajando en ello!`);
             }
+        }
+    </script>
+
+    <!-- Sistema de Modales Glass -->
+    <script src="{{ asset('js/modules/glass-modal.js') }}?v={{ time() }}"></script>
+
+    <!-- Sistema de Notificaciones en Tiempo Real -->
+    <script src="{{ asset('js/modules/notifications-realtime.js') }}?v={{ time() }}"></script>
+    
+    <script>
+        // Ensure GlassModal is loaded
+        if (typeof GlassModal === 'undefined') {
+            console.error('GlassModal no está cargado');
         }
     </script>
 

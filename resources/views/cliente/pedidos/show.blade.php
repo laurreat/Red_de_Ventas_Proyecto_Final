@@ -1,9 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.cliente')
 
-@section('title', '- Factura #' . $pedido->numero_pedido)
+@section('title', ' - Factura #' . $pedido->numero_pedido)
+@section('header-title', 'Detalles del Pedido #' . $pedido->numero_pedido)
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-modern.css') }}?v={{ filemtime(public_path('css/pages/pedidos-cliente-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-glassmorphism.css') }}?v={{ time() }}">
 <style>
 /* Estilos de Factura Colombiana */
 .factura-container {
@@ -393,18 +394,20 @@
 @endpush
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid">
     <!-- Breadcrumb de Navegación (No se imprime) -->
-    <div class="mb-4 no-print">
+    <div class="mb-3 no-print fade-in-up">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
                     <a href="{{ route('cliente.dashboard') }}">
-                        <i class="bi bi-house-door"></i> Inicio
+                        <i class="bi bi-house-door"></i> Dashboard
                     </a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{{ route('cliente.pedidos.index') }}">Mis Pedidos</a>
+                    <a href="{{ route('cliente.pedidos.index') }}">
+                        <i class="bi bi-box-seam"></i> Mis Pedidos
+                    </a>
                 </li>
                 <li class="breadcrumb-item active">Factura #{{ $pedido->numero_pedido }}</li>
             </ol>
@@ -599,19 +602,13 @@
                     Detalle de Productos
                 </div>
                 
-                {{-- Debugging temporal - REMOVER EN PRODUCCIÓN --}}
-                @if(config('app.debug'))
-                <div class="alert alert-info small mb-3">
-                    <strong>DEBUG:</strong>
-                    <br>Tipo de detalles: {{ gettype($pedido->detalles) }}
-                    <br>Cantidad de detalles: {{ is_array($pedido->detalles) ? count($pedido->detalles) : (is_object($pedido->detalles) ? $pedido->detalles->count() : 'N/A') }}
-                    @if(!empty($pedido->detalles) && (is_array($pedido->detalles) || is_object($pedido->detalles)))
-                        <br>Primer detalle: <pre class="small">{{ print_r(is_array($pedido->detalles) ? ($pedido->detalles[0] ?? 'vacío') : $pedido->detalles->first(), true) }}</pre>
-                    @endif
-                </div>
-                @endif
+                @php
+                    // Obtener detalles embebidos
+                    $detallesData = $pedido->detalles_embebidos ?? [];
+                    $cantidadDetalles = is_array($detallesData) ? count($detallesData) : 0;
+                @endphp
                 
-                @if(empty($pedido->detalles) || count($pedido->detalles) == 0)
+                @if($cantidadDetalles == 0)
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-2"></i>
                         No hay productos en este pedido
@@ -621,19 +618,14 @@
                     <thead>
                         <tr>
                             <th style="width: 10%;">Item</th>
-                            <th style="width: 40%;">Producto</th>
-                            <th style="width: 10%;" class="text-center">Cantidad</th>
+                            <th style="width: 50%;">Producto</th>
+                            <th style="width: 15%;" class="text-center">Cantidad</th>
                             <th style="width: 15%;" class="text-end">Precio Unit.</th>
-                            <th style="width: 10%;" class="text-center">IVA</th>
-                            <th style="width: 15%;" class="text-end">Subtotal</th>
+                            <th style="width: 20%;" class="text-end">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php 
-                            $totalIVA = 0;
-                            $detalles = is_array($pedido->detalles) ? $pedido->detalles : $pedido->detalles->toArray();
-                        @endphp
-                        @foreach($detalles as $index => $detalle)
+                        @foreach($detallesData as $index => $detalle)
                         @php
                             // Convertir a array si es necesario
                             $detalleArray = is_array($detalle) ? $detalle : (is_object($detalle) ? (array)$detalle : []);
@@ -643,29 +635,34 @@
                             $cantidad = $detalleArray['cantidad'] ?? 0;
                             $precioUnitario = $detalleArray['precio_unitario'] ?? 0;
                             $subtotal = $detalleArray['subtotal'] ?? ($cantidad * $precioUnitario);
-                            
-                            // Calcular IVA (19% en Colombia)
-                            // Si el precio ya incluye IVA
-                            $baseImponible = $subtotal / 1.19;
-                            $iva = $subtotal - $baseImponible;
-                            $totalIVA += $iva;
                         @endphp
                         <tr>
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td>
                                 <div class="factura-producto-info">
                                     @php
+                                        // Intentar obtener la imagen de múltiples fuentes
                                         $imagen = null;
-                                        if(is_array($productoData)) {
-                                            $imagen = $productoData['imagen'] ?? $productoData['imagen_principal'] ?? null;
-                                        } elseif(is_object($productoData)) {
-                                            $imagen = $productoData->imagen ?? $productoData->imagen_principal ?? null;
+                                        
+                                        if (is_array($productoData)) {
+                                            $imagen = $productoData['imagen'] 
+                                                ?? $productoData['imagen_principal'] 
+                                                ?? (isset($productoData['imagenes_adicionales'][0]) ? $productoData['imagenes_adicionales'][0] : null);
+                                        } elseif (is_object($productoData)) {
+                                            $imagen = $productoData->imagen 
+                                                ?? $productoData->imagen_principal 
+                                                ?? (isset($productoData->imagenes_adicionales[0]) ? $productoData->imagenes_adicionales[0] : null);
                                         }
+                                        
+                                        // Obtener nombre del producto
+                                        $nombreProducto = is_array($productoData) 
+                                            ? ($productoData['nombre'] ?? 'Producto') 
+                                            : ($productoData->nombre ?? 'Producto');
                                     @endphp
                                     
                                     @if(!empty($imagen))
                                     <img src="{{ asset('storage/' . $imagen) }}" 
-                                         alt="{{ is_array($productoData) ? ($productoData['nombre'] ?? 'Producto') : ($productoData->nombre ?? 'Producto') }}"
+                                         alt="{{ $nombreProducto }}"
                                          class="factura-producto-img"
                                          onerror="this.onerror=null; this.src='{{ asset('images/producto-default.jpg') }}';">
                                     @else
@@ -676,7 +673,7 @@
                                     
                                     <div>
                                         <div class="factura-producto-nombre">
-                                            {{ is_array($productoData) ? ($productoData['nombre'] ?? 'Producto') : ($productoData->nombre ?? 'Producto') }}
+                                            {{ $nombreProducto }}
                                         </div>
                                         @php
                                             $descripcion = is_array($productoData) ? ($productoData['descripcion'] ?? null) : ($productoData->descripcion ?? null);
@@ -697,10 +694,6 @@
                             <td class="text-end">
                                 ${{ number_format($precioUnitario, 0, ',', '.') }}
                             </td>
-                            <td class="text-center">
-                                <small class="text-muted">19%</small><br>
-                                ${{ number_format($iva, 0, ',', '.') }}
-                            </td>
                             <td class="text-end fw-bold">
                                 ${{ number_format($subtotal, 0, ',', '.') }}
                             </td>
@@ -711,18 +704,9 @@
 
                 <!-- Totales -->
                 <div class="factura-totales">
-                    @php
-                        $subtotalSinIVA = $pedido->total / 1.19;
-                    @endphp
-                    
                     <div class="factura-total-row subtotal">
-                        <div class="label">Subtotal (Base Imponible):</div>
-                        <div>${{ number_format($subtotalSinIVA, 0, ',', '.') }}</div>
-                    </div>
-                    
-                    <div class="factura-total-row impuesto">
-                        <div class="label">IVA (19%):</div>
-                        <div>${{ number_format($totalIVA, 0, ',', '.') }}</div>
+                        <div class="label">Subtotal:</div>
+                        <div>${{ number_format($pedido->subtotal ?? $pedido->total, 0, ',', '.') }}</div>
                     </div>
                     
                     @if($pedido->descuento > 0)

@@ -142,16 +142,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 2rem;
 }
 
 .arepa-icon {
-  font-size: 8rem;
-  animation: bounce 3s ease-in-out infinite;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+.arepa-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+  25% { 
+    transform: translateY(-15px) rotate(2deg); 
+  }
+  50% { 
+    transform: translateY(-20px) rotate(0deg); 
+  }
+  75% { 
+    transform: translateY(-15px) rotate(-2deg); 
+  }
 }
 
 /* ========================================
@@ -299,6 +321,32 @@
 
 .filter-btn i {
   margin-right: 0.25rem;
+}
+
+.filter-btn[data-categoria="favoritos"] {
+  border-color: #dc3545;
+}
+
+.filter-btn[data-categoria="favoritos"]:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.filter-btn[data-categoria="favoritos"].active {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
+}
+
+.filter-btn[data-categoria="favoritos"].active i {
+  animation: heartBeat 1s infinite;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(1.1); }
+  20%, 40% { transform: scale(0.95); }
 }
 
 /* ========================================
@@ -601,7 +649,7 @@
   height: 60px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: #fff !important;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
@@ -611,6 +659,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.floating-cart-btn i {
+  color: #fff !important;
+  font-size: 1.5rem;
 }
 
 .floating-cart-btn:hover {

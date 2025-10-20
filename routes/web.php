@@ -4,19 +4,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\CatalogoPublicoController;
 use App\Http\Controllers\Cliente\ClienteDashboardController;
 
 // Página principal - Welcome page renovada
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
-
-// Catálogo público (ruta alternativa)
-Route::get('/catalogo', [CatalogoPublicoController::class, 'index'])->name('catalogo.index');
-
-// Ruta para ver detalles de producto público
-Route::get('/catalogo/{producto}', [CatalogoPublicoController::class, 'show']);
 
 // Ruta específica para logout y redirección al login
 Route::get('/inicio', function () {
@@ -53,16 +46,49 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('/dashboard', [ClienteDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // Perfil
+        Route::get('/perfil', [\App\Http\Controllers\Cliente\PerfilController::class, 'index'])
+            ->name('perfil.index');
+        Route::post('/perfil/informacion', [\App\Http\Controllers\Cliente\PerfilController::class, 'actualizarInformacion'])
+            ->name('perfil.actualizar-informacion');
+        Route::post('/perfil/foto', [\App\Http\Controllers\Cliente\PerfilController::class, 'actualizarFoto'])
+            ->name('perfil.actualizar-foto');
+        Route::delete('/perfil/foto', [\App\Http\Controllers\Cliente\PerfilController::class, 'eliminarFoto'])
+            ->name('perfil.eliminar-foto');
+        Route::post('/perfil/password', [\App\Http\Controllers\Cliente\PerfilController::class, 'cambiarPassword'])
+            ->name('perfil.cambiar-password');
+
+        // Configuración
+        Route::get('/configuracion', [\App\Http\Controllers\Cliente\ConfiguracionController::class, 'index'])
+            ->name('configuracion.index');
+        Route::post('/configuracion/notificaciones', [\App\Http\Controllers\Cliente\ConfiguracionController::class, 'actualizarNotificaciones'])
+            ->name('configuracion.notificaciones');
+        Route::post('/configuracion/privacidad', [\App\Http\Controllers\Cliente\ConfiguracionController::class, 'actualizarPrivacidad'])
+            ->name('configuracion.privacidad');
+        Route::post('/configuracion/generales', [\App\Http\Controllers\Cliente\ConfiguracionController::class, 'actualizarGenerales'])
+            ->name('configuracion.generales');
+
+        // Mis Referidos
+        Route::get('/referidos', [\App\Http\Controllers\Cliente\ReferidosController::class, 'index'])
+            ->name('referidos.index');
+        Route::get('/referidos/copiar-link', [\App\Http\Controllers\Cliente\ReferidosController::class, 'copiarLink'])
+            ->name('referidos.copiar-link');
+        Route::get('/referidos/compartir-whatsapp', [\App\Http\Controllers\Cliente\ReferidosController::class, 'compartirWhatsApp'])
+            ->name('referidos.compartir-whatsapp');
+        Route::get('/referidos/{id}', [\App\Http\Controllers\Cliente\ReferidosController::class, 'verDetalle'])
+            ->name('referidos.detalle');
+
+        // Ayuda y Soporte
+        Route::get('/ayuda', [\App\Http\Controllers\Cliente\AyudaController::class, 'index'])
+            ->name('ayuda.index');
+        Route::post('/ayuda/ticket', [\App\Http\Controllers\Cliente\AyudaController::class, 'enviarTicket'])
+            ->name('ayuda.enviar-ticket');
+
         // Favoritos
         Route::post('/favoritos/agregar', [ClienteDashboardController::class, 'agregarFavorito'])
             ->name('favoritos.agregar');
-
         Route::post('/favoritos/eliminar', [ClienteDashboardController::class, 'eliminarFavorito'])
             ->name('favoritos.eliminar');
-
-        // Perfil
-        Route::post('/perfil/actualizar', [ClienteDashboardController::class, 'actualizarPerfil'])
-            ->name('perfil.actualizar');
 
         // Pedidos - Resource Routes
         Route::get('/pedidos', [\App\Http\Controllers\Cliente\PedidoClienteController::class, 'index'])
@@ -83,16 +109,36 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Pedidos - Métodos adicionales del Dashboard Controller (compatibilidad)
         Route::post('/pedidos/crear', [ClienteDashboardController::class, 'crearPedido'])
             ->name('pedidos.crear');
-
         Route::get('/pedidos/historial', [ClienteDashboardController::class, 'historialPedidos'])
             ->name('pedidos.historial');
-
         Route::get('/pedidos/ver/{id}', [ClienteDashboardController::class, 'verPedido'])
             ->name('pedidos.ver');
 
         // Recomendaciones
         Route::get('/productos/recomendados', [ClienteDashboardController::class, 'productosRecomendados'])
             ->name('productos.recomendados');
+
+        // Notificaciones
+        Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\NotificacionController::class, 'index'])
+                ->name('index');
+            Route::get('/modulo', [\App\Http\Controllers\NotificacionController::class, 'modulo'])
+                ->name('modulo');
+            Route::get('/no-leidas', [\App\Http\Controllers\NotificacionController::class, 'noLeidas'])
+                ->name('no-leidas');
+            Route::get('/conteo', [\App\Http\Controllers\NotificacionController::class, 'conteoNoLeidas'])
+                ->name('conteo');
+            Route::post('/{id}/marcar-leida', [\App\Http\Controllers\NotificacionController::class, 'marcarComoLeida'])
+                ->name('marcar-leida');
+            Route::post('/marcar-todas-leidas', [\App\Http\Controllers\NotificacionController::class, 'marcarTodasComoLeidas'])
+                ->name('marcar-todas-leidas');
+            Route::post('/limpiar-antiguas', [\App\Http\Controllers\NotificacionController::class, 'limpiarAntiguas'])
+                ->name('limpiar-antiguas');
+            Route::post('/limpiar-leidas', [\App\Http\Controllers\NotificacionController::class, 'limpiarLeidas'])
+                ->name('limpiar-leidas');
+            Route::delete('/{id}', [\App\Http\Controllers\NotificacionController::class, 'eliminar'])
+                ->name('eliminar');
+        });
     });
     
 

@@ -97,20 +97,34 @@
             <div class="pedido-detail-card fade-in-up animate-delay-1" style="margin-top:1.5rem;">
                 <div class="pedido-detail-header">
                     <i class="bi bi-box-seam"></i>
-                    <h3 class="pedido-detail-title">Productos del Pedido ({{ count($pedido->detalles_embebidos) }})</h3>
+                    <h3 class="pedido-detail-title">Productos del Pedido ({{ is_array($pedido->detalles_embebidos) ? count($pedido->detalles_embebidos) : 0 }})</h3>
                 </div>
                 <div class="pedido-detail-body" style="padding:0;">
-                    @if(count($pedido->detalles_embebidos) > 0)
+                    @if(is_array($pedido->detalles_embebidos) && count($pedido->detalles_embebidos) > 0)
                         @foreach($pedido->detalles_embebidos as $index => $detalle)
                             @php
                                 $producto = isset($detalle['producto_id']) ? $productosDetalles->get($detalle['producto_id']) : null;
+                                $productoData = $detalle['producto_data'] ?? [];
+                                
+                                // Intentar obtener imagen de los datos embebidos primero, luego del producto actual
+                                $imagen = null;
+                                if (is_array($productoData)) {
+                                    $imagen = $productoData['imagen'] ?? null;
+                                }
+                                if (!$imagen && $producto) {
+                                    $imagen = $producto->imagen;
+                                }
                             @endphp
                             <div class="pedido-product-item {{ $index > 0 ? '' : 'fade-in-up' }}" style="{{ $index > 0 ? 'margin-top:0;' : '' }}">
                                 {{-- Imagen del producto --}}
-                                @if($producto && $producto->imagen)
-                                    <img src="{{ asset('storage/' . $producto->imagen) }}"
+                                @if($imagen)
+                                    <img src="{{ asset('storage/' . $imagen) }}"
                                          alt="{{ $detalle['producto_nombre'] ?? 'Producto' }}"
-                                         class="pedido-product-img">
+                                         class="pedido-product-img"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="pedido-product-img" style="background:var(--gray-200);display:none;align-items:center;justify-content:center;">
+                                        <i class="bi bi-box-seam fs-4 text-muted"></i>
+                                    </div>
                                 @else
                                     <div class="pedido-product-img" style="background:var(--gray-200);display:flex;align-items:center;justify-content:center;">
                                         <i class="bi bi-box-seam fs-4 text-muted"></i>
@@ -216,14 +230,14 @@
                             <div class="pedido-info-label">
                                 <i class="bi bi-box-seam"></i> Total Productos
                             </div>
-                            <div class="pedido-info-value">{{ count($pedido->detalles_embebidos) }} producto(s)</div>
+                            <div class="pedido-info-value">{{ is_array($pedido->detalles_embebidos) ? count($pedido->detalles_embebidos) : 0 }} producto(s)</div>
                         </div>
 
                         <div class="pedido-info-item">
                             <div class="pedido-info-label">
                                 <i class="bi bi-calculator"></i> Cantidad Total
                             </div>
-                            <div class="pedido-info-value">{{ array_sum(array_column($pedido->detalles_embebidos, 'cantidad')) }} unidad(es)</div>
+                            <div class="pedido-info-value">{{ is_array($pedido->detalles_embebidos) ? array_sum(array_column($pedido->detalles_embebidos, 'cantidad')) : 0 }} unidad(es)</div>
                         </div>
 
                         <div class="pedido-info-item">

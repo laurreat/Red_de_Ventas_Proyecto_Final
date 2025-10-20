@@ -149,13 +149,23 @@ class ClienteDashboardManager {
   }
 
   vaciarCarrito() {
-    if (confirm('¿Estás seguro de vaciar el carrito?')) {
-      this.carrito = [];
-      this.saveToStorage('carrito', this.carrito);
-      this.updateCarritoCount();
-      this.renderCarrito();
-      this.showToast('Carrito vaciado', 'info');
-    }
+    GlassModal.confirm({
+      title: 'Vaciar Carrito',
+      message: '¿Estás seguro de que deseas vaciar todo el carrito? Esta acción no se puede deshacer.',
+      icon: 'bi-trash',
+      iconColor: '#dc3545',
+      iconBg: 'rgba(220, 53, 69, 0.2)',
+      confirmText: 'Sí, vaciar',
+      cancelText: 'Cancelar',
+      confirmClass: 'btn-glass-danger',
+      onConfirm: () => {
+        this.carrito = [];
+        this.saveToStorage('carrito', this.carrito);
+        this.updateCarritoCount();
+        this.renderCarrito();
+        this.showToast('Carrito vaciado', 'info');
+      }
+    });
   }
 
   updateCarritoCount() {
@@ -261,49 +271,22 @@ class ClienteDashboardManager {
     }
   }
 
-  async confirmarPedido() {
+  confirmarPedido() {
     if (this.carrito.length === 0) {
       this.showToast('El carrito está vacío', 'warning');
       return;
     }
 
-    // Preparar datos del pedido
-    const items = this.carrito.map(item => ({
-      producto_id: item.id,
-      cantidad: item.cantidad,
-      precio: item.precio
-    }));
-
-    try {
-      const response = await fetch('/cliente/pedidos/crear', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ items })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        this.showToast('¡Pedido creado exitosamente!', 'success');
-        this.carrito = [];
-        this.saveToStorage('carrito', this.carrito);
-        this.updateCarritoCount();
-        this.closeCarrito();
-        
-        // Redirigir a mis pedidos después de 2 segundos
-        setTimeout(() => {
-          window.location.href = '/cliente/pedidos';
-        }, 2000);
-      } else {
-        this.showToast(data.message || 'Error al crear el pedido', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      this.showToast('Error al procesar el pedido', 'error');
-    }
+    // Guardar el carrito en localStorage para que se cargue en la página de crear pedido
+    this.saveToStorage('carrito', this.carrito);
+    
+    // Mostrar mensaje de confirmación
+    this.showToast('Redirigiendo a crear pedido...', 'info');
+    
+    // Redirigir a la página de crear pedido
+    setTimeout(() => {
+      window.location.href = '/cliente/pedidos/create';
+    }, 500);
   }
 
   // ========================================

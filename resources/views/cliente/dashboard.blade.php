@@ -43,7 +43,27 @@
                 </div>
                 <div class="col-lg-5 text-center d-none d-lg-block">
                     <div class="welcome-illustration">
-                        <div class="arepa-icon">🫓</div>
+                        <div class="arepa-icon-wrapper" style="width: 250px; height: 250px; margin: 0 auto; position: relative;">
+                            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15)); display: block;">
+                                <defs>
+                                    <linearGradient id="arepaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#FFE5B4;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Arepa circular -->
+                                <circle cx="100" cy="100" r="80" fill="url(#arepaGradient)" stroke="#D2691E" stroke-width="3"/>
+                                <!-- Textura de arepa -->
+                                <circle cx="70" cy="80" r="8" fill="#E6C79C" opacity="0.6"/>
+                                <circle cx="130" cy="90" r="10" fill="#E6C79C" opacity="0.6"/>
+                                <circle cx="90" cy="120" r="7" fill="#E6C79C" opacity="0.6"/>
+                                <circle cx="120" cy="115" r="9" fill="#E6C79C" opacity="0.6"/>
+                                <circle cx="100" cy="70" r="6" fill="#E6C79C" opacity="0.6"/>
+                                <circle cx="110" cy="135" r="8" fill="#E6C79C" opacity="0.6"/>
+                                <!-- Marca del centro -->
+                                <circle cx="100" cy="100" r="5" fill="#D2691E" opacity="0.3"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -103,18 +123,21 @@
                 </h3>
                 <p class="content-card-subtitle">Selecciona tus productos favoritos y agrégalos al carrito</p>
             </div>
-            @if($categorias->count() > 0)
             <div class="categoria-filter">
                 <button class="filter-btn active" data-categoria="all">
-                    <i class="bi bi-grid"></i> Todos
+                    <i class="bi bi-grid-fill"></i> Todos
                 </button>
+                <button class="filter-btn" data-categoria="favoritos">
+                    <i class="bi bi-heart-fill"></i> Favoritos
+                </button>
+                @if($categorias->count() > 0)
                 @foreach($categorias as $categoria)
                 <button class="filter-btn" data-categoria="{{ $categoria }}">
                     {{ $categoria }}
                 </button>
                 @endforeach
+                @endif
             </div>
-            @endif
         </div>
 
         <div class="content-card-body">
@@ -174,7 +197,7 @@
                             </div>
                             <div class="producto-footer">
                                 <div class="producto-price-box">
-                                    <div class="producto-price">${{ number_format($producto->precio, 0) }}</div>
+                                    <div class="producto-price">${{ number_format((float)$producto->precio, 0) }}</div>
                                     <small class="producto-stock">
                                         @if($producto->stock > 5)
                                             <i class="bi bi-check-circle-fill text-success"></i> Disponible
@@ -187,7 +210,7 @@
                                 </div>
                                 @if($producto->stock > 0)
                                 <button class="btn-add-cart" 
-                                        onclick="agregarAlCarrito('{{ $producto->_id }}', '{{ $producto->nombre }}', {{ $producto->precio }}, '{{ $producto->imagen ?? '' }}', {{ $producto->stock }})">
+                                        onclick="agregarAlCarrito('{{ $producto->_id }}', '{{ $producto->nombre }}', {{ (float)$producto->precio }}, '{{ $producto->imagen ?? '' }}', {{ $producto->stock }})">
                                     <i class="bi bi-cart-plus"></i>
                                     Agregar
                                 </button>
@@ -245,7 +268,7 @@
                         <div class="pedido-meta">
                             <span><i class="bi bi-calendar3"></i> {{ $pedido->created_at->format('d/m/Y') }}</span>
                             <span class="separator">•</span>
-                            <span><i class="bi bi-currency-dollar"></i> ${{ number_format($pedido->total_final, 0) }}</span>
+                            <span><i class="bi bi-currency-dollar"></i> ${{ number_format((float)$pedido->total_final, 0) }}</span>
                         </div>
                     </div>
                     <span class="pedido-status pedido-status-{{ $pedido->estado }}">
@@ -262,8 +285,9 @@
 <!-- Floating Shopping Cart Button -->
 <button class="floating-cart-btn" 
         onclick="clienteDashboard.openCarrito()"
-        id="btnCarritoFlotante">
-    <i class="bi bi-cart3"></i>
+        id="btnCarritoFlotante"
+        aria-label="Abrir carrito">
+    <i class="bi bi-cart3-fill"></i>
     <span class="cart-badge" id="carritoCount" style="display: none;">0</span>
 </button>
 
@@ -381,7 +405,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Filtrar productos con animación
             productos.forEach((producto, index) => {
-                if (categoria === 'all' || producto.dataset.categoria === categoria) {
+                const esFavorito = producto.querySelector('.producto-favorite.active') !== null;
+                let mostrar = false;
+                
+                if (categoria === 'all') {
+                    mostrar = true;
+                } else if (categoria === 'favoritos') {
+                    mostrar = esFavorito;
+                } else {
+                    mostrar = producto.dataset.categoria === categoria;
+                }
+                
+                if (mostrar) {
                     producto.style.display = 'block';
                     producto.style.animation = 'none';
                     setTimeout(() => {
@@ -391,6 +426,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     producto.style.display = 'none';
                 }
             });
+            
+            // Mostrar mensaje si no hay favoritos
+            if (categoria === 'favoritos') {
+                const favoritosVisibles = Array.from(productos).filter(p => 
+                    p.style.display !== 'none'
+                ).length;
+                
+                if (favoritosVisibles === 0) {
+                    clienteDashboard.showToast('No tienes productos favoritos aún. ¡Marca algunos con el corazón!', 'info');
+                }
+            }
         });
     });
 });

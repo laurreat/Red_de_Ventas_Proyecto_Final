@@ -1,0 +1,1048 @@
+/* ========================================
+   MÓDULO DE NOTIFICACIONES - PÁGINA COMPLETA
+   Estilos para el centro de notificaciones
+======================================== */
+
+:root {
+    --notif-primary: #722F37;
+    --notif-danger: #dc3545;
+    --notif-success: #28a745;
+    --notif-info: #17a2b8;
+    --notif-warning: #ffc107;
+    --notif-gray-50: #f9fafb;
+    --notif-gray-100: #f3f4f6;
+    --notif-gray-200: #e5e7eb;
+    --notif-gray-300: #d1d5db;
+    --notif-gray-600: #6b7280;
+    --notif-gray-800: #1f2937;
+}
+
+/* ========================================
+   CONTAINER
+======================================== */
+.notificaciones-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.notificaciones-header {
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--notif-primary) 0%, #8b3c44 100%);
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(114, 47, 55, 0.3);
+}
+
+.notificaciones-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.notificaciones-title i {
+    font-size: 2.5rem;
+}
+
+.notificaciones-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.notificaciones-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.notificaciones-actions .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.notificaciones-actions .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   ESTADÍSTICAS
+======================================== */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card-primary {
+    border-left-color: var(--notif-primary);
+}
+
+.stat-card-primary .stat-icon {
+    background: rgba(114, 47, 55, 0.1);
+    color: var(--notif-primary);
+}
+
+.stat-card-danger {
+    border-left-color: var(--notif-danger);
+}
+
+.stat-card-danger .stat-icon {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--notif-danger);
+}
+
+.stat-card-success {
+    border-left-color: var(--notif-success);
+}
+
+.stat-card-success .stat-icon {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--notif-success);
+}
+
+.stat-card-info {
+    border-left-color: var(--notif-info);
+}
+
+.stat-card-info .stat-icon {
+    background: rgba(23, 162, 184, 0.1);
+    color: var(--notif-info);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--notif-gray-600);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--notif-gray-800);
+    line-height: 1;
+}
+
+/* ========================================
+   FILTROS
+======================================== */
+.filtros-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.filtros-header {
+    padding: 1rem 1.5rem;
+    background: var(--notif-gray-50);
+    border-bottom: 1px solid var(--notif-gray-200);
+    font-weight: 600;
+    color: var(--notif-gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filtros-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--notif-gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.form-select, .form-control {
+    border: 2px solid var(--notif-gray-200);
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--notif-primary);
+    box-shadow: 0 0 0 0.2rem rgba(114, 47, 55, 0.1);
+}
+
+/* ========================================
+   LISTA DE NOTIFICACIONES
+======================================== */
+.notificaciones-list-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.notificaciones-list-header {
+    padding: 1.5rem;
+    background: var(--notif-gray-50);
+    border-bottom: 2px solid var(--notif-gray-200);
+}
+
+.notificaciones-list-header h5 {
+    font-weight: 700;
+    color: var(--notif-gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-toggle .btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 8px;
+    border: 2px solid var(--notif-gray-200);
+    background: white;
+    color: var(--notif-gray-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.view-toggle .btn:hover {
+    border-color: var(--notif-primary);
+    color: var(--notif-primary);
+}
+
+.view-toggle .btn.active {
+    background: var(--notif-primary);
+    border-color: var(--notif-primary);
+    color: white;
+}
+
+.notificaciones-list-body {
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+/* ========================================
+   GRID DE NOTIFICACIONES
+======================================== */
+.notificaciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.notificacion-card {
+    background: white;
+    border: 2px solid var(--notif-gray-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.notificacion-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--notif-primary);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.notificacion-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-color: var(--notif-primary);
+}
+
+.notificacion-card:hover::before {
+    transform: scaleY(1);
+}
+
+.notificacion-card.unread {
+    background: linear-gradient(135deg, rgba(114, 47, 55, 0.03) 0%, rgba(114, 47, 55, 0.01) 100%);
+    border-color: var(--notif-primary);
+}
+
+.notificacion-card.unread::after {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12px;
+    height: 12px;
+    background: var(--notif-danger);
+    border-radius: 50%;
+    border: 2px solid white;
+    animation: pulse 2s infinite;
+}
+
+.notificacion-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.notificacion-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.notificacion-icon.tipo-pedido {
+    background: rgba(23, 162, 184, 0.1);
+    color: var(--notif-info);
+}
+
+.notificacion-icon.tipo-venta {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--notif-success);
+}
+
+.notificacion-icon.tipo-comision {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--notif-warning);
+}
+
+.notificacion-icon.tipo-usuario {
+    background: rgba(114, 47, 55, 0.1);
+    color: var(--notif-primary);
+}
+
+.notificacion-icon.tipo-sistema {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.notificacion-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notificacion-titulo {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--notif-gray-800);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.notificacion-mensaje {
+    font-size: 0.9375rem;
+    color: var(--notif-gray-600);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notificacion-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--notif-gray-200);
+}
+
+.notificacion-time {
+    font-size: 0.8125rem;
+    color: var(--notif-gray-600);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.notificacion-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: var(--notif-gray-100);
+    color: var(--notif-gray-600);
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+}
+
+.btn-icon.btn-mark-read:hover {
+    background: var(--notif-success);
+    color: white;
+}
+
+.btn-icon.btn-delete:hover {
+    background: var(--notif-danger);
+    color: white;
+}
+
+/* ========================================
+   LOADING & EMPTY STATES
+======================================== */
+.loading-state, .empty-state {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    color: var(--notif-gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    color: var(--notif-gray-800);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   PAGINACIÓN
+======================================== */
+.notificaciones-list-footer {
+    padding: 1.5rem;
+    background: var(--notif-gray-50);
+    border-top: 2px solid var(--notif-gray-200);
+}
+
+.pagination {
+    margin: 0;
+    justify-content: center;
+}
+
+.page-link {
+    color: var(--notif-primary);
+    border: 2px solid var(--notif-gray-200);
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+.page-link:hover {
+    background: var(--notif-primary);
+    color: white;
+    border-color: var(--notif-primary);
+}
+
+.page-item.active .page-link {
+    background: var(--notif-primary);
+    border-color: var(--notif-primary);
+}
+
+/* ========================================
+   MODAL GLASSMORPHISM
+======================================== */
+.glass-modal {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px !important;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-glass-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(114, 47, 55, 0.05) 0%, 
+        rgba(139, 60, 68, 0.08) 50%,
+        rgba(114, 47, 55, 0.05) 100%);
+    z-index: -1;
+}
+
+.glass-header {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 2rem;
+    border-radius: 24px 24px 0 0 !important;
+}
+
+.modal-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.modal-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.modal-icon-wrapper:hover {
+    transform: scale(1.05);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.modal-icon-wrapper i {
+    font-size: 2rem;
+}
+
+.modal-title-content {
+    flex: 1;
+}
+
+.glass-modal .modal-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--notif-gray-800);
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.modal-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 1rem;
+    background: rgba(114, 47, 55, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(114, 47, 55, 0.3);
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--notif-primary);
+}
+
+.modal-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--notif-gray-600);
+    font-weight: 500;
+}
+
+.modal-time i {
+    font-size: 1rem;
+}
+
+.btn-close-glass {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(220, 53, 69, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    color: var(--notif-danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-close-glass:hover {
+    background: var(--notif-danger);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(220, 53, 69, 0.3);
+}
+
+.btn-close-glass i {
+    font-size: 1.25rem;
+}
+
+.glass-body {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-content-wrapper {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.modal-content-wrapper p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--notif-gray-800);
+    margin: 0;
+}
+
+.modal-meta-glass {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.meta-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.meta-item i {
+    font-size: 1.5rem;
+    color: var(--notif-primary);
+    opacity: 0.8;
+}
+
+.meta-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--notif-gray-600);
+    font-weight: 600;
+}
+
+.meta-value {
+    font-size: 0.9375rem;
+    color: var(--notif-gray-800);
+    font-weight: 600;
+}
+
+.glass-footer {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-radius: 0 0 24px 24px !important;
+}
+
+.btn-glass {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.btn-glass i {
+    font-size: 1.125rem;
+}
+
+.btn-glass-danger {
+    background: rgba(220, 53, 69, 0.2);
+    color: var(--notif-danger);
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.btn-glass-danger:hover {
+    background: var(--notif-danger);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
+}
+
+.btn-glass-secondary {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+    border-color: rgba(108, 117, 125, 0.3);
+}
+
+.btn-glass-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+}
+
+/* Datos adicionales en modal */
+.modal-content-wrapper h6 {
+    font-weight: 700;
+    color: var(--notif-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-content-wrapper ul {
+    margin: 0;
+    padding-left: 0;
+}
+
+.modal-content-wrapper li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-content-wrapper li:last-child {
+    border-bottom: none;
+}
+
+.modal-content-wrapper strong {
+    color: var(--notif-gray-800);
+    font-weight: 600;
+}
+
+/* Animaciones del modal */
+.modal.fade .glass-modal {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+}
+
+.modal.show .glass-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Backdrop blur personalizado */
+.modal-backdrop.show {
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   MODALES DE CONFIRMACIÓN
+======================================== */
+.confirm-icon-wrapper {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.confirm-icon {
+    font-size: 3rem;
+}
+
+.confirm-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--notif-gray-800);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-message {
+    font-size: 1.125rem;
+    color: var(--notif-gray-700);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+/* Variantes de botones glass */
+.btn-glass-primary {
+    background: rgba(114, 47, 55, 0.2);
+    color: var(--notif-primary);
+    border-color: rgba(114, 47, 55, 0.3);
+}
+
+.btn-glass-primary:hover {
+    background: var(--notif-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(114, 47, 55, 0.4);
+}
+
+.btn-glass-success {
+    background: rgba(40, 167, 69, 0.2);
+    color: var(--notif-success);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.btn-glass-success:hover {
+    background: var(--notif-success);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-glass-warning {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--notif-warning);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.btn-glass-warning:hover {
+    background: var(--notif-warning);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4);
+}
+
+.btn-glass-info {
+    background: rgba(23, 162, 184, 0.2);
+    color: var(--notif-info);
+    border-color: rgba(23, 162, 184, 0.3);
+}
+
+.btn-glass-info:hover {
+    background: var(--notif-info);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(23, 162, 184, 0.4);
+}
+
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .glass-header {
+        padding: 1.5rem;
+    }
+
+    .modal-title-wrapper {
+        gap: 1rem;
+    }
+
+    .modal-icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+
+    .modal-icon-wrapper i {
+        font-size: 1.75rem;
+    }
+
+    .glass-modal .modal-title {
+        font-size: 1.5rem;
+    }
+
+    .glass-body {
+        padding: 1.5rem;
+    }
+
+    .modal-content-wrapper {
+        padding: 1.5rem;
+    }
+
+    .glass-footer {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+    }
+
+    .btn-glass {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-meta-glass {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 991.98px) {
+    .notificaciones-container {
+        padding: 1rem;
+    }
+
+    .notificaciones-header {
+        padding: 1.5rem;
+    }
+
+    .notificaciones-title {
+        font-size: 1.5rem;
+    }
+
+    .notificaciones-actions {
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+
+    .notificaciones-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .notificaciones-header {
+        padding: 1rem;
+    }
+
+    .notificaciones-title {
+        font-size: 1.25rem;
+    }
+
+    .notificaciones-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filtros-body .col-md-3 {
+        margin-bottom: 1rem;
+    }
+
+    .notificacion-card {
+        padding: 1rem;
+    }
+
+    .notificacion-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+}
+
+/* ========================================
+   ANIMACIONES
+======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notificacion-card {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}

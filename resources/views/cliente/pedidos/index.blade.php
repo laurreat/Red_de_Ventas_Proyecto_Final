@@ -1,34 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.cliente')
 
-@section('title', '- Mis Pedidos')
+@section('title', ' - Mis Pedidos')
+@section('header-title', 'Mis Pedidos')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-modern.css') }}?v={{ filemtime(public_path('css/pages/pedidos-cliente-modern.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/pages/pedidos-cliente-glassmorphism.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header Hero con Gradiente -->
-    <div class="pedidos-header fade-in-up">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="pedidos-title">
-                    <i class="bi bi-bag-check me-2"></i>
-                    Mis Pedidos
-                </h1>
-                <p class="pedidos-subtitle mb-0">
-                    Gestiona y realiza seguimiento de todos tus pedidos
-                </p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="pedidos-header-actions">
-                    <a href="{{ route('cliente.pedidos.create') }}" class="pedidos-btn pedidos-btn-white">
-                        <i class="bi bi-plus-circle"></i>
-                        Nuevo Pedido
-                    </a>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid">
+    <!-- Botón Nuevo Pedido -->
+    <div class="mb-4 fade-in-up">
+        <a href="{{ route('cliente.pedidos.create') }}" class="pedidos-btn pedidos-btn-white">
+            <i class="bi bi-plus-circle"></i>
+            Nuevo Pedido
+        </a>
     </div>
 
     <!-- Stats Cards Interactivas -->

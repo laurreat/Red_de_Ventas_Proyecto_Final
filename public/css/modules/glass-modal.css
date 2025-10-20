@@ -1,0 +1,366 @@
+/* ========================================
+   GLASS MODAL SYSTEM
+   Modales profesionales con efecto glassmorphism
+   ======================================== */
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --wine: #722F37;
+    --wine-dark: #5a252a;
+}
+
+/* Modal Glass Base */
+.glass-modal {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 20px !important;
+    box-shadow: var(--glass-shadow) !important;
+    overflow: visible !important;
+    z-index: 1050 !important;
+}
+
+.modal-glass-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 20px;
+}
+
+.glass-modal .modal-body {
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass Modal Header */
+.glass-header {
+    background: rgba(255, 255, 255, 0.15);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 1.5rem 2rem;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 10;
+}
+
+.modal-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 10;
+}
+
+.modal-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    background: rgba(114, 47, 55, 0.1);
+    border: 2px solid rgba(114, 47, 55, 0.3);
+    color: var(--wine);
+    position: relative;
+    z-index: 10;
+}
+
+.modal-title-content {
+    flex: 1;
+    position: relative;
+    z-index: 10;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c2c2c;
+    margin: 0;
+}
+
+.modal-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.modal-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(114, 47, 55, 0.15);
+    color: var(--wine);
+    border: 1px solid rgba(114, 47, 55, 0.3);
+}
+
+.modal-time {
+    font-size: 0.875rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-close-glass {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2c2c2c;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    position: relative;
+    z-index: 20;
+    pointer-events: auto;
+}
+
+.btn-close-glass:hover {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #dc3545;
+    transform: rotate(90deg);
+}
+
+/* Glass Modal Body */
+.glass-body {
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.modal-content-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 10;
+}
+
+.modal-meta-glass {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    position: relative;
+    z-index: 10;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    position: relative;
+    z-index: 10;
+}
+
+.meta-item i {
+    font-size: 1.5rem;
+    color: var(--wine);
+}
+
+.meta-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c2c2c;
+}
+
+/* Glass Modal Footer */
+.glass-footer {
+    background: rgba(255, 255, 255, 0.15);
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 10;
+}
+
+/* Glass Buttons */
+.btn-glass {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 2px solid;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.btn-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+    z-index: -1;
+}
+
+.btn-glass:hover::before {
+    left: 100%;
+}
+
+.btn-glass-primary {
+    background: rgba(114, 47, 55, 0.15);
+    border-color: rgba(114, 47, 55, 0.4);
+    color: var(--wine);
+}
+
+.btn-glass-primary:hover {
+    background: linear-gradient(135deg, var(--wine), var(--wine-dark));
+    border-color: var(--wine);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+}
+
+.btn-glass-secondary {
+    background: rgba(108, 117, 125, 0.15);
+    border-color: rgba(108, 117, 125, 0.4);
+    color: #6c757d;
+}
+
+.btn-glass-secondary:hover {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    border-color: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-glass-success {
+    background: rgba(40, 167, 69, 0.15);
+    border-color: rgba(40, 167, 69, 0.4);
+    color: #28a745;
+}
+
+.btn-glass-success:hover {
+    background: linear-gradient(135deg, #28a745, #218838);
+    border-color: #28a745;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-glass-danger {
+    background: rgba(220, 53, 69, 0.15);
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+}
+
+.btn-glass-danger:hover {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border-color: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-glass-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.4);
+    color: #ffc107;
+}
+
+.btn-glass-warning:hover {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    border-color: #ffc107;
+    color: #212529;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-glass-info {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #3b82f6;
+}
+
+.btn-glass-info:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #3b82f6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .glass-header,
+    .glass-body,
+    .glass-footer {
+        padding: 1.25rem;
+    }
+
+    .modal-title-wrapper {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .modal-icon-wrapper {
+        margin: 0 auto;
+    }
+
+    .modal-meta-glass {
+        grid-template-columns: 1fr;
+    }
+
+    .glass-footer {
+        flex-direction: column;
+    }
+
+    .btn-glass {
+        width: 100%;
+        justify-content: center;
+    }
+}

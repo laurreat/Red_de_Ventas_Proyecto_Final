@@ -233,7 +233,8 @@ class PedidoController extends Controller
                     '_id' => $producto->_id,
                     'nombre' => $producto->nombre,
                     'precio' => $producto->precio,
-                    'imagen' => $producto->imagen ?? null
+                    'imagen' => $producto->imagen ?? null,
+                    'descripcion' => $producto->descripcion ?? null
                 ],
                 'cantidad' => $cantidad,
                 'precio_unitario' => $precioUnitario,

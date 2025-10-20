@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\User;
+use App\Services\NotificationService;
 
 class PedidoClienteController extends Controller
 {
@@ -230,7 +231,7 @@ class PedidoClienteController extends Controller
                         'nombre' => htmlspecialchars($producto->nombre, ENT_QUOTES, 'UTF-8'),
                         'descripcion' => htmlspecialchars($producto->descripcion ?? '', ENT_QUOTES, 'UTF-8'),
                         'precio' => (float)$producto->precio,
-                        'imagen' => $producto->imagen_principal ?? null,
+                        'imagen' => $producto->imagen ?? null,
                         'categoria_data' => $producto->categoria_data ?? []
                     ],
                     'cantidad' => $cantidadSolicitada,
@@ -250,7 +251,6 @@ class PedidoClienteController extends Controller
                     ->withInput();
             }
             
-            $pedido->detalles = $detalles;
             $pedido->total = (float)$total;
             $pedido->descuento = 0;
             $pedido->total_final = (float)$total;
@@ -272,10 +272,118 @@ class PedidoClienteController extends Controller
             $pedido->ip_creacion = $request->ip();
             $pedido->user_agent = $request->userAgent();
             
-            $pedido->save();
+            // IMPORTANTE: Asignar detalles ANTES de guardar
+            $pedido->detalles = $detalles;
+            $pedido->productos = $detalles;
+            
+            // Guardar todo de una vez
+            $saved = $pedido->save();
+            
+            if (!$saved) {
+                throw new \Exception('No se pudo guardar el pedido en la base de datos');
+            }
+            
+            // Verificar inmediatamente después de guardar
+            $pedidoVerificacion = Pedido::find($pedido->_id);
+            $detallesGuardados = $pedidoVerificacion ? $pedidoVerificacion->getAttributes()['detalles'] ?? [] : [];
+            
+            \Log::info("Pedido guardado - Verificación inmediata", [
+                'pedido_id' => $pedido->_id,
+                'numero_pedido' => $pedido->numero_pedido,
+                'detalles_antes_guardar' => count($detalles),
+                'detalles_despues_guardar' => is_array($detallesGuardados) ? count($detallesGuardados) : 'no es array',
+                'detalles_contenido' => $detallesGuardados,
+            ]);
+            
+            // Si no se guardaron los detalles, intentar guardar directamente en MongoDB
+            if (empty($detallesGuardados) || count($detallesGuardados) === 0) {
+                \Log::warning("Detalles no se guardaron, intentando método alternativo");
+                
+                // Usar el query builder directo de MongoDB
+                \DB::connection('mongodb')
+                    ->collection('pedidos')
+                    ->where('_id', $pedido->_id)
+                    ->update([
+                        'detalles' => $detalles,
+                        'productos' => $detalles,
+                        'updated_at' => now()
+                    ]);
+                
+                // Verificar nuevamente
+                $pedidoVerificacion2 = Pedido::find($pedido->_id);
+                $detallesGuardados2 = $pedidoVerificacion2 ? $pedidoVerificacion2->getAttributes()['detalles'] ?? [] : [];
+                
+                \Log::info("Segunda verificación después de update directo", [
+                    'detalles_count' => is_array($detallesGuardados2) ? count($detallesGuardados2) : 'no es array',
+                ]);
+            }
             
             // Limpiar cache de estadísticas
             Cache::forget("cliente_stats_{$user->_id}");
+            
+            // 🔔 Enviar notificaciones automáticas
+            try {
+                // Notificar al cliente
+                NotificationService::crear(
+                    $user->_id,
+                    'pedido',
+                    "Pedido #{$pedido->numero_pedido} Creado",
+                    "Tu pedido ha sido creado exitosamente por un monto de $" . number_format($pedido->total_final, 0, ',', '.'),
+                    [
+                        'pedido_id' => $pedido->_id,
+                        'numero_pedido' => $pedido->numero_pedido,
+                        'total' => $pedido->total_final,
+                        'estado' => $pedido->estado
+                    ],
+                    'alta'
+                );
+                
+                // Si el cliente NO tiene vendedor asignado, notificar a administradores
+                if (!$user->vendedor_id) {
+                    $titulo = "Nuevo Pedido Sin Vendedor #{$pedido->numero_pedido}";
+                    $mensaje = "El cliente {$user->name} {$user->apellidos} ha creado un pedido por $" . 
+                               number_format($pedido->total_final, 0, ',', '.') . " (sin vendedor asignado)";
+                    
+                    NotificationService::enviarPorRol(
+                        'administrador',
+                        'pedido',
+                        $titulo,
+                        $mensaje,
+                        [
+                            'pedido_id' => $pedido->_id,
+                            'numero_pedido' => $pedido->numero_pedido,
+                            'cliente_id' => $user->_id,
+                            'cliente_nombre' => $user->name . ' ' . ($user->apellidos ?? ''),
+                            'total' => $pedido->total_final,
+                            'sin_vendedor' => true
+                        ],
+                        'alta'
+                    );
+                    
+                    \Log::info("Notificación enviada a administradores - Pedido sin vendedor", [
+                        'pedido_id' => $pedido->_id,
+                        'cliente_id' => $user->_id
+                    ]);
+                } else {
+                    // Si tiene vendedor, usar el sistema de notificaciones existente
+                    NotificationService::nuevoPedido($pedido);
+                    
+                    if ($pedido->vendedor_id) {
+                        NotificationService::nuevaVenta($pedido);
+                    }
+                }
+                
+                \Log::info('Notificaciones enviadas para pedido de cliente', [
+                    'pedido_id' => $pedido->_id,
+                    'cliente_id' => $user->_id,
+                    'tiene_vendedor' => !empty($user->vendedor_id)
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Error al enviar notificaciones: ' . $e->getMessage(), [
+                    'pedido_id' => $pedido->_id,
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
             
             // Log de auditoría
             \Log::info("Pedido creado exitosamente", [

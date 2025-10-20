@@ -1,0 +1,837 @@
+/**
+ * ========================================
+ * MÓDULO DE PEDIDOS - GLASSMORPHISM DESIGN
+ * Versión: 4.0 Ultra Professional
+ * Diseño moderno con efectos glass y animaciones premium
+ * ========================================
+ */
+
+:root {
+  /* Colores Principales */
+  --wine: #722F37;
+  --wine-dark: #5a252a;
+  --wine-light: #9a3f4a;
+  
+  /* Colores de Estado */
+  --success: #10b981;
+  --success-light: #34d399;
+  --warning: #f59e0b;
+  --warning-light: #fbbf24;
+  --danger: #ef4444;
+  --danger-light: #f87171;
+  --info: #3b82f6;
+  --info-light: #60a5fa;
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  
+  /* Escala de Grises */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-strong: rgba(255, 255, 255, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Transiciones */
+  --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   INTEGRACIÓN CON LAYOUT CLIENTE
+======================================== */
+
+.container-fluid {
+  padding-top: 0;
+  padding-bottom: 2rem;
+}
+
+/* ========================================
+   ANIMACIONES PREMIUM
+======================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn Right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-delay-1 {
+  animation-delay: 0.1s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.animate-delay-2 {
+  animation-delay: 0.2s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.animate-delay-3 {
+  animation-delay: 0.3s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.animate-delay-4 {
+  animation-delay: 0.4s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* ========================================
+   HEADER (SIMPLIFICADO - YA NO SE USA)
+======================================== */
+
+/* El header ahora está en el layout cliente */
+
+/* ========================================
+   BOTÓN NUEVO PEDIDO
+======================================== */
+
+.pedidos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+  transition: var(--transition-base);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.pedidos-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.pedidos-btn:hover::before {
+  left: 100%;
+}
+
+.pedidos-btn-white {
+  background: rgba(114, 47, 55, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(114, 47, 55, 0.3);
+  color: var(--wine);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.pedidos-btn-white:hover {
+  background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+  border-color: var(--wine);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(114, 47, 55, 0.3);
+  color: white;
+}
+
+/* ========================================
+   BREADCRUMB MEJORADO
+======================================== */
+
+.breadcrumb {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 0;
+}
+
+.breadcrumb-item {
+  font-weight: 500;
+}
+
+.breadcrumb-item a {
+  color: var(--wine);
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--wine-dark);
+  transform: translateX(2px);
+}
+
+.breadcrumb-item.active {
+  color: var(--gray-600);
+  font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  font-size: 1.25rem;
+  color: var(--gray-400);
+  padding-right: 0.5rem;
+}
+
+/* ========================================
+   ESTADÍSTICAS CARDS CON GLASSMORPHISM (CONTINUACIÓN)
+======================================== */
+
+.pedidos-stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: var(--transition-base);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.pedidos-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--success), var(--info), var(--purple));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.pedidos-stat-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px 0 rgba(31, 38, 135, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pedidos-stat-card:hover::before {
+  opacity: 1;
+}
+
+.pedidos-stat-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.pedidos-stat-icon::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  bottom: -5px;
+  left: -5px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 0 30px currentColor;
+}
+
+.pedidos-stat-card:hover .pedidos-stat-icon::after {
+  opacity: 0.5;
+}
+
+.pedidos-stat-icon.bg-success {
+  background: linear-gradient(135deg, var(--success) 0%, var(--success-light) 100%);
+}
+
+.pedidos-stat-icon.bg-warning {
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning-light) 100%);
+}
+
+.pedidos-stat-icon.bg-info {
+  background: linear-gradient(135deg, var(--info) 0%, var(--info-light) 100%);
+}
+
+.pedidos-stat-icon.bg-purple {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+}
+
+.pedidos-stat-value {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pedidos-stat-label {
+  font-size: 1.05rem;
+  color: var(--gray-700);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   FILTROS PROFESIONALES CON GLASS
+======================================== */
+
+.pedidos-filters {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.pedidos-filters .form-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-800);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pedidos-filters .form-control,
+.pedidos-filters .form-select {
+  border: 2px solid var(--gray-300);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  transition: var(--transition-base);
+  background: white;
+  font-weight: 500;
+}
+
+.pedidos-filters .form-control:focus,
+.pedidos-filters .form-select:focus {
+  border-color: var(--wine);
+  box-shadow: 0 0 0 4px rgba(114, 47, 55, 0.1);
+  outline: none;
+}
+
+.pedidos-filters .btn-primary {
+  background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);
+  transition: var(--transition-base);
+}
+
+.pedidos-filters .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(114, 47, 55, 0.4);
+}
+
+/* ========================================
+   LISTA DE PEDIDOS CON GLASSMORPHISM
+======================================== */
+
+.pedidos-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pedido-card {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: var(--transition-base);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.pedido-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--wine), var(--wine-dark));
+  transform: scaleY(0);
+  transition: transform 0.3s;
+}
+
+.pedido-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px 0 rgba(31, 38, 135, 0.22);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.pedido-card:hover::before {
+  transform: scaleY(1);
+}
+
+.pedido-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(114, 47, 55, 0.1);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+}
+
+.pedido-card:hover .pedido-icon {
+  background: rgba(114, 47, 55, 0.2);
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* ========================================
+   BADGES DE ESTADO MODERNOS
+======================================== */
+
+.pedidos-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid;
+  transition: var(--transition-base);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.pedidos-badge i {
+  font-size: 1.125rem;
+}
+
+.pedidos-badge-pendiente {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.pedidos-badge-confirmado {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.pedidos-badge-en_preparacion {
+  background: rgba(139, 92, 246, 0.15);
+  color: #5b21b6;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.pedidos-badge-enviado {
+  background: rgba(16, 185, 129, 0.15);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.pedidos-badge-entregado {
+  background: rgba(16, 185, 129, 0.25);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.pedidos-badge-cancelado {
+  background: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ========================================
+   BOTONES DE ACCIÓN MODERNOS
+======================================== */
+
+.pedidos-action-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: var(--transition-base);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.pedidos-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.pedidos-action-btn:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.pedidos-action-btn-view {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.pedidos-action-btn-view::before {
+  background: var(--info);
+}
+
+.pedidos-action-btn-view:hover {
+  color: white;
+  border-color: var(--info);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.pedidos-action-btn-cancel {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.pedidos-action-btn-cancel::before {
+  background: var(--danger);
+}
+
+.pedidos-action-btn-cancel:hover {
+  color: white;
+  border-color: var(--danger);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.pedidos-action-btn-track {
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--purple);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.pedidos-action-btn-track::before {
+  background: var(--purple);
+}
+
+.pedidos-action-btn-track:hover {
+  color: white;
+  border-color: var(--purple);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* ========================================
+   EMPTY STATE MEJORADO
+======================================== */
+
+.pedidos-empty-state {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px dashed rgba(114, 47, 55, 0.3);
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.pedidos-empty-state i {
+  font-size: 6rem;
+  color: var(--gray-300);
+  margin-bottom: 1.5rem;
+  display: block;
+  animation: float 3s ease-in-out infinite;
+}
+
+.pedidos-empty-state h4 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 1rem;
+}
+
+.pedidos-empty-state p {
+  font-size: 1.125rem;
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+}
+
+/* ========================================
+   LOADING OVERLAY
+======================================== */
+
+.pedidos-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-base);
+}
+
+.pedidos-loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pedidos-loading-spinner {
+  width: 80px;
+  height: 80px;
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 991.98px) {
+  .pedidos-title {
+    font-size: 2rem;
+  }
+  
+  .pedidos-title i {
+    font-size: 2.5rem;
+  }
+  
+  .pedidos-stat-value {
+    font-size: 2.25rem;
+  }
+  
+  .pedido-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pedidos-header {
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .pedidos-title {
+    font-size: 1.75rem;
+  }
+  
+  .pedidos-title i {
+    font-size: 2rem;
+  }
+  
+  .pedidos-subtitle {
+    font-size: 1rem;
+  }
+  
+  .pedidos-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .pedidos-stat-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+  }
+  
+  .pedidos-stat-value {
+    font-size: 2rem;
+  }
+  
+  .pedidos-stat-label {
+    font-size: 0.9rem;
+  }
+  
+  .pedidos-filters {
+    padding: 1.5rem;
+  }
+  
+  .pedido-card {
+    padding: 1.25rem;
+  }
+  
+  .pedido-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .pedidos-action-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pedidos-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .pedidos-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .pedidos-empty-state i {
+    font-size: 4rem;
+  }
+  
+  .pedidos-empty-state h4 {
+    font-size: 1.5rem;
+  }
+}
+
+/* ========================================
+   UTILIDADES
+======================================== */
+
+.glass-bg {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.transition-base {
+  transition: var(--transition-base);
+}
+
+.transition-fast {
+  transition: var(--transition-fast);
+}

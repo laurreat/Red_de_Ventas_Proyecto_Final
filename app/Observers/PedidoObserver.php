@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use App\Models\Comision;
 use App\Models\User;
 use App\Services\ComisionService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 
 class PedidoObserver
@@ -27,6 +28,52 @@ class PedidoObserver
                 
                 ComisionService::crearComisionPorPedido($pedido);
             }
+
+            // Generar notificaciones
+            try {
+                // Notificar al cliente sobre su nuevo pedido
+                if ($pedido->cliente_id) {
+                    NotificationService::crear(
+                        $pedido->cliente_id,
+                        'pedido',
+                        "Pedido #{$pedido->numero_pedido} Creado",
+                        "Tu pedido ha sido creado exitosamente. Total: $" . number_format($pedido->total_final, 0),
+                        [
+                            'pedido_id' => $pedido->_id,
+                            'numero_pedido' => $pedido->numero_pedido,
+                            'total' => $pedido->total_final,
+                            'estado' => $pedido->estado
+                        ],
+                        'normal'
+                    );
+                }
+
+                // Notificar a administradores sobre el nuevo pedido
+                NotificationService::enviarPorRol(
+                    'administrador',
+                    'pedido',
+                    "Nuevo Pedido #{$pedido->numero_pedido}",
+                    "Se ha creado un nuevo pedido por $" . number_format($pedido->total_final, 0),
+                    [
+                        'pedido_id' => $pedido->_id,
+                        'numero_pedido' => $pedido->numero_pedido,
+                        'total' => $pedido->total_final,
+                        'cliente_id' => $pedido->cliente_id
+                    ],
+                    'alta'
+                );
+
+                // Si tiene vendedor, notificar al vendedor sobre la nueva venta
+                if ($pedido->vendedor_id) {
+                    NotificationService::nuevaVenta($pedido);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error al generar notificaciones de pedido creado', [
+                    'pedido_id' => $pedido->_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
         } catch (\Exception $e) {
             Log::error('Error al crear comisión automáticamente en created event', [
                 'pedido_id' => $pedido->_id ?? null,
@@ -89,6 +136,18 @@ class PedidoObserver
             else if (!$cambioEstado && !$cambioTotal && $pedido->vendedor_id && $estadoActual !== 'cancelado') {
                 Log::info('Verificando existencia de comisión');
                 ComisionService::actualizarComisionPorPedido($pedido);
+            }
+
+            // Generar notificaciones si cambió el estado
+            if ($cambioEstado && $pedido->cliente_id) {
+                try {
+                    NotificationService::cambioEstadoPedido($pedido, $estadoAnterior);
+                } catch (\Exception $e) {
+                    Log::error('Error al generar notificación de cambio de estado', [
+                        'pedido_id' => $pedido->_id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
             }
 
         } catch (\Exception $e) {
