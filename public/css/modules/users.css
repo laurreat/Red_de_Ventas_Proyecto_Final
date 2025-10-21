@@ -803,6 +803,106 @@
 }
 
 /* ============================================
+   PAGINACIÓN PERSONALIZADA
+   ============================================ */
+
+.custom-pagination {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+.pagination-info {
+    width: 100%;
+    text-align: center;
+}
+
+.pagination-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--user-gray-500);
+    font-weight: 500;
+}
+
+.pagination-text strong {
+    color: var(--user-gray-900);
+    font-weight: 600;
+}
+
+.pagination-list {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pagination-item {
+    display: inline-block;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    border: 1px solid var(--user-gray-200);
+    background: white;
+    color: var(--user-gray-900);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--user-transition-fast);
+    cursor: pointer;
+    min-width: 38px;
+    justify-content: center;
+}
+
+.pagination-link:hover {
+    background: var(--user-wine);
+    border-color: var(--user-wine);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(114, 47, 55, 0.2);
+}
+
+.pagination-item.active .pagination-link {
+    background: linear-gradient(135deg, var(--user-wine), var(--user-wine-dark));
+    border-color: var(--user-wine);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(114, 47, 55, 0.3);
+}
+
+.pagination-item.disabled .pagination-link {
+    background: var(--user-gray-100);
+    border-color: var(--user-gray-200);
+    color: var(--user-gray-500);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.pagination-arrow {
+    padding: 0.5rem 1rem;
+}
+
+.pagination-arrow i {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.pagination-dots {
+    border: none;
+    background: transparent;
+    padding: 0.5rem 0.625rem;
+    min-width: auto;
+}
+
+/* ============================================
    PRINT STYLES
    ============================================ */
 
@@ -810,12 +910,30 @@
     .users-header,
     .users-filters,
     .user-actions,
-    .users-pagination {
+    .users-pagination,
+    .custom-pagination {
         display: none;
     }
 
     .users-table-card {
         box-shadow: none;
         border: 1px solid var(--user-gray-300);
+    }
+}
+
+@media (max-width: 768px) {
+    /* Paginación en móvil */
+    .pagination-arrow-text {
+        display: none;
+    }
+    .pagination-arrow {
+        padding: 0.5rem 0.75rem;
+    }
+    .pagination-link {
+        min-width: 36px;
+        padding: 0.5rem 0.625rem;
+    }
+    .pagination-list {
+        gap: 0.375rem;
     }
 }

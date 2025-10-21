@@ -421,12 +421,23 @@ class RedMLMSeeder extends Seeder
                     $totalPedido += $subtotal;
                     $totalProductosVendidos += $cantidad;
                     
-                    // Obtener el nombre de la categoría (puede estar embebido o como relación)
+                    // Obtener el nombre de la categoría con mejor manejo
                     $categoriaNombre = 'Sin categoría';
+                    $categoriaData = null;
+                    
                     if (isset($producto->categoria_data['nombre'])) {
                         $categoriaNombre = $producto->categoria_data['nombre'];
-                    } elseif ($producto->categoria) {
-                        $categoriaNombre = $producto->categoria->nombre;
+                        $categoriaData = $producto->categoria_data;
+                    } elseif ($producto->categoria_id) {
+                        $categoria = Categoria::find($producto->categoria_id);
+                        if ($categoria) {
+                            $categoriaNombre = $categoria->nombre;
+                            $categoriaData = [
+                                '_id' => $categoria->_id,
+                                'nombre' => $categoria->nombre,
+                                'descripcion' => $categoria->descripcion ?? null,
+                            ];
+                        }
                     }
                     
                     $detalles[] = [
@@ -434,7 +445,9 @@ class RedMLMSeeder extends Seeder
                         'producto_data' => [
                             'nombre' => $producto->nombre,
                             'precio' => $producto->precio,
+                            'sku' => $producto->sku ?? null,
                             'categoria' => $categoriaNombre,
+                            'categoria_data' => $categoriaData,
                             'imagen' => $producto->imagen ?? null,
                             'descripcion' => $producto->descripcion ?? null,
                         ],
@@ -459,8 +472,23 @@ class RedMLMSeeder extends Seeder
                 $estadoSeleccionado = $this->seleccionarEstadoPonderado($estadosPosibles);
                 $fechaCreacion = now()->subDays(rand(1, 60));
                 
-                // Crear historial de estados basado en el estado actual
+                // Generar historial de estados basado en el estado actual
                 $historialEstados = $this->generarHistorialEstados($estadoSeleccionado, $fechaCreacion);
+                
+                // Calcular fecha de última actualización coherente con el historial
+                $fechaUltimaActualizacion = $fechaCreacion->copy();
+                if (!empty($historialEstados)) {
+                    $ultimoEstado = end($historialEstados);
+                    if (isset($ultimoEstado['fecha'])) {
+                        $fechaUltimaActualizacion = Carbon::parse($ultimoEstado['fecha']);
+                    }
+                }
+                
+                // Si el pedido está entregado, la actualización es la fecha de entrega
+                // Si no, puede tener actualizaciones más recientes
+                if ($estadoSeleccionado !== 'entregado' && $estadoSeleccionado !== 'cancelado') {
+                    $fechaUltimaActualizacion = now()->subDays(rand(0, 10));
+                }
                 
                 // Aplicar descuento ocasional (20% de probabilidad)
                 $descuento = 0;
@@ -470,7 +498,7 @@ class RedMLMSeeder extends Seeder
                 
                 $totalFinal = $totalPedido - $descuento;
                 
-                // Crear el pedido con datos completos
+                // Crear el pedido con datos completos (detalles embebidos)
                 $pedido = Pedido::create([
                     'numero_pedido' => $numeroPedido,
                     'user_id' => $cliente->_id,
@@ -500,7 +528,7 @@ class RedMLMSeeder extends Seeder
                     'total_final' => $totalFinal,
                     'notas' => rand(0, 100) < 30 ? 'Pedido generado automáticamente - Cliente preferencial' : null,
                     'metodo_pago' => ['efectivo', 'transferencia', 'nequi', 'daviplata', 'tarjeta'][array_rand(['efectivo', 'transferencia', 'nequi', 'daviplata', 'tarjeta'])],
-                    'detalles' => $detalles,
+                    'detalles' => $detalles, // Detalles embebidos en el pedido
                     'historial_estados' => $historialEstados,
                     'datos_entrega' => [
                         'conductor' => $estadoSeleccionado === 'en_camino' || $estadoSeleccionado === 'entregado' ? 'Conductor-' . rand(1, 10) : null,
@@ -515,41 +543,24 @@ class RedMLMSeeder extends Seeder
                             'monto' => $totalFinal * 0.10,
                         ]
                     ],
+                    'cantidad_productos' => count($detalles),
+                    'total_unidades' => $totalProductosVendidos,
                     'created_at' => $fechaCreacion,
-                    'updated_at' => $estadoSeleccionado === 'entregado' ? $fechaCreacion->addDays(rand(1, 3)) : now()->subDays(rand(0, 10)),
+                    'updated_at' => $fechaUltimaActualizacion,
                 ]);
 
-                // Crear los detalles del pedido como documentos separados (opcional, pero útil para consultas)
-                foreach ($detalles as $detalle) {
-                    DetallePedido::create([
-                        'pedido_id' => $pedido->_id,
-                        'pedido_data' => [
-                            'numero_pedido' => $numeroPedido,
-                            'estado' => $pedido->estado,
-                            'fecha' => $fechaCreacion->toDateString(),
-                        ],
-                        'producto_id' => $detalle['producto_id'],
-                        'producto_data' => $detalle['producto_data'],
-                        'cantidad' => $detalle['cantidad'],
-                        'precio_unitario' => $detalle['precio_unitario'],
-                        'subtotal' => $detalle['subtotal'],
-                        'descuento_aplicado' => $detalle['descuento_aplicado'],
-                        'created_at' => $fechaCreacion,
-                    ]);
-                    
-                    $detallesCreados++;
-                }
-
                 $ventasCreadas++;
+                $detallesCreados += count($detalles);
             }
         }
 
-        $this->command->info("✅ Creadas {$ventasCreadas} ventas con {$detallesCreados} productos en total");
+        $this->command->info("✅ Creadas {$ventasCreadas} ventas con {$detallesCreados} líneas de productos");
+        $this->command->info("   📦 Total de productos vendidos embebidos en pedidos");
     }
 
     private function verificarYCrearProductos()
     {
-        // Cargar productos existentes (NO crear nuevos, usar los que ya están con imágenes)
+        // Cargar productos existentes con sus categorías embebidas
         $this->productos = Producto::where('activo', true)->get();
         
         if ($this->productos->isEmpty()) {
@@ -558,10 +569,37 @@ class RedMLMSeeder extends Seeder
             throw new \Exception('No hay productos disponibles para generar ventas.');
         }
         
+        // Verificar que los productos tengan categorías embebidas
+        $productosSinCategoria = $this->productos->filter(function($producto) {
+            return empty($producto->categoria_data) && empty($producto->categoria_id);
+        });
+        
+        if ($productosSinCategoria->count() > 0) {
+            $this->command->warn("⚠️  {$productosSinCategoria->count()} productos sin categoría embebida. Embebiendo datos...");
+            
+            foreach ($productosSinCategoria as $producto) {
+                if ($producto->categoria_id) {
+                    $categoria = Categoria::find($producto->categoria_id);
+                    if ($categoria) {
+                        $producto->categoria_data = [
+                            '_id' => $categoria->_id,
+                            'nombre' => $categoria->nombre,
+                            'descripcion' => $categoria->descripcion ?? null,
+                            'slug' => $categoria->slug ?? null,
+                        ];
+                        $producto->save();
+                    }
+                }
+            }
+            
+            // Recargar productos
+            $this->productos = Producto::where('activo', true)->get();
+        }
+        
         $countCategorias = Categoria::where('activo', true)->count();
         
         $this->command->info("✅ {$this->productos->count()} productos y {$countCategorias} categorías encontrados");
-        $this->command->info("   (Usando productos existentes con imágenes)");
+        $this->command->info("   (Usando productos existentes con imágenes y categorías embebidas)");
     }
 
     private function crearClientesReales($cantidad)
@@ -619,6 +657,13 @@ class RedMLMSeeder extends Seeder
         $this->command->info("╚════════════════════════════════════════════════════════╝");
         $this->command->info("");
 
+        // Contar líneas de productos en pedidos (embebidos)
+        $totalLineasProductos = 0;
+        $pedidos = Pedido::all();
+        foreach ($pedidos as $pedido) {
+            $totalLineasProductos += count($pedido->detalles ?? []);
+        }
+
         $stats = [
             'total_usuarios' => User::count(),
             'administradores' => User::where('rol', 'administrador')->count(),
@@ -633,8 +678,8 @@ class RedMLMSeeder extends Seeder
             'vendedores_regulares' => User::whereBetween('total_referidos', [1, 4])->count(),
             'inactivos' => User::where('total_referidos', 0)->whereIn('rol', ['lider', 'vendedor'])->count(),
             'total_pedidos' => Pedido::count(),
-            'total_productos_vendidos' => DetallePedido::count(),
-            'valor_total_ventas' => Pedido::sum('total_final'),
+            'total_lineas_productos' => $totalLineasProductos,
+            'valor_total_ventas' => to_float(Pedido::sum('total_final')), // Convertir a float
             'productos_disponibles' => Producto::where('activo', true)->count(),
         ];
 
@@ -657,7 +702,7 @@ class RedMLMSeeder extends Seeder
                 ['❌ Sin Referidos', $stats['inactivos']],
                 ['', ''],
                 ['💰 Total Pedidos', $stats['total_pedidos']],
-                ['📦 Total Productos Vendidos', $stats['total_productos_vendidos']],
+                ['📦 Líneas de Productos', $stats['total_lineas_productos'] . ' (embebidos)'],
                 ['💵 Valor Total Ventas', '$' . number_format($stats['valor_total_ventas'], 0, ',', '.')],
                 ['🏪 Productos Disponibles', $stats['productos_disponibles']],
             ]
@@ -675,17 +720,35 @@ class RedMLMSeeder extends Seeder
         }
 
         $this->command->info("\n📈 Top 5 Productos Más Vendidos:");
-        $topProductos = DetallePedido::selectRaw('producto_id, SUM(cantidad) as total_vendido')
-            ->groupBy('producto_id')
-            ->orderBy('total_vendido', 'desc')
-            ->limit(5)
-            ->get();
-
-        foreach ($topProductos as $index => $detalle) {
-            $producto = Producto::find($detalle->producto_id);
-            if ($producto) {
-                $this->command->info("  " . ($index + 1) . ". {$producto->nombre} - {$detalle->total_vendido} unidades");
+        
+        // Calcular productos más vendidos desde los detalles embebidos
+        $productosVendidos = [];
+        foreach ($pedidos as $pedido) {
+            foreach ($pedido->detalles ?? [] as $detalle) {
+                $productoId = $detalle['producto_id'] ?? null;
+                if ($productoId) {
+                    if (!isset($productosVendidos[$productoId])) {
+                        $productosVendidos[$productoId] = [
+                            'cantidad' => 0,
+                            'nombre' => $detalle['producto_data']['nombre'] ?? 'Producto',
+                        ];
+                    }
+                    $productosVendidos[$productoId]['cantidad'] += $detalle['cantidad'] ?? 0;
+                }
             }
+        }
+        
+        // Ordenar y tomar top 5
+        uasort($productosVendidos, function($a, $b) {
+            return $b['cantidad'] <=> $a['cantidad'];
+        });
+        
+        $topProductos = array_slice($productosVendidos, 0, 5, true);
+        
+        $index = 1;
+        foreach ($topProductos as $data) {
+            $this->command->info("  {$index}. {$data['nombre']} - {$data['cantidad']} unidades");
+            $index++;
         }
 
         $this->command->info("\n✨ ¡Red MLM lista para visualizar en: http://127.0.0.1:8000/admin/referidos");

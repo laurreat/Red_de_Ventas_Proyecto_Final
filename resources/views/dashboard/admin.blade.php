@@ -215,8 +215,9 @@
                     <div class="product-list">
                         @foreach($productos_populares->take(5) as $index => $producto)
                         @php
-                            $maxVentas = $productos_populares->first()->cantidad_vendida ?? 1;
-                            $percentage = $maxVentas > 0 ? ($producto->cantidad_vendida / $maxVentas) * 100 : 0;
+                            $maxVentas = floatval($productos_populares->first()->cantidad_vendida ?? 1);
+                            $cantidadVendida = floatval($producto->cantidad_vendida ?? 0);
+                            $percentage = $maxVentas > 0 ? ($cantidadVendida / $maxVentas) * 100 : 0;
                             $rankClass = $index === 0 ? 'gold' : ($index === 1 ? 'silver' : ($index === 2 ? 'bronze' : ''));
                         @endphp
                         <div class="product-item">
@@ -232,7 +233,7 @@
                                 <div class="progress-label">{{ number_format($percentage, 1) }}%</div>
                             </div>
                             <div class="product-sales">
-                                <span class="sales-value">{{ number_format($producto->cantidad_vendida) }}</span>
+                                <span class="sales-value">{{ number_format($cantidadVendida) }}</span>
                                 <span class="sales-label">vendidos</span>
                             </div>
                         </div>

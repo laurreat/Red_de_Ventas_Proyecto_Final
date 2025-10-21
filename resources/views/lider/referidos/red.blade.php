@@ -157,7 +157,16 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Estructura Visual de la Red</h6>
-            <div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="zoomIn()">
+                    <i class="bi bi-zoom-in me-1"></i>Zoom In
+                </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="zoomOut()">
+                    <i class="bi bi-zoom-out me-1"></i>Zoom Out
+                </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="resetZoom()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                </button>
                 <button class="btn btn-sm btn-outline-primary" onclick="expandirTodo()">
                     <i class="bi bi-arrows-expand me-1"></i>Expandir Todo
                 </button>
@@ -166,9 +175,14 @@
                 </button>
             </div>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="overflow: auto; position: relative;">
+            <div class="zoom-level-indicator">
+                <i class="bi bi-zoom-in"></i>
+                <span id="zoomLevelText">80%</span>
+            </div>
             <!-- Nodo Principal (Líder) -->
-            <div class="network-container">
+            <div class="network-viewport">
+                <div class="network-container" id="networkContainer">
                 <div class="network-node leader-node">
                     <div class="node-avatar bg-primary">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -262,6 +276,7 @@
                         <p>Comienza invitando a tus primeros referidos para ver la estructura de tu red aquí.</p>
                     </div>
                 @endif
+                </div>
             </div>
         </div>
     </div>
@@ -298,9 +313,43 @@
 
 @push('styles')
 <style>
+.network-viewport {
+    min-height: 600px;
+    overflow: auto;
+    position: relative;
+    background: linear-gradient(to bottom, #f8f9fc 0%, #ffffff 100%);
+    border-radius: 8px;
+    padding: 20px;
+}
+
 .network-container {
     position: relative;
-    padding: 20px;
+    padding: 40px 20px;
+    min-width: max-content;
+    transform-origin: center top;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zoom-level-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(78, 115, 223, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .network-node {
@@ -312,48 +361,55 @@
 
 .leader-node {
     justify-content: center;
-    margin-bottom: 30px;
-    padding: 20px;
+    margin-bottom: 40px;
+    padding: 25px 35px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
+    border-radius: 20px;
     color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .leader-node .node-avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
-    margin-right: 20px;
+    width: 90px;
+    height: 90px;
+    font-size: 2.5rem;
+    margin-right: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .referido-node {
     background: white;
     border: 2px solid #e3e6f0;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 12px;
+    padding: 18px;
     margin-left: 50px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
+    min-width: 320px;
 }
 
 .referido-node:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    border-color: #4e73df;
 }
 
 .sub-referido-node {
     background: #f8f9fc;
-    border: 1px solid #d1d3e2;
-    border-radius: 8px;
-    padding: 10px;
+    border: 2px solid #d1d3e2;
+    border-radius: 10px;
+    padding: 12px;
     margin-left: 30px;
     margin-top: 10px;
+    min-width: 280px;
 }
 
 .node-avatar {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -361,6 +417,7 @@
     font-weight: bold;
     margin-right: 15px;
     color: white;
+    font-size: 1.3rem;
 }
 
 .node-info {
@@ -369,24 +426,33 @@
 
 .node-name {
     font-weight: bold;
-    font-size: 1rem;
-    margin-bottom: 2px;
+    font-size: 1.05rem;
+    margin-bottom: 3px;
+    color: #2c3e50;
 }
 
 .node-title {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: #6c757d;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    font-weight: 500;
 }
 
 .node-stats {
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    padding: 4px 10px;
+    background: rgba(78, 115, 223, 0.1);
+    border-radius: 6px;
 }
 
 .node-status {
     margin-left: 10px;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
 }
 
 .node-status.active {
@@ -399,41 +465,45 @@
 
 .expand-btn {
     position: absolute;
-    right: -15px;
+    right: -18px;
     top: 50%;
     transform: translateY(-50%);
     background: #4e73df;
     color: white;
-    border: none;
+    border: 2px solid white;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .expand-btn:hover {
     background: #2e59d9;
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
 .expand-count {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -10px;
+    right: -10px;
     background: #dc3545;
     color: white;
     border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 0.7rem;
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .node-connector {
@@ -452,32 +522,83 @@
 }
 
 .network-levels {
-    margin-top: 20px;
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .sub-network {
     margin-top: 15px;
-    padding-left: 20px;
-    border-left: 2px dashed #d1d3e2;
+    padding-left: 25px;
+    border-left: 3px dashed #d1d3e2;
+}
+
+/* Scrollbar personalizada */
+.network-viewport::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.network-viewport::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+
+.network-viewport::-webkit-scrollbar-thumb {
+    background: #4e73df;
+    border-radius: 6px;
+}
+
+.network-viewport::-webkit-scrollbar-thumb:hover {
+    background: #2e59d9;
 }
 
 @media (max-width: 768px) {
+    .network-container {
+        transform: scale(0.6);
+    }
+    
     .referido-node {
         margin-left: 20px;
-        padding: 10px;
+        padding: 12px;
+        min-width: 280px;
     }
 
     .node-avatar {
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         margin-right: 10px;
+        font-size: 1.1rem;
     }
 
     .leader-node .node-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
     }
+    
+    .zoom-level-indicator {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+}
+
+/* Animación de entrada */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.network-node {
+    animation: fadeInScale 0.4s ease-out;
 }
 </style>
 @endpush
@@ -485,6 +606,76 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Variables de zoom
+let currentZoom = 0.8; // Zoom inicial al 80%
+const minZoom = 0.3;
+const maxZoom = 1.5;
+const zoomStep = 0.1;
+
+// Actualizar el nivel de zoom
+function updateZoom() {
+    const container = document.getElementById('networkContainer');
+    const zoomText = document.getElementById('zoomLevelText');
+    
+    if (container) {
+        container.style.transform = `scale(${currentZoom})`;
+        zoomText.textContent = `${Math.round(currentZoom * 100)}%`;
+    }
+}
+
+// Zoom In
+function zoomIn() {
+    if (currentZoom < maxZoom) {
+        currentZoom = Math.min(currentZoom + zoomStep, maxZoom);
+        updateZoom();
+    }
+}
+
+// Zoom Out
+function zoomOut() {
+    if (currentZoom > minZoom) {
+        currentZoom = Math.max(currentZoom - zoomStep, minZoom);
+        updateZoom();
+    }
+}
+
+// Reset Zoom
+function resetZoom() {
+    currentZoom = 0.8;
+    updateZoom();
+    
+    // Centrar el viewport
+    const viewport = document.querySelector('.network-viewport');
+    if (viewport) {
+        viewport.scrollTop = 0;
+        viewport.scrollLeft = viewport.scrollWidth / 2 - viewport.clientWidth / 2;
+    }
+}
+
+// Soporte para zoom con rueda del mouse
+document.addEventListener('DOMContentLoaded', function() {
+    const viewport = document.querySelector('.network-viewport');
+    
+    if (viewport) {
+        viewport.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            }
+        }, { passive: false });
+        
+        // Centrar la vista al cargar
+        setTimeout(() => {
+            viewport.scrollLeft = (viewport.scrollWidth - viewport.clientWidth) / 2;
+        }, 100);
+    }
+});
+
 // Función para expandir/contraer sub-red
 function toggleSubRed(userId) {
     const subRed = document.getElementById(`subred-${userId}`);

@@ -35,32 +35,53 @@ class BuildMLMNetwork extends Command
                 })->delete();
                 $this->info("   ✅ Eliminados {$deletedUsers} usuarios (preservado admin)");
                 
-                // Pedidos
-                $deletedPedidos = \App\Models\Pedido::truncate();
-                $this->info("   ✅ Eliminados pedidos");
+                // Pedidos (incluye detalles embebidos)
+                try {
+                    $deletedPedidos = \App\Models\Pedido::query()->delete();
+                    $this->info("   ✅ Eliminados {$deletedPedidos} pedidos");
+                } catch (\Exception $e) {
+                    $this->warn("   ⚠️  Error al eliminar pedidos: " . $e->getMessage());
+                }
                 
-                // Detalles de pedidos
-                $deletedDetalles = \App\Models\DetallePedido::truncate();
-                $this->info("   ✅ Eliminados detalles de pedidos");
+                // Detalles de pedidos (colección separada si existe)
+                try {
+                    $deletedDetalles = \App\Models\DetallePedido::query()->delete();
+                    $this->info("   ✅ Eliminados {$deletedDetalles} detalles de pedidos");
+                } catch (\Exception $e) {
+                    // Si la colección no existe o hay error, continuar
+                    $this->info("   ℹ️  Detalles de pedidos: colección vacía o no existe");
+                }
                 
                 // Comisiones
-                $deletedComisiones = \App\Models\Comision::truncate();
-                $this->info("   ✅ Eliminadas comisiones");
+                try {
+                    $deletedComisiones = \App\Models\Comision::query()->delete();
+                    $this->info("   ✅ Eliminadas {$deletedComisiones} comisiones");
+                } catch (\Exception $e) {
+                    $this->info("   ℹ️  Comisiones: colección vacía o no existe");
+                }
                 
-                // Referidos (relaciones)
-                $deletedReferidos = \App\Models\Referido::truncate();
-                $this->info("   ✅ Eliminadas relaciones de referidos");
+                // Referidos (relaciones - si existe colección separada)
+                try {
+                    $deletedReferidos = \App\Models\Referido::query()->delete();
+                    $this->info("   ✅ Eliminadas {$deletedReferidos} relaciones de referidos");
+                } catch (\Exception $e) {
+                    $this->info("   ℹ️  Referidos: colección vacía o no existe");
+                }
                 
                 // Notificaciones (son calculables/regenerables)
-                $deletedNotificaciones = \App\Models\Notificacion::truncate();
-                $this->info("   ✅ Eliminadas notificaciones");
+                try {
+                    $deletedNotificaciones = \App\Models\Notificacion::query()->delete();
+                    $this->info("   ✅ Eliminadas {$deletedNotificaciones} notificaciones");
+                } catch (\Exception $e) {
+                    $this->info("   ℹ️  Notificaciones: colección vacía o no existe");
+                }
                 
                 // Mensajes de líder (son calculables)
                 try {
-                    $deletedMensajes = \App\Models\MensajeLider::truncate();
-                    $this->info("   ✅ Eliminados mensajes de líder");
+                    $deletedMensajes = \App\Models\MensajeLider::query()->delete();
+                    $this->info("   ✅ Eliminados {$deletedMensajes} mensajes de líder");
                 } catch (\Exception $e) {
-                    // Si la colección no existe, continuar
+                    $this->info("   ℹ️  Mensajes de líder: colección vacía o no existe");
                 }
                 
                 // Movimientos de inventario relacionados con pedidos
@@ -68,9 +89,9 @@ class BuildMLMNetwork extends Command
                     $deletedMovimientos = \App\Models\MovimientoInventario::where('tipo', 'salida')
                         ->whereNotNull('pedido_id')
                         ->delete();
-                    $this->info("   ✅ Eliminados movimientos de inventario de pedidos");
+                    $this->info("   ✅ Eliminados {$deletedMovimientos} movimientos de inventario de pedidos");
                 } catch (\Exception $e) {
-                    // Si hay error, continuar
+                    $this->info("   ℹ️  Movimientos de inventario: colección vacía o no existe");
                 }
                 
                 $this->newLine();
