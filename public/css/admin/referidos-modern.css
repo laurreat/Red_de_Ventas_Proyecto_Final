@@ -914,3 +914,130 @@
   .referidos-modal,
   .referidos-loading{display:none!important}
 }
+
+/* Pagination Styles */
+.referidos-pagination .pagination{
+  margin:0;
+  display:flex;
+  gap:.5rem;
+  justify-content:center;
+  align-items:center;
+}
+
+.referidos-pagination .page-item{
+  list-style:none;
+}
+
+.referidos-pagination .page-link{
+  background:var(--white);
+  border:2px solid var(--gray-border);
+  color:var(--wine);
+  padding:.625rem 1rem;
+  border-radius:8px;
+  font-weight:600;
+  transition:all .3s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.25rem;
+  font-size:.875rem;
+  min-width:40px;
+  min-height:40px;
+  line-height:1;
+}
+
+/* Control del tamaño de iconos/flechas en paginación */
+.referidos-pagination .page-link svg,
+.referidos-pagination .page-link i{
+  font-size:.875rem;
+  width:1em;
+  height:1em;
+  vertical-align:middle;
+}
+
+/* Prevenir que las flechas se vean muy grandes */
+.referidos-pagination .page-link[rel="prev"],
+.referidos-pagination .page-link[rel="next"]{
+  padding:.625rem .875rem;
+}
+
+.referidos-pagination .page-link[rel="prev"] svg,
+.referidos-pagination .page-link[rel="next"] svg{
+  width:.875rem;
+  height:.875rem;
+}
+
+.referidos-pagination .page-link:hover{
+  background:var(--wine-lighter);
+  border-color:var(--wine);
+  color:var(--wine-dark);
+  transform:translateY(-2px);
+  box-shadow:0 4px 8px rgba(114,47,55,.15);
+  text-decoration:none;
+}
+
+.referidos-pagination .page-item.active .page-link{
+  background:var(--wine);
+  border-color:var(--wine);
+  color:var(--white);
+  box-shadow:0 4px 12px rgba(114,47,55,.3);
+}
+
+.referidos-pagination .page-item.disabled .page-link{
+  background:var(--gray-light);
+  border-color:var(--gray-border);
+  color:#adb5bd;
+  cursor:not-allowed;
+  opacity:.6;
+}
+
+.referidos-pagination .page-item.disabled .page-link:hover{
+  transform:none;
+  box-shadow:none;
+  background:var(--gray-light);
+  border-color:var(--gray-border);
+  text-decoration:none;
+}
+
+/* Pagination info text */
+.referidos-table-container .border-top{
+  border-top:2px solid var(--gray-border)!important;
+  background:var(--gray-light);
+}
+
+.referidos-table-container .text-muted{
+  color:#6c757d!important;
+  font-size:.875rem;
+  font-weight:500;
+}
+
+/* Responsive pagination */
+@media (max-width:768px){
+  .referidos-pagination .pagination{
+    flex-wrap:wrap;
+    gap:.375rem;
+  }
+  
+  .referidos-pagination .page-link{
+    padding:.5rem .75rem;
+    font-size:.8rem;
+    min-width:36px;
+    min-height:36px;
+  }
+  
+  .referidos-pagination .page-link svg,
+  .referidos-pagination .page-link i{
+    font-size:.8rem;
+  }
+  
+  .referidos-table-container .border-top{
+    flex-direction:column;
+    gap:.75rem;
+    text-align:center;
+  }
+  
+  .referidos-table-container .border-top .d-flex{
+    flex-direction:column!important;
+    gap:.75rem;
+  }
+}

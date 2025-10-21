@@ -322,8 +322,15 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="p-3">
-                    {{ $usuarios->appends(request()->query())->links() }}
+                <div class="p-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            Mostrando {{ $usuarios->firstItem() ?? 0 }} - {{ $usuarios->lastItem() ?? 0 }} de {{ $usuarios->total() }} usuarios
+                        </div>
+                        <div class="referidos-pagination">
+                            {{ $usuarios->appends(request()->query())->links() }}
+                        </div>
+                    </div>
                 </div>
                 @else
                 <div class="referidos-empty-state">
