@@ -9,21 +9,33 @@ let simulation;
 let nodes = [];
 let links = [];
 
-// Configuración de colores y estilos - SISTEMA DE COLORES DIFERENCIADO
+// Configuración de colores y estilos - SISTEMA DE COLORES AVANZADO
 const config = {
     colors: {
-        lider: '#722F37',        // Vino tinto oscuro (LÍDER)
-        vendedor: '#A8556A',     // Vino rosado claro (VENDEDOR)
-        active: '#8B0000',       // Rojo oscuro intenso (+5 REFERIDOS)
-        selected: '#FFD700',     // Dorado (USUARIO ACTUAL/SELECCIONADO)
-        default: '#722F37',      // Vino tinto por defecto
-        border: '#ffffff',       // Borde blanco para contraste
-        selectedBorder: '#B8860B', // Borde dorado oscuro para seleccionado
-        activeBorder: '#ffffff'  // Borde blanco para nodos activos
+        // Categorías principales
+        topVentas: '#8B0000',       // Rojo oscuro intenso (TOP VENTAS - más de 20 referidos)
+        lider: '#722F37',           // Vino tinto oscuro (LÍDER)
+        topReferidos: '#B8860B',    // Dorado oscuro (TOP REFERIDOS - 10-20 referidos)
+        vendedorActivo: '#A8556A',  // Vino rosado (VENDEDOR ACTIVO - 5-10 referidos)
+        vendedor: '#C89FA6',        // Vino rosado claro (VENDEDOR - 1-5 referidos)
+        cliente: '#E8D5D9',         // Rosa pálido (CLIENTE/INACTIVO - 0 referidos)
+        selected: '#FFD700',        // Dorado brillante (USUARIO SELECCIONADO)
+        
+        // Bordes
+        border: '#ffffff',
+        selectedBorder: '#FF8C00',  // Naranja oscuro para seleccionado
+        activeBorder: '#ffffff'
     },
     nodeRadius: {
         min: 10,
-        max: 22
+        max: 25
+    },
+    // Umbrales para categorización
+    thresholds: {
+        topVentas: 20,      // +20 referidos
+        topReferidos: 10,   // 10-20 referidos
+        vendedorActivo: 5,  // 5-10 referidos
+        vendedor: 1         // 1-5 referidos
     }
 };
 
@@ -463,51 +475,69 @@ function renderForceView() {
 /**
  * Obtener color del nodo según su tipo y características
  * ORDEN DE PRIORIDAD:
- * 1. Usuario actual/seleccionado (Dorado)
- * 2. Nodos con +5 referidos (Rojo oscuro)
- * 3. Líder (Vino tinto oscuro)
- * 4. Vendedor (Vino rosado claro)
+ * 1. Usuario seleccionado (Dorado brillante)
+ * 2. Top ventas (+20 referidos) - Rojo oscuro
+ * 3. Top referidos (10-20 referidos) - Dorado oscuro
+ * 4. Vendedor activo (5-10 referidos) - Vino rosado
+ * 5. Líder - Vino tinto oscuro
+ * 6. Vendedor (1-5 referidos) - Vino rosado claro
+ * 7. Cliente/Inactivo (0 referidos) - Rosa pálido
  */
 function getNodeColor(node) {
-    // Prioridad 1: Usuario seleccionado/actual (DORADO)
+    // Prioridad 1: Usuario seleccionado/actual (DORADO BRILLANTE)
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
-        return config.colors.selected; // #FFD700 - Dorado
+        return config.colors.selected; // #FFD700
     }
 
-    // Prioridad 2: Nodos con muchos referidos (ROJO OSCURO INTENSO)
-    if (node.referidos_count > 5) {
-        return config.colors.active; // #8B0000 - Rojo oscuro
+    const referidosCount = node.referidos_count || 0;
+
+    // Prioridad 2: Top Ventas (+20 referidos) - ROJO OSCURO
+    if (referidosCount >= config.thresholds.topVentas) {
+        return config.colors.topVentas; // #8B0000
     }
 
-    // Prioridad 3: Tipo de usuario - LÍDER (VINO TINTO OSCURO)
+    // Prioridad 3: Top Referidos (10-20 referidos) - DORADO OSCURO
+    if (referidosCount >= config.thresholds.topReferidos) {
+        return config.colors.topReferidos; // #B8860B
+    }
+
+    // Prioridad 4: Vendedor Activo (5-10 referidos) - VINO ROSADO
+    if (referidosCount >= config.thresholds.vendedorActivo) {
+        return config.colors.vendedorActivo; // #A8556A
+    }
+
+    // Prioridad 5: Líder (independiente de referidos si <5) - VINO TINTO OSCURO
     if (node.tipo === 'lider') {
-        return config.colors.lider; // #722F37 - Vino tinto oscuro
+        return config.colors.lider; // #722F37
     }
 
-    // Prioridad 4: Tipo de usuario - VENDEDOR (VINO ROSADO CLARO)
-    if (node.tipo === 'vendedor') {
-        return config.colors.vendedor; // #A8556A - Vino rosado claro
+    // Prioridad 6: Vendedor con 1-5 referidos - VINO ROSADO CLARO
+    if (referidosCount >= config.thresholds.vendedor) {
+        return config.colors.vendedor; // #C89FA6
     }
 
-    return config.colors.default;
+    // Prioridad 7: Cliente/Inactivo (0 referidos) - ROSA PÁLIDO
+    return config.colors.cliente; // #E8D5D9
 }
 
 /**
  * Obtener color del borde del nodo
  */
 function getNodeBorderColor(node) {
-    // Usuario seleccionado tiene borde dorado oscuro
+    // Usuario seleccionado tiene borde naranja oscuro
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
-        return config.colors.selectedBorder; // #B8860B - Dorado oscuro
+        return config.colors.selectedBorder; // #FF8C00 - Naranja oscuro
     }
 
-    // Nodos con muchos referidos tienen borde blanco destacado
-    if (node.referidos_count > 5) {
+    const referidosCount = node.referidos_count || 0;
+
+    // Top ventas y top referidos tienen borde blanco destacado
+    if (referidosCount >= config.thresholds.vendedorActivo) {
         return config.colors.activeBorder; // #ffffff - Blanco
     }
 
-    // Resto tiene borde blanco
-    return config.colors.border; // #ffffff - Blanco
+    // Resto tiene borde gris claro
+    return '#e0e0e0';
 }
 
 /**
@@ -516,54 +546,142 @@ function getNodeBorderColor(node) {
 function getNodeBorderWidth(node) {
     // Usuario seleccionado tiene borde más grueso (destacado)
     if (moduleUsuarioSeleccionado && node.id === moduleUsuarioSeleccionado.id) {
+        return 6;
+    }
+
+    const referidosCount = node.referidos_count || 0;
+
+    // Top ventas tienen borde muy grueso
+    if (referidosCount >= config.thresholds.topVentas) {
         return 5;
     }
 
-    // Nodos con +5 referidos tienen borde grueso
-    if (node.referidos_count > 5) {
+    // Top referidos y vendedores activos tienen borde grueso
+    if (referidosCount >= config.thresholds.vendedorActivo) {
         return 4;
     }
 
     // Resto tiene borde normal
-    return 3;
+    return 2;
 }
 
 /**
  * Agregar eventos a los nodos
  */
 function addNodeEvents(nodeSelection) {
-    const tooltip = d3.select('#network-tooltip');
+    // Crear tooltip si no existe
+    let tooltip = d3.select('#network-tooltip');
+    if (tooltip.empty()) {
+        tooltip = d3.select('body')
+            .append('div')
+            .attr('id', 'network-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'rgba(0, 0, 0, 0.9)')
+            .style('color', 'white')
+            .style('padding', '12px 16px')
+            .style('border-radius', '8px')
+            .style('pointer-events', 'none')
+            .style('opacity', 0)
+            .style('z-index', 10000)
+            .style('font-size', '13px')
+            .style('line-height', '1.6')
+            .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.3)')
+            .style('transition', 'opacity 0.2s');
+    }
 
     nodeSelection
         .on('mouseover', function(event, d) {
             // Determinar si es vista de árbol (d.data) o vista de fuerza (d directo)
             const nodeData = d.data || d;
+            const referidosCount = nodeData.referidos_count || 0;
+
+            // Determinar categoría para mostrar en tooltip
+            let categoria = 'Cliente/Inactivo';
+            if (referidosCount >= config.thresholds.topVentas) {
+                categoria = '🏆 Top Ventas';
+            } else if (referidosCount >= config.thresholds.topReferidos) {
+                categoria = '⭐ Top Referidos';
+            } else if (referidosCount >= config.thresholds.vendedorActivo) {
+                categoria = '✅ Vendedor Activo';
+            } else if (nodeData.tipo === 'lider') {
+                categoria = '👑 Líder';
+            } else if (referidosCount >= config.thresholds.vendedor) {
+                categoria = '👤 Vendedor';
+            }
+
+            // Resaltar nodo
+            d3.select(this).select('circle')
+                .style('filter', 'brightness(1.2)')
+                .style('stroke-width', function(d) {
+                    const currentWidth = getNodeBorderWidth(nodeData);
+                    return currentWidth + 2;
+                });
 
             tooltip
                 .style('opacity', 1)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 10) + 'px')
+                .style('left', (event.pageX + 15) + 'px')
+                .style('top', (event.pageY - 15) + 'px')
                 .html(`
-                <strong>${nodeData.name || 'Sin nombre'}</strong><br>
-                Cédula: ${nodeData.cedula || 'N/A'}<br>
-                Tipo: ${nodeData.tipo || 'N/A'}<br>
-                Email: ${nodeData.email || 'N/A'}<br>
-                Referidos: ${nodeData.referidos_count || 0}<br>
-                Nivel: ${nodeData.nivel || (nodeData.level ? nodeData.level + 1 : 'N/A')}
+                <div style="min-width: 200px;">
+                    <strong style="font-size: 14px; color: #FFD700;">${nodeData.name || 'Sin nombre'}</strong><br>
+                    <span style="color: #aaa;">Categoría:</span> <strong style="color: #FFD700;">${categoria}</strong><br>
+                    <span style="color: #aaa;">Cédula:</span> ${nodeData.cedula || 'N/A'}<br>
+                    <span style="color: #aaa;">Tipo:</span> ${nodeData.tipo ? nodeData.tipo.charAt(0).toUpperCase() + nodeData.tipo.slice(1) : 'N/A'}<br>
+                    <span style="color: #aaa;">Email:</span> ${nodeData.email || 'N/A'}<br>
+                    <span style="color: #aaa;">Referidos:</span> <strong style="color: #4CAF50;">${referidosCount}</strong><br>
+                    <span style="color: #aaa;">Nivel:</span> ${nodeData.nivel || (nodeData.level ? nodeData.level + 1 : 'N/A')}<br>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; color: #FFD700; font-size: 11px;">
+                        💡 Click para ver detalles
+                    </div>
+                </div>
             `);
         })
         .on('mousemove', function(event) {
             tooltip
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 10) + 'px');
+                .style('left', (event.pageX + 15) + 'px')
+                .style('top', (event.pageY - 15) + 'px');
         })
-        .on('mouseout', function() {
+        .on('mouseout', function(event, d) {
+            const nodeData = d.data || d;
+            
+            // Restaurar estilo normal
+            d3.select(this).select('circle')
+                .style('filter', 'none')
+                .style('stroke-width', getNodeBorderWidth(nodeData));
+
             tooltip.style('opacity', 0);
         })
         .on('click', function(event, d) {
-            // Abrir detalles del usuario (se configura desde la vista)
-            if (window.openUserDetails) {
-                window.openUserDetails(d.data || d);
+            // Obtener datos del nodo
+            const nodeData = d.data || d;
+            
+            // Redirigir a la página de detalles del usuario
+            if (nodeData.id && nodeData.id !== 'artificial-root') {
+                // Usar la ruta de show de referidos para ver la red del usuario
+                const url = window.routes && window.routes.show 
+                    ? window.routes.show.replace(':id', nodeData.id)
+                    : `/admin/referidos/${nodeData.id}`;
+                
+                // Mostrar feedback visual
+                d3.select(this).select('circle')
+                    .transition()
+                    .duration(200)
+                    .attr('r', function(d) {
+                        const currentRadius = Math.max(config.nodeRadius.min,
+                            Math.min(config.nodeRadius.max, 10 + (nodeData.referidos_count || 0)));
+                        return currentRadius * 1.2;
+                    })
+                    .transition()
+                    .duration(200)
+                    .attr('r', function(d) {
+                        return Math.max(config.nodeRadius.min,
+                            Math.min(config.nodeRadius.max, 10 + (nodeData.referidos_count || 0)));
+                    });
+
+                // Redirigir después de la animación
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 300);
             }
         });
 }

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sistema de Colores MLM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{
+            --wine:#722F37;
+            --wine-dark:#5a2329;
+            --wine-light:rgba(114,47,55,0.1);
+            --white:#ffffff;
+            --gray-light:#f8f9fa;
+            --gray-border:#e0e0e0;
+            --shadow:0 2px 8px rgba(114,47,55,0.1);
+        }
+
+        body {
+            background: var(--gray-light);
+            padding: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .referidos-legend{
+            background:linear-gradient(135deg,var(--white) 0%,var(--gray-light) 100%);
+            border-left:5px solid var(--wine);
+            padding:1.25rem 1.5rem;
+            border-radius:10px;
+            border:1px solid var(--wine-light);
+            box-shadow:var(--shadow);
+        }
+
+        .referidos-legend-title{
+            display:flex;
+            align-items:center;
+            gap:.5rem;
+            font-size:.95rem;
+            font-weight:700;
+            color:var(--wine);
+            margin-bottom:1rem;
+            text-transform:uppercase;
+            letter-spacing:.5px;
+        }
+
+        .referidos-legend-items{
+            display:flex;
+            flex-wrap:wrap;
+            gap:1.5rem;
+        }
+
+        .referidos-legend-item{
+            display:flex;
+            align-items:flex-start;
+            gap:.625rem;
+            font-size:.875rem;
+            font-weight:600;
+            color:var(--wine);
+            padding:.75rem 1rem;
+            background:var(--white);
+            border-radius:8px;
+            transition:all .3s ease;
+            border:1px solid var(--gray-border);
+            flex:1;
+            min-width:200px;
+        }
+
+        .referidos-legend-item:hover{
+            transform:translateY(-2px);
+            box-shadow:0 4px 12px rgba(114,47,55,.15);
+            border-color:var(--wine);
+        }
+
+        .referidos-legend-dot{
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            box-shadow:0 2px 8px rgba(0,0,0,.25);
+            transition:all .3s ease;
+            flex-shrink:0;
+            border:3px solid var(--white);
+            margin-top:2px;
+        }
+
+        .referidos-legend-item:hover .referidos-legend-dot{
+            transform:scale(1.3);
+            box-shadow:0 4px 12px rgba(0,0,0,.4);
+        }
+
+        .referidos-legend-label{
+            font-size:.85rem;
+            font-weight:600;
+            color:#495057;
+            flex:1;
+        }
+
+        .referidos-legend-label small{
+            font-size:.75rem;
+            font-weight:400;
+            color:#6c757d;
+            margin-top:2px;
+        }
+
+        .color-samples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .color-sample {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .color-sample:hover {
+            transform: scale(1.05);
+        }
+
+        .info-box {
+            background: rgba(114, 47, 55, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid var(--wine);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="mb-4" style="color: var(--wine);">
+            <i class="bi bi-palette-fill me-2"></i>
+            Test - Sistema de Colores MLM
+        </h1>
+
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Propósito:</strong> Verificar la visualización de la leyenda de colores y el sistema de categorización de la red MLM.
+        </div>
+
+        <!-- Leyenda Completa -->
+        <div class="referidos-legend mb-4">
+            <div class="referidos-legend-title">
+                <i class="bi bi-palette-fill"></i>
+                <span>Código de Colores de la Red MLM</span>
+            </div>
+            <div class="referidos-legend-items">
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #FFD700; border-color: #FF8C00;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>Usuario Seleccionado</strong>
+                        <small class="d-block text-muted">Nodo actual en vista</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #8B0000;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>🏆 Top Ventas</strong>
+                        <small class="d-block text-muted">+20 referidos</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #B8860B;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>⭐ Top Referidos</strong>
+                        <small class="d-block text-muted">10-20 referidos</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #A8556A;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>✅ Vendedor Activo</strong>
+                        <small class="d-block text-muted">5-10 referidos</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #722F37;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>👑 Líder</strong>
+                        <small class="d-block text-muted">Rol de líder</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #C89FA6;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>👤 Vendedor</strong>
+                        <small class="d-block text-muted">1-5 referidos</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #E8D5D9;"></div>
+                    <span class="referidos-legend-label">
+                        <strong>Cliente/Inactivo</strong>
+                        <small class="d-block text-muted">0 referidos</small>
+                    </span>
+                </div>
+            </div>
+            <div class="info-box mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Interacción:</strong> Haga click en cualquier nodo para ver los detalles completos del usuario y su red de referidos.
+                </small>
+            </div>
+        </div>
+
+        <!-- Muestras de Color -->
+        <h3 class="mt-5 mb-3" style="color: var(--wine);">
+            <i class="bi bi-droplet-fill me-2"></i>
+            Paleta de Colores
+        </h3>
+
+        <div class="color-samples">
+            <div class="color-sample" style="background: #FFD700; color: #000;">
+                #FFD700<br>
+                <small>Seleccionado</small>
+            </div>
+            <div class="color-sample" style="background: #8B0000;">
+                #8B0000<br>
+                <small>Top Ventas</small>
+            </div>
+            <div class="color-sample" style="background: #B8860B;">
+                #B8860B<br>
+                <small>Top Referidos</small>
+            </div>
+            <div class="color-sample" style="background: #A8556A;">
+                #A8556A<br>
+                <small>Vendedor Activo</small>
+            </div>
+            <div class="color-sample" style="background: #722F37;">
+                #722F37<br>
+                <small>Líder</small>
+            </div>
+            <div class="color-sample" style="background: #C89FA6;">
+                #C89FA6<br>
+                <small>Vendedor</small>
+            </div>
+            <div class="color-sample" style="background: #E8D5D9; color: #000;">
+                #E8D5D9<br>
+                <small>Inactivo</small>
+            </div>
+        </div>
+
+        <!-- Información de Umbrales -->
+        <h3 class="mt-5 mb-3" style="color: var(--wine);">
+            <i class="bi bi-bar-chart-fill me-2"></i>
+            Umbrales de Categorización
+        </h3>
+
+        <table class="table table-striped table-hover">
+            <thead style="background: var(--wine); color: white;">
+                <tr>
+                    <th>Categoría</th>
+                    <th>Rango de Referidos</th>
+                    <th>Color</th>
+                    <th>Prioridad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Usuario Seleccionado</strong></td>
+                    <td>N/A (actual)</td>
+                    <td><span class="badge" style="background: #FFD700; color: #000;">#FFD700</span></td>
+                    <td><span class="badge bg-danger">1 - Máxima</span></td>
+                </tr>
+                <tr>
+                    <td><strong>🏆 Top Ventas</strong></td>
+                    <td>≥ 20 referidos</td>
+                    <td><span class="badge" style="background: #8B0000;">#8B0000</span></td>
+                    <td><span class="badge bg-warning">2</span></td>
+                </tr>
+                <tr>
+                    <td><strong>⭐ Top Referidos</strong></td>
+                    <td>10-19 referidos</td>
+                    <td><span class="badge" style="background: #B8860B;">#B8860B</span></td>
+                    <td><span class="badge bg-warning">3</span></td>
+                </tr>
+                <tr>
+                    <td><strong>✅ Vendedor Activo</strong></td>
+                    <td>5-9 referidos</td>
+                    <td><span class="badge" style="background: #A8556A;">#A8556A</span></td>
+                    <td><span class="badge bg-info">4</span></td>
+                </tr>
+                <tr>
+                    <td><strong>👑 Líder</strong></td>
+                    <td>Rol de líder (&lt;5 ref.)</td>
+                    <td><span class="badge" style="background: #722F37;">#722F37</span></td>
+                    <td><span class="badge bg-info">5</span></td>
+                </tr>
+                <tr>
+                    <td><strong>👤 Vendedor</strong></td>
+                    <td>1-4 referidos</td>
+                    <td><span class="badge" style="background: #C89FA6;">#C89FA6</span></td>
+                    <td><span class="badge bg-secondary">6</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Cliente/Inactivo</strong></td>
+                    <td>0 referidos</td>
+                    <td><span class="badge" style="background: #E8D5D9; color: #000;">#E8D5D9</span></td>
+                    <td><span class="badge bg-secondary">7 - Mínima</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-success mt-4">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong>¡Test Completo!</strong> Si puedes ver todos los colores correctamente, el sistema está funcionando.
+        </div>
+    </div>
+</body>
+</html>

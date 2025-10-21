@@ -437,29 +437,68 @@
                         </div>
                     </div>
 
-                    <!-- Leyenda Mejorada con Colores Diferenciados -->
+                    <!-- Leyenda Mejorada con Sistema de Colores Avanzado -->
                     <div class="referidos-legend mb-4">
                         <div class="referidos-legend-title">
                             <i class="bi bi-palette-fill"></i>
-                            <span>Código de Colores de la Red</span>
+                            <span>Código de Colores de la Red MLM</span>
                         </div>
                         <div class="referidos-legend-items">
                             <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #FFD700; border-color: #FF8C00;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>Usuario Seleccionado</strong>
+                                    <small class="d-block text-muted">Nodo actual en vista</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #8B0000;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>🏆 Top Ventas</strong>
+                                    <small class="d-block text-muted">+20 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #B8860B;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>⭐ Top Referidos</strong>
+                                    <small class="d-block text-muted">10-20 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #A8556A;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>✅ Vendedor Activo</strong>
+                                    <small class="d-block text-muted">5-10 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
                                 <div class="referidos-legend-dot referidos-legend-dot-lider"></div>
-                                <span class="referidos-legend-label">Líder</span>
+                                <span class="referidos-legend-label">
+                                    <strong>👑 Líder</strong>
+                                    <small class="d-block text-muted">Rol de líder</small>
+                                </span>
                             </div>
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot referidos-legend-dot-vendedor"></div>
-                                <span class="referidos-legend-label">Vendedor</span>
+                                <div class="referidos-legend-dot" style="background: #C89FA6;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>👤 Vendedor</strong>
+                                    <small class="d-block text-muted">1-5 referidos</small>
+                                </span>
                             </div>
                             <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot referidos-legend-dot-active"></div>
-                                <span class="referidos-legend-label">+5 Referidos</span>
+                                <div class="referidos-legend-dot" style="background: #E8D5D9;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>Cliente/Inactivo</strong>
+                                    <small class="d-block text-muted">0 referidos</small>
+                                </span>
                             </div>
-                            <div class="referidos-legend-item">
-                                <div class="referidos-legend-dot referidos-legend-dot-selected"></div>
-                                <span class="referidos-legend-label">Usuario Actual</span>
-                            </div>
+                        </div>
+                        <div class="mt-3 p-3" style="background: rgba(114, 47, 55, 0.05); border-radius: 8px; border-left: 4px solid var(--wine);">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Interacción:</strong> Haga click en cualquier nodo para ver los detalles completos del usuario y su red de referidos.
+                            </small>
                         </div>
                     </div>
 
