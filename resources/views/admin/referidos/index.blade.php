@@ -159,6 +159,16 @@
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
             <div class="referidos-stat-card animate-scale-in animate-delay-3">
                 <div class="referidos-stat-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="referidos-stat-value">{{ $stats['total_clientes'] }}</div>
+                <div class="referidos-stat-label">Total Clientes</div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+            <div class="referidos-stat-card animate-scale-in animate-delay-4">
+                <div class="referidos-stat-icon">
                     <i class="bi bi-diagram-3"></i>
                 </div>
                 <div class="referidos-stat-value">{{ $stats['usuarios_con_referidos'] }}</div>
@@ -167,7 +177,7 @@
         </div>
 
         <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
-            <div class="referidos-stat-card animate-scale-in animate-delay-4">
+            <div class="referidos-stat-card animate-scale-in animate-delay-5">
                 <div class="referidos-stat-icon">
                     <i class="bi bi-person-x"></i>
                 </div>
@@ -220,6 +230,7 @@
                                 <option value="">Todos los tipos</option>
                                 <option value="vendedor" {{ $tipo == 'vendedor' ? 'selected' : '' }}>Vendedores</option>
                                 <option value="lider" {{ $tipo == 'lider' ? 'selected' : '' }}>Líderes</option>
+                                <option value="cliente" {{ $tipo == 'cliente' ? 'selected' : '' }}>Clientes</option>
                             </select>
                         </div>
                         <div class="col-lg-3 col-md-6 mb-3">
@@ -379,7 +390,7 @@
     </div>
 
     <!-- Visualización de Red -->
-    @if($referidos->isNotEmpty())
+    @if(!empty($redJerarquica) && is_array($redJerarquica) && count($redJerarquica) > 0)
     <div class="row mt-5">
         <div class="col-12">
             <div class="referidos-network-card animate-fade-in-up animate-delay-4">
@@ -469,7 +480,7 @@
                     <div class="referidos-legend-card mb-5">
                         <div class="referidos-legend-header">
                             <i class="bi bi-palette-fill me-2"></i>
-                            <h6 class="mb-0">Código de Colores de la Red MLM</h6>
+                            <h6 class="mb-0">Código de Colores - Red MLM Completa</h6>
                         </div>
                         <div class="referidos-legend-body">
                             <div class="row g-3">
@@ -477,8 +488,21 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #FFD700; border: 3px solid #FF8C00;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">Usuario Seleccionado</div>
-                                            <div class="legend-color-desc">Nodo actual en vista</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-bullseye text-warning"></i> Nodo Seleccionado
+                                            </div>
+                                            <div class="legend-color-desc">Usuario actual en visualización</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-sm-6">
+                                    <div class="legend-color-item">
+                                        <div class="legend-color-circle" style="background: #DC143C;"></div>
+                                        <div class="legend-color-info">
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-trophy-fill text-danger"></i> Top Ventas
+                                            </div>
+                                            <div class="legend-color-desc">Más de $5,000,000 en ventas totales</div>
                                         </div>
                                     </div>
                                 </div>
@@ -486,8 +510,10 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #8B0000;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">🏆 Top Ventas</div>
-                                            <div class="legend-color-desc">Más de 20 referidos</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-star-fill text-danger"></i> Red Grande
+                                            </div>
+                                            <div class="legend-color-desc">Más de 20 referidos directos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -495,8 +521,21 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #B8860B;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">⭐ Top Referidos</div>
-                                            <div class="legend-color-desc">10-20 referidos</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-currency-dollar"></i> Ventas Altas
+                                            </div>
+                                            <div class="legend-color-desc">Entre $2M - $5M en ventas</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-sm-6">
+                                    <div class="legend-color-item">
+                                        <div class="legend-color-circle" style="background: #4169E1;"></div>
+                                        <div class="legend-color-info">
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-person-hearts text-primary"></i> Cliente Top Referidor
+                                            </div>
+                                            <div class="legend-color-desc">Cliente con 5+ referidos directos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -504,8 +543,10 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #A8556A;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">✅ Vendedor Activo</div>
-                                            <div class="legend-color-desc">5-10 referidos</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-people-fill"></i> Red Activa
+                                            </div>
+                                            <div class="legend-color-desc">Vendedor con 5-10 referidos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -513,8 +554,10 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #722F37;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">👑 Líder</div>
-                                            <div class="legend-color-desc">Rol de líder</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-award-fill"></i> Líder
+                                            </div>
+                                            <div class="legend-color-desc">Usuario con rol de líder</div>
                                         </div>
                                     </div>
                                 </div>
@@ -522,8 +565,21 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #C89FA6;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">👤 Vendedor</div>
-                                            <div class="legend-color-desc">1-5 referidos</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-person-fill"></i> Vendedor
+                                            </div>
+                                            <div class="legend-color-desc">Vendedor con 1-4 referidos</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-sm-6">
+                                    <div class="legend-color-item">
+                                        <div class="legend-color-circle" style="background: #87CEEB;"></div>
+                                        <div class="legend-color-info">
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-person-plus text-info"></i> Cliente con Referidos
+                                            </div>
+                                            <div class="legend-color-desc">Cliente con 1-4 referidos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -531,8 +587,10 @@
                                     <div class="legend-color-item">
                                         <div class="legend-color-circle" style="background: #E8D5D9;"></div>
                                         <div class="legend-color-info">
-                                            <div class="legend-color-title">Cliente/Inactivo</div>
-                                            <div class="legend-color-desc">Sin referidos</div>
+                                            <div class="legend-color-title">
+                                                <i class="bi bi-person"></i> Cliente/Inactivo
+                                            </div>
+                                            <div class="legend-color-desc">Sin referidos directos</div>
                                         </div>
                                     </div>
                                 </div>
@@ -540,7 +598,7 @@
                         </div>
                         <div class="referidos-legend-footer">
                             <i class="bi bi-info-circle me-2"></i>
-                            <span><strong>Tip:</strong> Haz clic en cualquier nodo para ver los detalles completos del usuario y su red de referidos.</span>
+                            <span><strong>Interacción:</strong> Click en cualquier nodo para ver detalles. Los clientes NO generan ventas, solo compran.</span>
                         </div>
                     </div>
 

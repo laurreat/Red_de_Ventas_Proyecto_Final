@@ -38,7 +38,7 @@ class RedMLMSeeder extends Seeder
 
     public function run(): void
     {
-        $this->command->info('🌟 Iniciando construcción de Red MLM robusta...');
+        $this->command->info('🌟 Iniciando construcción de Red MLM compacta con TODAS las categorías de leyenda...');
 
         // Verificar y crear productos si no existen
         $this->command->info('🔍 Verificando productos disponibles...');
@@ -54,68 +54,65 @@ class RedMLMSeeder extends Seeder
 
         $this->command->info("✅ Admin encontrado: {$admin->name}");
 
-        // NIVEL 1: Crear líderes principales (4-6 líderes directos del admin)
+        // NIVEL 1: Crear líderes principales (3 líderes directos del admin)
         $this->command->info("\n📊 NIVEL 1: Creando líderes principales...");
-        $lideresNivel1 = $this->crearLideres($admin->_id, 5, 1);
+        $lideresNivel1 = $this->crearLideres($admin->_id, 3, 1);
         $this->command->info("✅ Creados " . count($lideresNivel1) . " líderes principales");
 
-        // NIVEL 2: Cada líder principal tiene 3-5 sub-líderes
+        // NIVEL 2: Cada líder principal tiene 2-3 sub-líderes
         $this->command->info("\n📊 NIVEL 2: Creando sub-líderes...");
         $lideresNivel2 = [];
         foreach ($lideresNivel1 as $lider) {
-            $subLideres = $this->crearLideres($lider->_id, rand(3, 5), 2);
+            $subLideres = $this->crearLideres($lider->_id, rand(2, 3), 2);
             $lideresNivel2 = array_merge($lideresNivel2, $subLideres);
         }
         $this->command->info("✅ Creados " . count($lideresNivel2) . " sub-líderes");
 
-        // NIVEL 3: Vendedores activos (cada sub-líder tiene 5-8 vendedores activos)
+        // NIVEL 3: Vendedores activos (cada sub-líder tiene 2-3 vendedores activos)
         $this->command->info("\n📊 NIVEL 3: Creando vendedores activos...");
         $vendedoresActivos = [];
         foreach ($lideresNivel2 as $lider) {
-            $vendedores = $this->crearVendedores($lider->_id, rand(5, 8), 'activo');
+            $vendedores = $this->crearVendedores($lider->_id, rand(2, 3), 'activo');
             $vendedoresActivos = array_merge($vendedoresActivos, $vendedores);
         }
         $this->command->info("✅ Creados " . count($vendedoresActivos) . " vendedores activos");
 
-        // NIVEL 4: Vendedores regulares (cada vendedor activo tiene 2-4 vendedores)
+        // NIVEL 4: Vendedores regulares (cada vendedor activo tiene 1-2 vendedores)
         $this->command->info("\n📊 NIVEL 4: Creando vendedores regulares...");
         $vendedoresRegulares = [];
         foreach ($vendedoresActivos as $vendedor) {
-            $subVendedores = $this->crearVendedores($vendedor->_id, rand(2, 4), 'regular');
+            $subVendedores = $this->crearVendedores($vendedor->_id, rand(1, 2), 'regular');
             $vendedoresRegulares = array_merge($vendedoresRegulares, $subVendedores);
         }
         $this->command->info("✅ Creados " . count($vendedoresRegulares) . " vendedores regulares");
 
-        // NIVEL 5: Clientes que compran y algunos referidos (cada vendedor regular tiene 1-3 clientes)
-        $this->command->info("\n📊 NIVEL 5: Creando clientes/vendedores iniciales...");
-        $clientesVendedores = [];
-        foreach ($vendedoresRegulares as $vendedor) {
-            $clientes = $this->crearVendedores($vendedor->_id, rand(1, 3), 'cliente');
-            $clientesVendedores = array_merge($clientesVendedores, $clientes);
-        }
-        $this->command->info("✅ Creados " . count($clientesVendedores) . " clientes/vendedores iniciales");
+        // NIVEL 5: Crear clientes reales referidos por vendedores
+        $this->command->info("\n📊 NIVEL 5: Creando clientes referidos por vendedores...");
+        $todosVendedores = array_merge($vendedoresActivos, $vendedoresRegulares);
+        $this->crearClientesReales($todosVendedores, rand(40, 50));
+        $this->command->info("✅ Creados " . count($this->clientes) . " clientes referidos por vendedores");
 
-        // NIVEL 6: Crear clientes reales (no vendedores) para las compras
-        $this->command->info("\n📊 NIVEL 6: Creando clientes reales para compras...");
-        $this->crearClientesReales(100); // Crear 100 clientes
-        $this->command->info("✅ Creados " . count($this->clientes) . " clientes reales");
-
-        // NIVEL 7: Algunos líderes de nivel 1 tienen vendedores directos también
-        $this->command->info("\n📊 NIVEL 7: Agregando vendedores directos a líderes principales...");
-        $vendedoresDirectos = [];
-        foreach ($lideresNivel1 as $lider) {
-            $vendedores = $this->crearVendedores($lider->_id, rand(3, 6), 'directo');
-            $vendedoresDirectos = array_merge($vendedoresDirectos, $vendedores);
-        }
-        $this->command->info("✅ Creados " . count($vendedoresDirectos) . " vendedores directos de líderes");
+        // NIVEL 6: Algunos clientes refieren a otros clientes (red de clientes)
+        $this->command->info("\n📊 NIVEL 6: Creando clientes referidos por otros clientes...");
+        $clientesIniciales = $this->clientes;
+        $this->crearClientesReferidosPorClientes($clientesIniciales, rand(20, 30));
+        $this->command->info("✅ Creados clientes adicionales referidos por otros clientes");
 
         // Actualizar contadores de referidos
         $this->command->info("\n🔄 Actualizando contadores de referidos...");
         $this->actualizarContadores();
 
-        // Crear ventas para dar realismo
-        $this->command->info("\n💰 Generando ventas para la red...");
+        // CREAR USUARIOS ESPECÍFICOS PARA CADA CATEGORÍA DE LEYENDA
+        $this->command->info("\n🎨 Creando usuarios específicos para todas las categorías de leyenda...");
+        $this->crearUsuariosParaLeyendas($admin->_id);
+
+        // Crear ventas SOLO para líderes y vendedores
+        $this->command->info("\n💰 Generando ventas para líderes y vendedores...");
         $this->generarVentas();
+
+        // Asegurar ventas altas para categorías específicas
+        $this->command->info("\n💎 Generando ventas adicionales para categorías TOP...");
+        $this->generarVentasParaTopCategorias();
 
         // Resumen final
         $this->mostrarResumen();
@@ -376,7 +373,7 @@ class RedMLMSeeder extends Seeder
 
     private function generarVentas()
     {
-        // Obtener vendedores y líderes
+        // Obtener SOLO vendedores y líderes (NO clientes)
         $usuarios = User::whereIn('rol', ['lider', 'vendedor'])
             ->where('activo', true)
             ->get();
@@ -385,29 +382,33 @@ class RedMLMSeeder extends Seeder
         $detallesCreados = 0;
 
         foreach ($usuarios as $usuario) {
-            // Cantidad de ventas según nivel
+            // Cantidad de ventas según nivel (ajustado para pruebas reales)
             $cantidadVentas = 0;
             
             if ($usuario->rol === 'lider') {
-                $cantidadVentas = rand(5, 15);
+                $cantidadVentas = rand(8, 15); // Líderes generan más ventas
             } elseif ($usuario->ventas_mes_actual > 300000) {
-                $cantidadVentas = rand(3, 8);
+                $cantidadVentas = rand(5, 10); // Vendedores muy activos
             } elseif ($usuario->ventas_mes_actual > 100000) {
-                $cantidadVentas = rand(1, 4);
+                $cantidadVentas = rand(3, 7); // Vendedores activos
             } else {
-                $cantidadVentas = rand(0, 2);
+                $cantidadVentas = rand(1, 4); // Vendedores regulares
             }
 
             for ($i = 0; $i < $cantidadVentas; $i++) {
-                // Seleccionar un cliente aleatorio
+                // Seleccionar un cliente aleatorio (pueden comprar a cualquier vendedor/líder)
+                if (empty($this->clientes)) {
+                    break; // Si no hay clientes, salir
+                }
+                
                 $cliente = $this->clientes[array_rand($this->clientes)];
                 
                 // Generar número de pedido único
                 $numeroPedido = 'PED-' . date('Ymd') . '-' . str_pad($ventasCreadas + 1, 6, '0', STR_PAD_LEFT);
                 
-                // Seleccionar productos aleatorios (1-4 productos por pedido)
-                $cantidadProductos = rand(1, 4);
-                $productosDelPedido = $this->productos->random($cantidadProductos);
+                // Seleccionar productos aleatorios (1-5 productos por pedido para más realismo)
+                $cantidadProductos = rand(1, 5);
+                $productosDelPedido = $this->productos->random(min($cantidadProductos, $this->productos->count()));
                 
                 $totalPedido = 0;
                 $detalles = [];
@@ -415,7 +416,7 @@ class RedMLMSeeder extends Seeder
                 
                 // Calcular total y preparar detalles
                 foreach ($productosDelPedido as $producto) {
-                    $cantidad = rand(1, 3);
+                    $cantidad = rand(1, 4); // Más unidades por producto
                     $precioUnitario = $producto->precio;
                     $subtotal = $cantidad * $precioUnitario;
                     $totalPedido += $subtotal;
@@ -555,7 +556,11 @@ class RedMLMSeeder extends Seeder
         }
 
         $this->command->info("✅ Creadas {$ventasCreadas} ventas con {$detallesCreados} líneas de productos");
-        $this->command->info("   📦 Total de productos vendidos embebidos en pedidos");
+        $this->command->info("   📦 Solo líderes y vendedores generan ventas (8-15 por líder)");
+        $this->command->info("   💼 Vendedores activos: 5-10 ventas c/u");
+        $this->command->info("   📊 Vendedores regulares: 1-7 ventas c/u");
+        $this->command->info("   🛒 Clientes solo realizan compras (no generan ventas)");
+        $this->command->info("   📦 Cada pedido tiene 1-5 productos con 1-4 unidades c/u");
     }
 
     private function verificarYCrearProductos()
@@ -602,22 +607,15 @@ class RedMLMSeeder extends Seeder
         $this->command->info("   (Usando productos existentes con imágenes y categorías embebidas)");
     }
 
-    private function crearClientesReales($cantidad)
+    private function crearClientesReales($vendedores, $cantidad)
     {
         for ($i = 0; $i < $cantidad; $i++) {
             $nombre = $this->nombres[array_rand($this->nombres)];
             $apellido = $this->apellidos[array_rand($this->apellidos)];
             $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
             
-            // Los clientes pueden ser referidos por vendedores activos
-            $vendedoresActivos = User::where('rol', 'vendedor')
-                ->where('activo', true)
-                ->where('total_referidos', '<', 10)
-                ->get();
-                
-            $referidoPor = $vendedoresActivos->isNotEmpty() && rand(0, 100) < 70 
-                ? $vendedoresActivos->random()->_id 
-                : null;
+            // Los clientes son referidos por vendedores
+            $referidoPor = !empty($vendedores) ? $vendedores[array_rand($vendedores)]->_id : null;
             
             $cliente = User::create([
                 'name' => $nombre,
@@ -649,11 +647,51 @@ class RedMLMSeeder extends Seeder
         }
     }
 
+    private function crearClientesReferidosPorClientes($clientesReferidores, $cantidad)
+    {
+        for ($i = 0; $i < $cantidad; $i++) {
+            $nombre = $this->nombres[array_rand($this->nombres)];
+            $apellido = $this->apellidos[array_rand($this->apellidos)];
+            $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+            
+            // Estos clientes son referidos por otros clientes
+            $referidoPor = !empty($clientesReferidores) ? $clientesReferidores[array_rand($clientesReferidores)]->_id : null;
+            
+            $cliente = User::create([
+                'name' => $nombre,
+                'apellidos' => $apellido,
+                'cedula' => $cedula,
+                'email' => strtolower($nombre . '.' . $apellido . rand(1, 9999) . '@cliente.com'),
+                'password' => Hash::make('password123'),
+                'telefono' => '32' . rand(10000000, 99999999),
+                'direccion' => 'Carrera ' . rand(1, 100) . ' #' . rand(1, 50) . '-' . rand(1, 99),
+                'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+                'departamento' => $this->departamento,
+                'fecha_nacimiento' => now()->subYears(rand(18, 65))->format('Y-m-d'),
+                'rol' => 'cliente',
+                'activo' => true,
+                'referido_por' => $referidoPor,
+                'codigo_referido' => null, // Los clientes no tienen código de referido
+                'total_referidos' => 0,
+                'comisiones_ganadas' => 0,
+                'comisiones_disponibles' => 0,
+                'meta_mensual' => 0,
+                'ventas_mes_actual' => 0,
+                'nivel_vendedor' => 0,
+                'email_verified_at' => now()->subDays(rand(1, 90)),
+                'created_at' => now()->subDays(rand(1, 90)),
+                'updated_at' => now()->subDays(rand(0, 15)),
+            ]);
+
+            $this->clientes[] = $cliente;
+        }
+    }
+
     private function mostrarResumen()
     {
         $this->command->info("\n");
         $this->command->info("╔════════════════════════════════════════════════════════╗");
-        $this->command->info("║        🎉 RED MLM CREADA EXITOSAMENTE 🎉              ║");
+        $this->command->info("║     🎉 RED MLM COMPACTA CREADA EXITOSAMENTE 🎉       ║");
         $this->command->info("╚════════════════════════════════════════════════════════╝");
         $this->command->info("");
 
@@ -672,6 +710,7 @@ class RedMLMSeeder extends Seeder
             'clientes' => User::where('rol', 'cliente')->count(),
             'activos' => User::where('activo', true)->whereIn('rol', ['lider', 'vendedor'])->count(),
             'con_referidos' => User::where('total_referidos', '>', 0)->count(),
+            'clientes_con_referidos' => User::where('rol', 'cliente')->where('total_referidos', '>', 0)->count(),
             'top_ventas' => User::where('total_referidos', '>=', 20)->count(),
             'top_referidos' => User::whereBetween('total_referidos', [10, 19])->count(),
             'vendedores_activos' => User::whereBetween('total_referidos', [5, 9])->count(),
@@ -692,8 +731,9 @@ class RedMLMSeeder extends Seeder
                 ['├─ Vendedores', $stats['vendedores']],
                 ['└─ Clientes', $stats['clientes']],
                 ['', ''],
-                ['Usuarios Activos', $stats['activos']],
+                ['Usuarios Activos (L+V)', $stats['activos']],
                 ['Usuarios con Referidos', $stats['con_referidos']],
+                ['Clientes con Referidos', $stats['clientes_con_referidos'] . ' (visibles en red)'],
                 ['', ''],
                 ['🏆 Top Ventas (+20 ref.)', $stats['top_ventas']],
                 ['⭐ Top Referidos (10-20)', $stats['top_referidos']],
@@ -717,6 +757,22 @@ class RedMLMSeeder extends Seeder
         foreach ($topReferidores as $index => $usuario) {
             $emoji = $index == 0 ? '🥇' : ($index == 1 ? '🥈' : ($index == 2 ? '🥉' : '  '));
             $this->command->info("  {$emoji} {$usuario->name} {$usuario->apellidos} ({$usuario->rol}) - {$usuario->total_referidos} referidos - {$usuario->codigo_referido}");
+        }
+        
+        // Mostrar clientes con referidos
+        $this->command->info("\n👥 Clientes que también refieren:");
+        $clientesReferidores = User::where('rol', 'cliente')
+            ->where('total_referidos', '>', 0)
+            ->orderBy('total_referidos', 'desc')
+            ->take(5)
+            ->get(['name', 'apellidos', 'total_referidos']);
+            
+        if ($clientesReferidores->count() > 0) {
+            foreach ($clientesReferidores as $cliente) {
+                $this->command->info("  • {$cliente->name} {$cliente->apellidos} - {$cliente->total_referidos} cliente(s) referido(s)");
+            }
+        } else {
+            $this->command->info("  (No hay clientes con referidos)");
         }
 
         $this->command->info("\n📈 Top 5 Productos Más Vendidos:");
@@ -751,6 +807,34 @@ class RedMLMSeeder extends Seeder
             $index++;
         }
 
+        $this->command->info("\n🎨 CATEGORÍAS DE LEYENDA IMPLEMENTADAS:");
+        $this->command->info("  🏆 TOP VENTAS (>$5M ventas) - Color #DC143C: " . 
+            User::where('comisiones_ganadas', '>=', 5000000)->count());
+        $this->command->info("  ⭐ RED GRANDE (>20 ref.) - Color #8B0000: " . 
+            User::where('total_referidos', '>=', 20)->count());
+        $this->command->info("  💰 VENTAS ALTAS ($2M-$5M) - Color #B8860B: " . 
+            User::whereBetween('comisiones_ganadas', [2000000, 4999999])->count());
+        $this->command->info("  🌟 CLIENTE TOP REFERIDOR (5+ ref.) - Color #4169E1: " . 
+            User::where('rol', 'cliente')->where('total_referidos', '>=', 5)->count());
+        $this->command->info("  ✅ RED ACTIVA (5-10 ref.) - Color #A8556A: " . 
+            User::where('rol', '!=', 'cliente')->whereBetween('total_referidos', [5, 10])->count());
+        $this->command->info("  👑 LÍDER (rol líder) - Color #722F37: " . 
+            User::where('rol', 'lider')->count());
+        $this->command->info("  👤 VENDEDOR (1-4 ref.) - Color #C89FA6: " . 
+            User::where('rol', 'vendedor')->whereBetween('total_referidos', [1, 4])->count());
+        $this->command->info("  🛒 CLIENTE con referidos (1-4) - Color #87CEEB: " . 
+            User::where('rol', 'cliente')->whereBetween('total_referidos', [1, 4])->count());
+        $this->command->info("  ❌ INACTIVO (0 ref.) - Color #E8D5D9: " . 
+            User::where('total_referidos', 0)->whereIn('rol', ['vendedor', 'lider'])->count());
+
+        $this->command->info("\n✅ RECORDATORIO:");
+        $this->command->info("  • Solo líderes y vendedores GENERAN ventas");
+        $this->command->info("  • Los clientes solo COMPRAN (aparecen en pedidos)");
+        $this->command->info("  • Los clientes SÍ aparecen en la red cuando tienen referidos");
+        $this->command->info("  • Clientes pueden referir a otros clientes");
+        $this->command->info("  • TODAS las categorías de leyenda están representadas (10 categorías)");
+        $this->command->info("  • Red optimizada para pruebas completas del sistema");
+        
         $this->command->info("\n✨ ¡Red MLM lista para visualizar en: http://127.0.0.1:8000/admin/referidos");
         $this->command->info("");
     }
@@ -837,5 +921,437 @@ class RedMLMSeeder extends Seeder
         ];
         
         return $comentarios[$estado] ?? 'Estado actualizado';
+    }
+
+    /**
+     * Crear usuarios específicos para TODAS las categorías de leyenda del MLM
+     * Garantiza que al menos tengamos usuarios en cada categoría de color
+     */
+    private function crearUsuariosParaLeyendas($adminId)
+    {
+        // 1. TOP VENTAS (Más de $5,000,000 en ventas totales) - Color #DC143C
+        $this->command->info("  🏆 Creando usuarios TOP VENTAS (>$5M en ventas)...");
+        $topVentas = $this->crearUsuarioTopVentas($adminId);
+        $this->agregarReferidosAUsuario($topVentas->_id, rand(25, 35), 'cliente'); // >20 referidos
+        
+        // 2. RED GRANDE (Más de 20 referidos directos) - Color #8B0000
+        $this->command->info("  ⭐ Creando usuarios RED GRANDE (>20 referidos)...");
+        $redGrande = $this->crearUsuarioRedGrande($adminId);
+        $this->agregarReferidosAUsuario($redGrande->_id, rand(22, 30), 'vendedor');
+        
+        // 3. VENTAS ALTAS (Entre $2M - $5M en ventas) - Color #B8860B
+        $this->command->info("  💰 Creando usuarios VENTAS ALTAS ($2M-$5M)...");
+        $ventasAltas = $this->crearUsuarioVentasAltas($adminId);
+        $this->agregarReferidosAUsuario($ventasAltas->_id, rand(12, 18), 'vendedor');
+        
+        // 4. CLIENTE TOP REFERIDOR (Cliente con 5+ referidos) - Color #4169E1 ⭐ NUEVO
+        $this->command->info("  🌟 Creando CLIENTES TOP REFERIDORES (5+ ref.)...");
+        for ($i = 0; $i < 2; $i++) {
+            $clienteTop = $this->crearClienteTopReferidor($adminId);
+            $this->agregarReferidosAUsuario($clienteTop->_id, rand(5, 10), 'cliente');
+        }
+        
+        // 5. RED ACTIVA (Entre 5-10 referidos directos) - Color #A8556A
+        $this->command->info("  ✅ Creando usuarios RED ACTIVA (5-10 referidos)...");
+        for ($i = 0; $i < 2; $i++) {
+            $redActiva = $this->crearUsuarioRedActiva($adminId);
+            $this->agregarReferidosAUsuario($redActiva->_id, rand(5, 10), 'cliente');
+        }
+        
+        // 6. VENDEDOR (Entre 1-4 referidos directos) - Color #C89FA6
+        $this->command->info("  👤 Vendedores con 1-4 referidos ya creados en niveles anteriores");
+        
+        // 7. CLIENTE CON REFERIDOS (Para que aparezca en la red) - Color #87CEEB ⭐ MEJORADO
+        $this->command->info("  🛒 Clientes con 1-4 referidos ya creados en nivel 6");
+        
+        // 8. INACTIVO/SIN REFERIDOS - Color #E8D5D9
+        $this->command->info("  ❌ Creando usuarios INACTIVOS (sin referidos)...");
+        for ($i = 0; $i < 3; $i++) {
+            $this->crearUsuarioInactivo($adminId);
+        }
+        
+        $this->command->info("  ✨ Usuarios para todas las categorías de leyenda creados!");
+    }
+
+    private function crearUsuarioTopVentas($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $codigoReferido = 'TOP' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        return User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.top@vendedor.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '30' . rand(10000000, 99999999),
+            'direccion' => 'Av. Principal ' . rand(1, 100) . ' - Oficina TOP',
+            'ciudad' => 'Villavicencio',
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(30, 50))->format('Y-m-d'),
+            'rol' => 'lider',
+            'activo' => true,
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => $codigoReferido,
+            'total_referidos' => 0,
+            'comisiones_ganadas' => rand(3000000, 5000000),
+            'comisiones_disponibles' => rand(500000, 1000000),
+            'meta_mensual' => 2500000,
+            'ventas_mes_actual' => rand(2000000, 3000000),
+            'nivel_vendedor' => 3,
+            'zonas_asignadas' => 'Zona Premium',
+            'historial_ventas' => [
+                ['mes' => now()->subMonth(2)->format('Y-m'), 'total_ventas' => rand(4000000, 6000000), 'total_pedidos' => rand(80, 120)],
+                ['mes' => now()->subMonth(1)->format('Y-m'), 'total_ventas' => rand(4500000, 6500000), 'total_pedidos' => rand(90, 130)],
+                ['mes' => now()->format('Y-m'), 'total_ventas' => rand(5000000, 7000000), 'total_pedidos' => rand(100, 150)],
+            ],
+            'email_verified_at' => now()->subYears(2),
+            'created_at' => now()->subYears(2),
+        ]);
+    }
+
+    private function crearUsuarioRedGrande($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $codigoReferido = 'BIG' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        return User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.big@vendedor.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '31' . rand(10000000, 99999999),
+            'direccion' => 'Calle Grande ' . rand(1, 100),
+            'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(28, 48))->format('Y-m-d'),
+            'rol' => 'lider',
+            'activo' => true,
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => $codigoReferido,
+            'total_referidos' => 0,
+            'comisiones_ganadas' => rand(1500000, 3000000),
+            'comisiones_disponibles' => rand(300000, 700000),
+            'meta_mensual' => 1800000,
+            'ventas_mes_actual' => rand(1200000, 1800000),
+            'nivel_vendedor' => 3,
+            'zonas_asignadas' => 'Zona Expansión',
+            'historial_ventas' => [
+                ['mes' => now()->subMonth(1)->format('Y-m'), 'total_ventas' => rand(2000000, 3000000), 'total_pedidos' => rand(50, 80)],
+                ['mes' => now()->format('Y-m'), 'total_ventas' => rand(2500000, 3500000), 'total_pedidos' => rand(60, 90)],
+            ],
+            'email_verified_at' => now()->subMonths(18),
+            'created_at' => now()->subMonths(18),
+        ]);
+    }
+
+    private function crearUsuarioVentasAltas($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $codigoReferido = 'HIG' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        return User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.high@vendedor.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '30' . rand(10000000, 99999999),
+            'direccion' => 'Diagonal ' . rand(1, 100),
+            'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(26, 45))->format('Y-m-d'),
+            'rol' => 'vendedor',
+            'activo' => true,
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => $codigoReferido,
+            'total_referidos' => 0,
+            'comisiones_ganadas' => rand(800000, 1500000),
+            'comisiones_disponibles' => rand(200000, 400000),
+            'meta_mensual' => 1200000,
+            'ventas_mes_actual' => rand(900000, 1300000),
+            'nivel_vendedor' => 2,
+            'zonas_asignadas' => 'Zona High',
+            'historial_ventas' => [
+                ['mes' => now()->subMonth(1)->format('Y-m'), 'total_ventas' => rand(2200000, 3000000), 'total_pedidos' => rand(40, 60)],
+                ['mes' => now()->format('Y-m'), 'total_ventas' => rand(2500000, 3500000), 'total_pedidos' => rand(45, 70)],
+            ],
+            'email_verified_at' => now()->subMonths(14),
+            'created_at' => now()->subMonths(14),
+        ]);
+    }
+
+    private function crearUsuarioRedActiva($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $codigoReferido = 'ACT' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        return User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.active@vendedor.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '31' . rand(10000000, 99999999),
+            'direccion' => 'Carrera ' . rand(1, 100),
+            'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(24, 42))->format('Y-m-d'),
+            'rol' => 'vendedor',
+            'activo' => true,
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => $codigoReferido,
+            'total_referidos' => 0,
+            'comisiones_ganadas' => rand(300000, 700000),
+            'comisiones_disponibles' => rand(80000, 150000),
+            'meta_mensual' => 600000,
+            'ventas_mes_actual' => rand(400000, 600000),
+            'nivel_vendedor' => 1,
+            'zonas_asignadas' => 'Zona Activa',
+            'historial_ventas' => [
+                ['mes' => now()->subMonth(1)->format('Y-m'), 'total_ventas' => rand(500000, 800000), 'total_pedidos' => rand(15, 30)],
+                ['mes' => now()->format('Y-m'), 'total_ventas' => rand(600000, 900000), 'total_pedidos' => rand(20, 35)],
+            ],
+            'email_verified_at' => now()->subMonths(10),
+            'created_at' => now()->subMonths(10),
+        ]);
+    }
+
+    private function crearUsuarioInactivo($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        $codigoReferido = 'NEW' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        
+        return User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.new@vendedor.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '32' . rand(10000000, 99999999),
+            'direccion' => 'Calle ' . rand(1, 100),
+            'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(20, 35))->format('Y-m-d'),
+            'rol' => 'vendedor',
+            'activo' => rand(0, 1) == 1, // 50% activos
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => $codigoReferido,
+            'total_referidos' => 0, // Sin referidos = inactivo
+            'comisiones_ganadas' => rand(0, 50000),
+            'comisiones_disponibles' => rand(0, 10000),
+            'meta_mensual' => 200000,
+            'ventas_mes_actual' => rand(0, 100000),
+            'nivel_vendedor' => 0,
+            'zonas_asignadas' => null,
+            'historial_ventas' => [],
+            'email_verified_at' => now()->subMonths(rand(1, 3)),
+            'created_at' => now()->subMonths(rand(1, 3)),
+        ]);
+    }
+
+    private function crearClienteTopReferidor($referidoPorId)
+    {
+        $nombre = $this->nombres[array_rand($this->nombres)];
+        $apellido = $this->apellidos[array_rand($this->apellidos)];
+        $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+        
+        $cliente = User::create([
+            'name' => $nombre,
+            'apellidos' => $apellido,
+            'cedula' => $cedula,
+            'email' => strtolower($nombre . '.' . $apellido . '.topcli@cliente.com'),
+            'password' => Hash::make('password123'),
+            'telefono' => '32' . rand(10000000, 99999999),
+            'direccion' => 'Avenida ' . rand(1, 100) . ' #' . rand(1, 50) . '-' . rand(1, 99),
+            'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+            'departamento' => $this->departamento,
+            'fecha_nacimiento' => now()->subYears(rand(25, 55))->format('Y-m-d'),
+            'rol' => 'cliente', // ROL CLIENTE
+            'activo' => true,
+            'referido_por' => $referidoPorId,
+            'codigo_referido' => null, // Clientes no tienen código
+            'total_referidos' => 0, // Se actualizará después
+            'comisiones_ganadas' => 0, // Clientes no ganan comisiones
+            'comisiones_disponibles' => 0,
+            'meta_mensual' => 0,
+            'ventas_mes_actual' => 0, // Clientes NO generan ventas
+            'nivel_vendedor' => 0,
+            'zonas_asignadas' => null,
+            'historial_ventas' => [], // Clientes no tienen historial de ventas
+            'email_verified_at' => now()->subMonths(rand(12, 24)),
+            'created_at' => now()->subMonths(rand(12, 24)),
+        ]);
+        
+        // Agregar a la lista de clientes
+        $this->clientes[] = $cliente;
+        
+        return $cliente;
+    }
+
+    /**
+     * Agregar referidos a un usuario específico
+     */
+    private function agregarReferidosAUsuario($userId, $cantidad, $tipoReferido = 'cliente')
+    {
+        for ($i = 0; $i < $cantidad; $i++) {
+            $nombre = $this->nombres[array_rand($this->nombres)];
+            $apellido = $this->apellidos[array_rand($this->apellidos)];
+            $cedula = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+            
+            if ($tipoReferido === 'vendedor') {
+                $codigoReferido = 'REF' . str_pad(rand(100, 9999), 4, '0', STR_PAD_LEFT);
+                $rol = 'vendedor';
+            } else {
+                $codigoReferido = null;
+                $rol = 'cliente';
+            }
+            
+            $referido = User::create([
+                'name' => $nombre,
+                'apellidos' => $apellido,
+                'cedula' => $cedula,
+                'email' => strtolower($nombre . '.' . $apellido . rand(1, 9999) . '@referido.com'),
+                'password' => Hash::make('password123'),
+                'telefono' => '32' . rand(10000000, 99999999),
+                'direccion' => 'Calle ' . rand(1, 100) . ' #' . rand(1, 50) . '-' . rand(1, 99),
+                'ciudad' => $this->ciudades[array_rand($this->ciudades)],
+                'departamento' => $this->departamento,
+                'fecha_nacimiento' => now()->subYears(rand(18, 60))->format('Y-m-d'),
+                'rol' => $rol,
+                'activo' => true,
+                'referido_por' => $userId,
+                'codigo_referido' => $codigoReferido,
+                'total_referidos' => 0,
+                'comisiones_ganadas' => $rol === 'vendedor' ? rand(50000, 200000) : 0,
+                'comisiones_disponibles' => $rol === 'vendedor' ? rand(10000, 50000) : 0,
+                'meta_mensual' => $rol === 'vendedor' ? rand(100000, 300000) : 0,
+                'ventas_mes_actual' => $rol === 'vendedor' ? rand(50000, 200000) : 0,
+                'nivel_vendedor' => $rol === 'vendedor' ? rand(0, 1) : 0,
+                'email_verified_at' => now()->subDays(rand(1, 120)),
+                'created_at' => now()->subDays(rand(1, 120)),
+            ]);
+            
+            if ($rol === 'cliente') {
+                $this->clientes[] = $referido;
+            }
+        }
+    }
+
+    /**
+     * Generar ventas adicionales para usuarios TOP para alcanzar umbrales de leyenda
+     */
+    private function generarVentasParaTopCategorias()
+    {
+        // Obtener usuarios que necesitan más ventas para llegar a sus categorías
+        $usuariosTop = User::whereIn('rol', ['lider', 'vendedor'])
+            ->where('activo', true)
+            ->where(function($q) {
+                $q->where('codigo_referido', 'like', 'TOP%')
+                  ->orWhere('codigo_referido', 'like', 'BIG%')
+                  ->orWhere('codigo_referido', 'like', 'HIG%');
+            })
+            ->get();
+
+        $ventasCreadas = 0;
+        
+        foreach ($usuariosTop as $usuario) {
+            // Determinar cuántas ventas adicionales necesita según su categoría
+            $ventasAdicionales = 0;
+            
+            if (strpos($usuario->codigo_referido, 'TOP') === 0) {
+                $ventasAdicionales = rand(30, 50); // Top Ventas necesita muchas ventas
+            } elseif (strpos($usuario->codigo_referido, 'BIG') === 0) {
+                $ventasAdicionales = rand(20, 35); // Red Grande
+            } elseif (strpos($usuario->codigo_referido, 'HIG') === 0) {
+                $ventasAdicionales = rand(15, 25); // Ventas Altas
+            }
+            
+            for ($i = 0; $i < $ventasAdicionales; $i++) {
+                if (empty($this->clientes)) {
+                    break;
+                }
+                
+                $cliente = $this->clientes[array_rand($this->clientes)];
+                $numeroPedido = 'PED-TOP-' . date('Ymd') . '-' . str_pad($ventasCreadas + 1, 6, '0', STR_PAD_LEFT);
+                
+                // Tickets más grandes para usuarios TOP
+                $cantidadProductos = rand(2, 6);
+                $productosDelPedido = $this->productos->random(min($cantidadProductos, $this->productos->count()));
+                
+                $totalPedido = 0;
+                $detalles = [];
+                
+                foreach ($productosDelPedido as $producto) {
+                    $cantidad = rand(2, 5); // Más cantidad para tickets grandes
+                    $precioUnitario = $producto->precio;
+                    $subtotal = $cantidad * $precioUnitario;
+                    $totalPedido += $subtotal;
+                    
+                    $categoriaNombre = $producto->categoria_data['nombre'] ?? 'Sin categoría';
+                    $categoriaData = $producto->categoria_data ?? null;
+                    
+                    $detalles[] = [
+                        'producto_id' => $producto->_id,
+                        'producto_data' => [
+                            'nombre' => $producto->nombre,
+                            'precio' => $producto->precio,
+                            'categoria' => $categoriaNombre,
+                            'categoria_data' => $categoriaData,
+                        ],
+                        'cantidad' => $cantidad,
+                        'precio_unitario' => $precioUnitario,
+                        'subtotal' => $subtotal,
+                    ];
+                }
+                
+                $fechaCreacion = now()->subDays(rand(1, 90));
+                
+                Pedido::create([
+                    'numero_pedido' => $numeroPedido,
+                    'user_id' => $cliente->_id,
+                    'cliente_data' => [
+                        'nombre' => $cliente->name . ' ' . $cliente->apellidos,
+                        'email' => $cliente->email,
+                        'telefono' => $cliente->telefono,
+                        'cedula' => $cliente->cedula,
+                    ],
+                    'vendedor_id' => $usuario->_id,
+                    'vendedor_data' => [
+                        'nombre' => $usuario->name . ' ' . $usuario->apellidos,
+                        'email' => $usuario->email,
+                        'codigo_referido' => $usuario->codigo_referido,
+                        'rol' => $usuario->rol,
+                    ],
+                    'direccion_entrega' => $cliente->direccion,
+                    'telefono_entrega' => $cliente->telefono,
+                    'estado' => 'entregado', // Mayoría entregados para TOP
+                    'subtotal' => $totalPedido,
+                    'total' => $totalPedido,
+                    'descuento' => 0,
+                    'total_final' => $totalPedido,
+                    'metodo_pago' => ['efectivo', 'transferencia', 'nequi'][array_rand(['efectivo', 'transferencia', 'nequi'])],
+                    'detalles' => $detalles,
+                    'historial_estados' => $this->generarHistorialEstados('entregado', $fechaCreacion),
+                    'created_at' => $fechaCreacion,
+                    'updated_at' => $fechaCreacion->copy()->addHours(rand(2, 24)),
+                ]);
+                
+                $ventasCreadas++;
+            }
+        }
+        
+        $this->command->info("✅ Creadas {$ventasCreadas} ventas adicionales para categorías TOP");
     }
 }

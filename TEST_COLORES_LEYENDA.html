@@ -163,50 +163,57 @@
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #FFD700; border-color: #FF8C00;"></div>
                     <span class="referidos-legend-label">
-                        <strong>Usuario Seleccionado</strong>
-                        <small class="d-block text-muted">Nodo actual en vista</small>
+                        <strong><i class="bi bi-bullseye text-warning"></i> Nodo Seleccionado</strong>
+                        <small class="d-block text-muted">Usuario actual en visualización</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #DC143C;"></div>
+                    <span class="referidos-legend-label">
+                        <strong><i class="bi bi-trophy-fill text-danger"></i> Top Ventas</strong>
+                        <small class="d-block text-muted">Más de $5,000,000 en ventas totales</small>
                     </span>
                 </div>
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #8B0000;"></div>
                     <span class="referidos-legend-label">
-                        <strong>🏆 Top Ventas</strong>
-                        <small class="d-block text-muted">+20 referidos</small>
+                        <strong><i class="bi bi-star-fill text-danger"></i> Red Grande</strong>
+                        <small class="d-block text-muted">Más de 20 referidos directos</small>
                     </span>
                 </div>
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #B8860B;"></div>
                     <span class="referidos-legend-label">
-                        <strong>⭐ Top Referidos</strong>
-                        <small class="d-block text-muted">10-20 referidos</small>
-                    </span>
-                </div>
-                <div class="referidos-legend-item">
-                    <div class="referidos-legend-dot" style="background: #A8556A;"></div>
-                    <span class="referidos-legend-label">
-                        <strong>✅ Vendedor Activo</strong>
-                        <small class="d-block text-muted">5-10 referidos</small>
+                        <strong><i class="bi bi-currency-dollar"></i> Ventas Altas</strong>
+                        <small class="d-block text-muted">Entre $2M - $5M en ventas</small>
                     </span>
                 </div>
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #722F37;"></div>
                     <span class="referidos-legend-label">
-                        <strong>👑 Líder</strong>
-                        <small class="d-block text-muted">Rol de líder</small>
+                        <strong><i class="bi bi-award-fill"></i> Líder</strong>
+                        <small class="d-block text-muted">Usuario con rol de líder</small>
+                    </span>
+                </div>
+                <div class="referidos-legend-item">
+                    <div class="referidos-legend-dot" style="background: #A8556A;"></div>
+                    <span class="referidos-legend-label">
+                        <strong><i class="bi bi-people-fill"></i> Red Activa</strong>
+                        <small class="d-block text-muted">Entre 5-10 referidos directos</small>
                     </span>
                 </div>
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #C89FA6;"></div>
                     <span class="referidos-legend-label">
-                        <strong>👤 Vendedor</strong>
-                        <small class="d-block text-muted">1-5 referidos</small>
+                        <strong><i class="bi bi-person-fill"></i> Vendedor</strong>
+                        <small class="d-block text-muted">Entre 1-4 referidos directos</small>
                     </span>
                 </div>
                 <div class="referidos-legend-item">
                     <div class="referidos-legend-dot" style="background: #E8D5D9;"></div>
                     <span class="referidos-legend-label">
-                        <strong>Cliente/Inactivo</strong>
-                        <small class="d-block text-muted">0 referidos</small>
+                        <strong><i class="bi bi-person"></i> Cliente</strong>
+                        <small class="d-block text-muted">Sin referidos directos</small>
                     </span>
                 </div>
             </div>
@@ -229,13 +236,17 @@
                 #FFD700<br>
                 <small>Seleccionado</small>
             </div>
+            <div class="color-sample" style="background: #DC143C;">
+                #DC143C<br>
+                <small>Top Ventas</small>
+            </div>
             <div class="color-sample" style="background: #8B0000;">
                 #8B0000<br>
-                <small>Top Ventas</small>
+                <small>Top Referidos</small>
             </div>
             <div class="color-sample" style="background: #B8860B;">
                 #B8860B<br>
-                <small>Top Referidos</small>
+                <small>Ventas Altas</small>
             </div>
             <div class="color-sample" style="background: #A8556A;">
                 #A8556A<br>
@@ -279,39 +290,45 @@
                 </tr>
                 <tr>
                     <td><strong>🏆 Top Ventas</strong></td>
-                    <td>≥ 20 referidos</td>
-                    <td><span class="badge" style="background: #8B0000;">#8B0000</span></td>
+                    <td>≥ $5,000,000 en ventas</td>
+                    <td><span class="badge" style="background: #DC143C;">#DC143C</span></td>
                     <td><span class="badge bg-warning">2</span></td>
                 </tr>
                 <tr>
                     <td><strong>⭐ Top Referidos</strong></td>
-                    <td>10-19 referidos</td>
-                    <td><span class="badge" style="background: #B8860B;">#B8860B</span></td>
+                    <td>≥ 20 referidos</td>
+                    <td><span class="badge" style="background: #8B0000;">#8B0000</span></td>
                     <td><span class="badge bg-warning">3</span></td>
+                </tr>
+                <tr>
+                    <td><strong>💰 Ventas Altas</strong></td>
+                    <td>$2,000,000 - $5,000,000</td>
+                    <td><span class="badge" style="background: #B8860B;">#B8860B</span></td>
+                    <td><span class="badge bg-warning">4</span></td>
                 </tr>
                 <tr>
                     <td><strong>✅ Vendedor Activo</strong></td>
                     <td>5-9 referidos</td>
                     <td><span class="badge" style="background: #A8556A;">#A8556A</span></td>
-                    <td><span class="badge bg-info">4</span></td>
+                    <td><span class="badge bg-info">5</span></td>
                 </tr>
                 <tr>
                     <td><strong>👑 Líder</strong></td>
                     <td>Rol de líder (&lt;5 ref.)</td>
                     <td><span class="badge" style="background: #722F37;">#722F37</span></td>
-                    <td><span class="badge bg-info">5</span></td>
+                    <td><span class="badge bg-info">6</span></td>
                 </tr>
                 <tr>
                     <td><strong>👤 Vendedor</strong></td>
                     <td>1-4 referidos</td>
                     <td><span class="badge" style="background: #C89FA6;">#C89FA6</span></td>
-                    <td><span class="badge bg-secondary">6</span></td>
+                    <td><span class="badge bg-secondary">7</span></td>
                 </tr>
                 <tr>
                     <td><strong>Cliente/Inactivo</strong></td>
                     <td>0 referidos</td>
                     <td><span class="badge" style="background: #E8D5D9; color: #000;">#E8D5D9</span></td>
-                    <td><span class="badge bg-secondary">7 - Mínima</span></td>
+                    <td><span class="badge bg-secondary">8 - Mínima</span></td>
                 </tr>
             </tbody>
         </table>

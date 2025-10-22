@@ -78,6 +78,14 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('/referidos/{id}', [\App\Http\Controllers\Cliente\ReferidosController::class, 'verDetalle'])
             ->name('referidos.detalle');
 
+        // Transferencia de Red
+        Route::get('/transferencia-red', [\App\Http\Controllers\Cliente\TransferenciaRedController::class, 'index'])
+            ->name('transferencia-red.index');
+        Route::post('/transferencia-red', [\App\Http\Controllers\Cliente\TransferenciaRedController::class, 'store'])
+            ->name('transferencia-red.store');
+        Route::delete('/transferencia-red/{id}/cancelar', [\App\Http\Controllers\Cliente\TransferenciaRedController::class, 'cancelar'])
+            ->name('transferencia-red.cancelar');
+
         // Ayuda y Soporte
         Route::get('/ayuda', [\App\Http\Controllers\Cliente\AyudaController::class, 'index'])
             ->name('ayuda.index');
@@ -340,6 +348,12 @@ Route::middleware(['auth', 'role'])->group(function () {
         // Notificaciones del Líder (Centro completo de notificaciones)
         Route::get('lider/notificaciones', [\App\Http\Controllers\Lider\NotificacionController::class, 'index'])->name('lider.notificaciones.index');
         Route::get('lider/notificaciones/dropdown', [\App\Http\Controllers\Lider\NotificacionController::class, 'dropdown'])->name('lider.notificaciones.dropdown');
+
+        // Transferencia de Red - Líder
+        Route::get('lider/transferencia-red', [\App\Http\Controllers\Lider\TransferenciaRedController::class, 'index'])->name('lider.transferencia-red.index');
+        Route::get('lider/transferencia-red/{id}', [\App\Http\Controllers\Lider\TransferenciaRedController::class, 'show'])->name('lider.transferencia-red.show');
+        Route::post('lider/transferencia-red/{id}/aprobar', [\App\Http\Controllers\Lider\TransferenciaRedController::class, 'aprobar'])->name('lider.transferencia-red.aprobar');
+        Route::post('lider/transferencia-red/{id}/rechazar', [\App\Http\Controllers\Lider\TransferenciaRedController::class, 'rechazar'])->name('lider.transferencia-red.rechazar');
         Route::get('lider/notificaciones/contar-no-leidas', [\App\Http\Controllers\Lider\NotificacionController::class, 'contarNoLeidas'])->name('lider.notificaciones.contar-no-leidas');
         Route::post('lider/notificaciones/marcar-todas-leidas', [\App\Http\Controllers\Lider\NotificacionController::class, 'marcarTodasLeidas'])->name('lider.notificaciones.marcar-todas-leidas');
         Route::post('lider/notificaciones/crear-pruebas', [\App\Http\Controllers\Lider\NotificacionController::class, 'crearPruebas'])->name('lider.notificaciones.crear-pruebas');
@@ -415,6 +429,12 @@ Route::middleware(['auth', 'role'])->group(function () {
         Route::get('vendedor/referidos/exportar', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'exportar'])->name('vendedor.referidos.exportar');
         Route::post('vendedor/referidos/enviar-mensaje', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'enviarMensaje'])->name('vendedor.referidos.enviar-mensaje');
         Route::get('vendedor/referidos/{id}', [\App\Http\Controllers\Vendedor\ReferidoController::class, 'show'])->name('vendedor.referidos.show');
+
+        // Transferencia de Red - Vendedor
+        Route::get('vendedor/transferencia-red', [\App\Http\Controllers\Vendedor\TransferenciaRedController::class, 'index'])->name('vendedor.transferencia-red.index');
+        Route::get('vendedor/transferencia-red/{id}', [\App\Http\Controllers\Vendedor\TransferenciaRedController::class, 'show'])->name('vendedor.transferencia-red.show');
+        Route::post('vendedor/transferencia-red/{id}/aprobar', [\App\Http\Controllers\Vendedor\TransferenciaRedController::class, 'aprobar'])->name('vendedor.transferencia-red.aprobar');
+        Route::post('vendedor/transferencia-red/{id}/rechazar', [\App\Http\Controllers\Vendedor\TransferenciaRedController::class, 'rechazar'])->name('vendedor.transferencia-red.rechazar');
 
         // Metas del Vendedor
         Route::get('vendedor/metas', [\App\Http\Controllers\Vendedor\MetaController::class, 'index'])->name('vendedor.metas.index');

@@ -1,3 +1,8 @@
+{{-- Load pagination styles with cache busting --}}
+@once
+    <link rel="stylesheet" href="{{ asset('css/components/pagination.css') }}?v={{ filemtime(public_path('css/components/pagination.css')) }}">
+@endonce
+
 @if ($paginator->hasPages())
     <nav class="custom-pagination" aria-label="Navegación de páginas">
         <div class="pagination-info">

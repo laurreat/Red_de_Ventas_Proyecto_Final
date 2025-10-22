@@ -126,6 +126,39 @@
                 Compartir en Twitter
             </button>
         </div>
+
+        {{-- Botón para Transferir Red --}}
+        @if($referidos->count() > 0)
+            @php
+                // Verificar si el usuario tiene un referidor y si ese referidor es vendedor/líder
+                $tieneReferidorVendedor = false;
+                if(auth()->user()->referido_por) {
+                    $referidor = \App\Models\User::find(auth()->user()->referido_por);
+                    if($referidor && in_array($referidor->rol, ['vendedor', 'lider'])) {
+                        $tieneReferidorVendedor = true;
+                    }
+                }
+            @endphp
+            
+            @if(!$tieneReferidorVendedor)
+            <div class="mt-3 pt-3 border-top">
+                <a href="{{ route('cliente.transferencia-red.index') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-diagram-3"></i>
+                    Transferir mi red a un Vendedor/Líder
+                </a>
+                <small class="d-block text-center text-muted mt-2">
+                    ¿Quieres que un vendedor o líder gestione tu red? Transfiere tus {{ $referidos->count() }} referidos.
+                </small>
+            </div>
+            @else
+            <div class="mt-3 pt-3 border-top">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Tu red ya está gestionada por <strong>{{ $referidor->nombreCompleto() }}</strong> ({{ ucfirst($referidor->rol) }}).
+                </div>
+            </div>
+            @endif
+        @endif
     </div>
 
     {{-- Lista de Referidos --}}
@@ -185,6 +218,7 @@
                                 $pedidosTotal = \App\Models\Pedido::where('user_id', $referido->_id)
                                     ->whereIn('estado', ['confirmado', 'en_preparacion', 'enviado', 'entregado'])
                                     ->sum('total_final');
+                                $pedidosTotal = to_float($pedidosTotal);
                             @endphp
                             <div class="referido-stats">
                                 <div class="referido-stat">

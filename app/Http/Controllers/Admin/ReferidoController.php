@@ -30,7 +30,7 @@ class ReferidoController extends Controller
         $usuarioSeleccionado = null;
 
         // Validar tipo de usuario
-        if ($tipo && !in_array($tipo, ['vendedor', 'lider'])) {
+        if ($tipo && !in_array($tipo, ['vendedor', 'lider', 'cliente'])) {
             $tipo = null; // Reset si es inválido
         }
 
@@ -43,18 +43,18 @@ class ReferidoController extends Controller
                     return redirect()->route('admin.referidos.index');
                 }
 
-                // Verificar disponibilidad de conexión MongoDB
-                $conexionActiva = User::whereIn('rol', ['vendedor', 'lider'])->count();
+                // Verificar disponibilidad de conexión MongoDB - INCLUIR CLIENTES
+                $conexionActiva = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->count();
 
                 $usuarioSeleccionado = User::where('cedula', $cedula)
-                    ->whereIn('rol', ['vendedor', 'lider'])
+                    ->whereIn('rol', ['vendedor', 'lider', 'cliente'])
                     ->first();
 
-                // Obtener estadísticas en tiempo real
+                // Obtener estadísticas en tiempo real - INCLUIR CLIENTES
                 $estadisticasActuales = [
-                    'total_usuarios_sistema' => User::whereIn('rol', ['vendedor', 'lider'])->count(),
-                    'usuarios_con_cedula' => User::whereIn('rol', ['vendedor', 'lider'])->whereNotNull('cedula')->count(),
-                    'ultimo_registro' => User::whereIn('rol', ['vendedor', 'lider'])->latest('created_at')->first()?->created_at,
+                    'total_usuarios_sistema' => User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->count(),
+                    'usuarios_con_cedula' => User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->whereNotNull('cedula')->count(),
+                    'ultimo_registro' => User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->latest('created_at')->first()?->created_at,
                     'busqueda_timestamp' => now()
                 ];
 
@@ -67,14 +67,7 @@ class ReferidoController extends Controller
 
                 // Mensajes contextuales basados en el estado actual
                 if (!$usuarioSeleccionado) {
-                    // Verificar si existe algún usuario con esa cédula en otros roles
-                    $usuarioOtroRol = User::where('cedula', $cedula)->first();
-
-                    if ($usuarioOtroRol) {
-                        session()->flash('warning', "Usuario encontrado con cédula {$cedula} pero tiene rol '{$usuarioOtroRol->rol}'. Solo se muestran vendedores y líderes en la red MLM.");
-                    } else {
-                        session()->flash('warning', "No se encontró ningún usuario con la cédula: {$cedula}. Total de usuarios en el sistema: {$estadisticasActuales['total_usuarios_sistema']} ({$estadisticasActuales['usuarios_con_cedula']} con cédula).");
-                    }
+                    session()->flash('warning', "No se encontró ningún usuario con la cédula: {$cedula}. Total de usuarios en el sistema: {$estadisticasActuales['total_usuarios_sistema']} ({$estadisticasActuales['usuarios_con_cedula']} con cédula).");
                 } else {
                     session()->flash('success', "Usuario encontrado: {$usuarioSeleccionado->name} ({$usuarioSeleccionado->rol}). Cédula: {$usuarioSeleccionado->cedula}");
                 }
@@ -97,9 +90,9 @@ class ReferidoController extends Controller
             }
         }
 
-        // Consulta base de usuarios con referidos
+        // Consulta base de usuarios con referidos - INCLUIR CLIENTES
         $usuariosQuery = User::with(['referidor', 'referidos'])
-            ->whereIn('rol', ['vendedor', 'lider'])
+            ->whereIn('rol', ['vendedor', 'lider', 'cliente'])
             ->when($search, function ($query) use ($search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
@@ -121,8 +114,8 @@ class ReferidoController extends Controller
             return $usuario;
         });
 
-        // Estadísticas generales - Calcular datos reales
-        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider'])->get();
+        // Estadísticas generales - Calcular datos reales INCLUYENDO CLIENTES
+        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->get();
 
         // Contar usuarios con referidos reales
         $usuariosConReferidos = $todosUsuarios->filter(function($usuario) {
@@ -155,8 +148,9 @@ class ReferidoController extends Controller
         $stats = [
             'total_vendedores' => User::where('rol', 'vendedor')->count(),
             'total_lideres' => User::where('rol', 'lider')->count(),
+            'total_clientes' => User::where('rol', 'cliente')->count(),
             'usuarios_con_referidos' => $usuariosConReferidos,
-            'usuarios_sin_referidor' => User::whereNull('referido_por')->whereIn('rol', ['vendedor', 'lider'])->count(),
+            'usuarios_sin_referidor' => User::whereNull('referido_por')->whereIn('rol', ['vendedor', 'lider', 'cliente'])->count(),
             'promedio_referidos' => $promedioReferidos,
             'red_mas_grande' => $usuarioConMasReferidos ? [
                 'usuario' => $usuarioConMasReferidos->name,
@@ -164,8 +158,8 @@ class ReferidoController extends Controller
             ] : null
         ];
 
-        // Redes más activas (top 10) - Calcular referidos reales
-        $redesActivas = User::whereIn('rol', ['vendedor', 'lider'])
+        // Redes más activas (top 10) - Calcular referidos reales INCLUYENDO CLIENTES
+        $redesActivas = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])
             ->get()
             ->map(function($usuario) {
                 // Contar referidos directos reales
@@ -211,6 +205,18 @@ class ReferidoController extends Controller
             $redJerarquica = [];
         }
 
+        // Contar nodos totales recursivamente para debugging
+        $totalNodos = $this->contarNodosTotales($redJerarquica);
+        \Log::info('=== RED FINAL PARA VISTA ===', [
+            'nodos_raiz' => count($redJerarquica),
+            'total_nodos_recursivo' => $totalNodos,
+            'primer_nodo' => !empty($redJerarquica) ? [
+                'id' => $redJerarquica[0]['id'] ?? 'N/A',
+                'name' => $redJerarquica[0]['name'] ?? 'N/A',
+                'hijos_count' => count($redJerarquica[0]['hijos'] ?? [])
+            ] : 'No hay nodos'
+        ]);
+
         return view('admin.referidos.index', compact(
             'usuarios',
             'stats',
@@ -222,6 +228,25 @@ class ReferidoController extends Controller
             'nivel',
             'tipo'
         ))->with('referidos', $usuarios);
+    }
+
+    /**
+     * Contar nodos totales recursivamente
+     */
+    private function contarNodosTotales($nodos, &$contador = 0)
+    {
+        if (!is_array($nodos)) {
+            return $contador;
+        }
+
+        foreach ($nodos as $nodo) {
+            $contador++;
+            if (isset($nodo['hijos']) && is_array($nodo['hijos']) && count($nodo['hijos']) > 0) {
+                $this->contarNodosTotales($nodo['hijos'], $contador);
+            }
+        }
+
+        return $contador;
     }
 
     public function show($id)
@@ -240,10 +265,10 @@ class ReferidoController extends Controller
                     ->with('error', 'Usuario no encontrado');
             }
 
-            // Validar que el usuario sea vendedor o líder
-            if (!in_array($usuario->rol, ['vendedor', 'lider'])) {
+            // Validar que el usuario sea vendedor, líder o cliente
+            if (!in_array($usuario->rol, ['vendedor', 'lider', 'cliente'])) {
                 return redirect()->route('admin.referidos.index')
-                    ->with('warning', 'Solo se pueden ver redes de vendedores y líderes');
+                    ->with('warning', 'Solo se pueden ver redes de vendedores, líderes y clientes');
             }
         } catch (\Exception $e) {
             \Log::error('Error al obtener usuario para red:', [
@@ -284,10 +309,10 @@ class ReferidoController extends Controller
     public function red($id = null)
     {
         try {
-            // Si no se especifica ID, mostrar desde la raíz
+            // Si no se especifica ID, mostrar desde la raíz - INCLUIR CLIENTES
             if (!$id) {
                 $usuarios_raiz = User::whereNull('referido_por')
-                    ->whereIn('rol', ['vendedor', 'lider'])
+                    ->whereIn('rol', ['vendedor', 'lider', 'cliente'])
                     ->get();
 
                 return response()->json([
@@ -331,15 +356,62 @@ class ReferidoController extends Controller
 
     private function construirRedJerarquica()
     {
-        // Buscar usuarios raíz (sin referidor)
+        // ESTRATEGIA MEJORADA: Buscar usuarios raíz INCLUYENDO ADMINISTRADOR
+        // Primero intentar encontrar usuarios raíz sin referidor
         $usuarios_raiz = User::whereNull('referido_por')
-            ->whereIn('rol', ['vendedor', 'lider'])
-            ->take(10) // Limitar para performance
+            ->whereIn('rol', ['vendedor', 'lider', 'cliente', 'administrador'])
             ->get();
 
-        // Si no hay usuarios raíz, tomar cualquier usuario para mostrar algo
+        \Log::info('=== CONSTRUYENDO RED JERÁRQUICA COMPLETA ===', [
+            'usuarios_raiz_count' => $usuarios_raiz->count(),
+            'usuarios_raiz' => $usuarios_raiz->map(function($u) {
+                return ['id' => $u->_id, 'name' => $u->name, 'rol' => $u->rol];
+            })->toArray()
+        ]);
+
+        // Si hay pocos usuarios raíz con referidos, buscar los principales referidores
+        $usuariosRaizConReferidos = $usuarios_raiz->filter(function($u) {
+            return User::where('referido_por', $u->_id)->count() > 0;
+        });
+
+        // Si no hay usuarios raíz con referidos, encontrar los top referidores
+        if ($usuariosRaizConReferidos->count() === 0) {
+            \Log::info('No hay usuarios raíz con referidos, buscando top referidores...');
+            
+            // Obtener usuarios con más referidos directos
+            $topReferidores = User::whereIn('rol', ['vendedor', 'lider', 'administrador'])
+                ->get()
+                ->map(function($usuario) {
+                    $usuario->referidos_count = User::where('referido_por', $usuario->_id)->count();
+                    return $usuario;
+                })
+                ->filter(function($usuario) {
+                    return $usuario->referidos_count > 0;
+                })
+                ->sortByDesc('referidos_count')
+                ->take(10);
+
+            if ($topReferidores->count() > 0) {
+                $usuarios_raiz = $topReferidores;
+                \Log::info('Usando top referidores como raíz:', [
+                    'count' => $usuarios_raiz->count(),
+                    'referidores' => $usuarios_raiz->map(function($u) {
+                        return [
+                            'id' => $u->_id, 
+                            'name' => $u->name, 
+                            'rol' => $u->rol,
+                            'referidos' => $u->referidos_count
+                        ];
+                    })->toArray()
+                ]);
+            }
+        } else {
+            $usuarios_raiz = $usuariosRaizConReferidos;
+        }
+
+        // Si aún no hay usuarios, tomar cualquier usuario para mostrar algo
         if ($usuarios_raiz->count() === 0) {
-            $usuarios_raiz = User::whereIn('rol', ['vendedor', 'lider'])
+            $usuarios_raiz = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])
                 ->take(5)
                 ->get();
         }
@@ -378,7 +450,14 @@ class ReferidoController extends Controller
             ];
         }
 
-        return $this->formatearJerarquia($usuarios_raiz);
+        $resultado = $this->formatearJerarquia($usuarios_raiz);
+
+        \Log::info('=== RED JERÁRQUICA CONSTRUIDA ===', [
+            'nodos_raiz' => count($resultado),
+            'estructura_completa' => $resultado
+        ]);
+
+        return $resultado;
     }
 
     private function construirRedCentradaEnUsuario($usuario)
@@ -395,7 +474,7 @@ class ReferidoController extends Controller
             ]);
 
             // Estrategia diferente según el rol del usuario
-            if ($usuario->rol === 'vendedor') {
+            if ($usuario->rol === 'vendedor' || $usuario->rol === 'cliente') {
                 return $this->construirRedParaVendedor($usuario);
             } else {
                 return $this->construirRedParaLider($usuario);
@@ -425,29 +504,29 @@ class ReferidoController extends Controller
 
         $todosLosUsuarios = collect([$vendedor]);
 
-        // 1. Obtener el líder directo (referidor)
-        $liderDirecto = null;
+        // 1. Obtener el líder/vendedor directo (referidor)
+        $referidorDirecto = null;
         if ($vendedor->referido_por) {
-            \Log::info('Buscando líder directo...', ['referido_por_id' => $vendedor->referido_por]);
-            $liderDirecto = User::find($vendedor->referido_por);
-            if ($liderDirecto) {
-                $todosLosUsuarios->push($liderDirecto);
-                \Log::info('✅ Líder directo encontrado:', [
-                    'lider' => $liderDirecto->name,
-                    'cedula' => $liderDirecto->cedula,
-                    'rol' => $liderDirecto->rol
+            \Log::info('Buscando referidor directo...', ['referido_por_id' => $vendedor->referido_por]);
+            $referidorDirecto = User::find($vendedor->referido_por);
+            if ($referidorDirecto) {
+                $todosLosUsuarios->push($referidorDirecto);
+                \Log::info('✅ Referidor directo encontrado:', [
+                    'referidor' => $referidorDirecto->name,
+                    'cedula' => $referidorDirecto->cedula,
+                    'rol' => $referidorDirecto->rol
                 ]);
             } else {
-                \Log::warning('❌ No se encontró el líder directo');
+                \Log::warning('❌ No se encontró el referidor directo');
             }
         } else {
             \Log::info('ℹ️ Vendedor no tiene referidor (es raíz)');
         }
 
-        // 2. Obtener hermanos (otros referidos del mismo líder)
-        if ($liderDirecto) {
+        // 2. Obtener hermanos (otros referidos del mismo referidor)
+        if ($referidorDirecto) {
             \Log::info('Buscando hermanos del vendedor...');
-            $hermanos = User::where('referido_por', $liderDirecto->_id)
+            $hermanos = User::where('referido_por', $referidorDirecto->_id)
                 ->where('_id', '!=', $vendedor->_id)
                 ->get();
 
@@ -467,14 +546,14 @@ class ReferidoController extends Controller
         $descendentes = $this->obtenerTodosLosDescendentes($vendedor);
         $todosLosUsuarios = $todosLosUsuarios->merge($descendentes);
 
-        // 4. Si hay líder, también incluir algunos de sus otros referidos para contexto
-        if ($liderDirecto) {
-            $otrosReferidosLider = User::where('referido_por', $liderDirecto->_id)
+        // 4. Si hay referidor, también incluir algunos de sus otros referidos para contexto
+        if ($referidorDirecto) {
+            $otrosReferidosReferidor = User::where('referido_por', $referidorDirecto->_id)
                 ->where('_id', '!=', $vendedor->_id)
                 ->with(['referidos'])
                 ->get();
 
-            foreach ($otrosReferidosLider as $otroReferido) {
+            foreach ($otrosReferidosReferidor as $otroReferido) {
                 if (!$todosLosUsuarios->contains('_id', $otroReferido->_id)) {
                     $todosLosUsuarios->push($otroReferido);
                 }
@@ -505,8 +584,8 @@ class ReferidoController extends Controller
             })->toArray()
         ]);
 
-        // 5. Usar al líder como raíz, o al vendedor si no tiene líder
-        $usuarioRaiz = $liderDirecto ?? $vendedor;
+        // 5. Usar al referidor como raíz, o al vendedor si no tiene referidor
+        $usuarioRaiz = $referidorDirecto ?? $vendedor;
 
         \Log::info('🎯 USUARIO RAÍZ SELECCIONADO:', [
             'raiz' => $usuarioRaiz->name,
@@ -621,6 +700,15 @@ class ReferidoController extends Controller
                 'referidos_nombres' => $referidos->pluck('name')->toArray()
             ]);
 
+            // Calcular total de ventas del usuario
+            // IMPORTANTE: Los clientes NO generan ventas, solo compran
+            $totalVentas = 0;
+            if ($usuario->rol !== 'cliente') {
+                $totalVentas = \App\Models\Pedido::where('vendedor_id', $usuario->_id)
+                    ->whereIn('estado', ['confirmado', 'en_preparacion', 'enviado', 'entregado'])
+                    ->sum('total_final');
+            }
+
             $nodoData = [
                 'id' => (string) $usuario->_id, // Convertir a string para asegurar unicidad
                 'name' => $usuario->name,
@@ -629,6 +717,7 @@ class ReferidoController extends Controller
                 'tipo' => $usuario->rol,
                 'nivel' => $nivel + 1,
                 'referidos_count' => $referidos->count(),
+                'total_ventas' => to_float($totalVentas), // Agregar total de ventas usando helper
                 'hijos' => []
             ];
 
@@ -645,9 +734,30 @@ class ReferidoController extends Controller
 
     private function formatearJerarquia($usuarios, $nivel = 1)
     {
+        \Log::info("Formateando jerarquía - Nivel {$nivel}", [
+            'usuarios_count' => $usuarios->count(),
+            'usuarios' => $usuarios->map(function($u) {
+                return ['id' => $u->_id, 'name' => $u->name, 'rol' => $u->rol];
+            })->toArray()
+        ]);
+
         return $usuarios->map(function ($usuario) use ($nivel) {
             // Obtener referidos directos
             $referidos = User::where('referido_por', $usuario->_id)->get();
+
+            \Log::info("Procesando usuario '{$usuario->name}' - Nivel {$nivel}", [
+                'usuario_id' => $usuario->_id,
+                'referidos_count' => $referidos->count()
+            ]);
+
+            // Calcular total de ventas del usuario
+            // IMPORTANTE: Los clientes NO generan ventas, solo compran
+            $totalVentas = 0;
+            if ($usuario->rol !== 'cliente') {
+                $totalVentas = \App\Models\Pedido::where('vendedor_id', $usuario->_id)
+                    ->whereIn('estado', ['confirmado', 'en_preparacion', 'enviado', 'entregado'])
+                    ->sum('total_final');
+            }
 
             return [
                 'id' => (string) $usuario->_id, // Convertir a string para unicidad en D3.js
@@ -656,7 +766,8 @@ class ReferidoController extends Controller
                 'tipo' => $usuario->rol,
                 'nivel' => $nivel,
                 'referidos_count' => $referidos->count(),
-                'hijos' => $nivel < 3 ? array_values($this->formatearJerarquia($referidos, $nivel + 1)) : []
+                'total_ventas' => to_float($totalVentas), // Agregar total de ventas usando helper
+                'hijos' => $referidos->count() > 0 ? array_values($this->formatearJerarquia($referidos, $nivel + 1)) : []
             ];
         })->values()->toArray();
     }
@@ -701,6 +812,12 @@ class ReferidoController extends Controller
             $pedidosReferido = \App\Models\Pedido::where('vendedor_id', $referido->_id)
                 ->where('estado', 'entregado')
                 ->sum('total_final');
+            
+            // Convertir Decimal128 a float si es necesario
+            if ($pedidosReferido instanceof \MongoDB\BSON\Decimal128) {
+                $pedidosReferido = (float) $pedidosReferido->__toString();
+            }
+            
             $ventas += $pedidosReferido ?? 0;
             $ventas += $this->calcularVentasReferidos($referido);
         }
@@ -765,7 +882,7 @@ class ReferidoController extends Controller
 
     private function obtenerCrecimientoMensual()
     {
-        $usuarios = User::whereIn('rol', ['vendedor', 'lider'])
+        $usuarios = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])
             ->where('created_at', '>=', now()->subYear())
             ->get();
 
@@ -785,8 +902,8 @@ class ReferidoController extends Controller
 
     private function obtenerTopReferidores()
     {
-        // Calcular top referidores con datos reales
-        return User::whereIn('rol', ['vendedor', 'lider'])
+        // Calcular top referidores con datos reales - INCLUIR CLIENTES
+        return User::whereIn('rol', ['vendedor', 'lider', 'cliente'])
             ->get()
             ->map(function($usuario) {
                 $referidosDirectos = User::where('referido_por', $usuario->_id)->count();
@@ -806,8 +923,8 @@ class ReferidoController extends Controller
         $formato = $request->get('formato', 'pdf');
         $cedula = $request->get('cedula');
 
-        // Obtener datos de la red de referidos
-        $usuarios = User::whereIn('rol', ['vendedor', 'lider'])
+        // Obtener datos de la red de referidos - INCLUIR CLIENTES
+        $usuarios = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])
             ->with(['referidor', 'referidos'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -828,11 +945,12 @@ class ReferidoController extends Controller
             ];
         });
 
-        // Estadísticas adicionales
+        // Estadísticas adicionales - INCLUIR CLIENTES
         $stats = [
             'total_usuarios' => $usuarios->count(),
             'total_vendedores' => $usuarios->where('rol', 'vendedor')->count(),
             'total_lideres' => $usuarios->where('rol', 'lider')->count(),
+            'total_clientes' => $usuarios->where('rol', 'cliente')->count(),
             'usuarios_con_referidos' => $usuarios->filter(function ($u) { return $u->referidos->count() > 0; })->count(),
             'usuarios_sin_referidor' => $usuarios->filter(function ($u) { return !$u->referidor; })->count(),
             'fecha_exportacion' => now()->format('d/m/Y H:i:s')
@@ -905,7 +1023,7 @@ class ReferidoController extends Controller
 
     private function calcularConversionReferidos()
     {
-        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider'])->get();
+        $todosUsuarios = User::whereIn('rol', ['vendedor', 'lider', 'cliente'])->get();
         $total_usuarios = $todosUsuarios->count();
 
         // Contar usuarios con referidos reales
