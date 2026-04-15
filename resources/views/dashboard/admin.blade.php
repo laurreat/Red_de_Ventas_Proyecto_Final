@@ -300,11 +300,6 @@
         csrf: '{{ csrf_token() }}'
     };
 
-    // Detectar soporte PWA
-    if ('serviceWorker' in navigator) {
-        console.log('✅ Service Worker compatible');
-    }
-
     // Performance Monitoring
     if (window.performance && window.performance.timing) {
         window.addEventListener('load', () => {

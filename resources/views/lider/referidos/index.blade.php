@@ -500,7 +500,7 @@
     opacity: 1;
 }
 
-/* Responsive - PWA Mobile */
+/* Responsive - Mobile */
 @media (max-width: 768px) {
     .mensaje-modal-glass {
         margin: 0.5rem !important;
@@ -558,7 +558,7 @@
     }
 }
 
-/* PWA - Landscape mobile */
+/* Landscape mobile */
 @media (max-height: 500px) and (orientation: landscape) {
     .mensaje-modal-body {
         max-height: 50vh !important;
