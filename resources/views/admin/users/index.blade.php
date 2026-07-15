@@ -296,5 +296,14 @@
         });
     }
 
+    // PWA Detection
+    if ('serviceWorker' in navigator) {
+        console.log('✅ PWA Compatible - Service Worker supported');
+    }
+
+    // Detectar modo standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('✅ Running as PWA');
+    }
 </script>
 @endpush
