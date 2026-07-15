@@ -13,16 +13,13 @@ let links = [];
 const config = {
     colors: {
         // Categorías principales
-        topVentasPorMonto: '#DC143C',   // Crimson (TOP VENTAS POR MONTO - más de $5,000,000)
-        topReferidos: '#8B0000',        // Rojo oscuro intenso (TOP REFERIDOS - más de 20 referidos)
-        lider: '#722F37',               // Vino tinto oscuro (LÍDER)
-        topVentasMenor: '#B8860B',      // Dorado oscuro (VENTAS ALTAS - $2,000,000 - $5,000,000)
-        clienteTopReferidor: '#4169E1', // Azul Real (CLIENTE TOP REFERIDOR - clientes con 5+ referidos) ⭐ NUEVO
-        vendedorActivo: '#A8556A',      // Vino rosado (VENDEDOR ACTIVO - 5-10 referidos)
-        vendedor: '#C89FA6',            // Vino rosado claro (VENDEDOR - 1-4 referidos)
-        clienteConReferidos: '#87CEEB', // Azul cielo (CLIENTE con 1-4 referidos) ⭐ NUEVO
-        cliente: '#E8D5D9',             // Rosa pálido (CLIENTE/INACTIVO - 0 referidos)
-        selected: '#FFD700',            // Dorado brillante (USUARIO SELECCIONADO)
+        topVentas: '#8B0000',       // Rojo oscuro intenso (TOP VENTAS - más de 20 referidos)
+        lider: '#722F37',           // Vino tinto oscuro (LÍDER)
+        topReferidos: '#B8860B',    // Dorado oscuro (TOP REFERIDOS - 10-20 referidos)
+        vendedorActivo: '#A8556A',  // Vino rosado (VENDEDOR ACTIVO - 5-10 referidos)
+        vendedor: '#C89FA6',        // Vino rosado claro (VENDEDOR - 1-5 referidos)
+        cliente: '#E8D5D9',         // Rosa pálido (CLIENTE/INACTIVO - 0 referidos)
+        selected: '#FFD700',        // Dorado brillante (USUARIO SELECCIONADO)
         
         // Bordes
         border: '#ffffff',
@@ -35,12 +32,10 @@ const config = {
     },
     // Umbrales para categorización
     thresholds: {
-        topVentasPorMonto: 5000000,    // +$5,000,000 en ventas
-        topVentasMenor: 2000000,       // $2,000,000 - $5,000,000 en ventas
-        topReferidos: 20,              // +20 referidos
-        clienteTopReferidor: 5,        // 5+ referidos para cliente ⭐ NUEVO
-        vendedorActivo: 5,             // 5-10 referidos para vendedor
-        vendedor: 1                    // 1-4 referidos
+        topVentas: 20,      // +20 referidos
+        topReferidos: 10,   // 10-20 referidos
+        vendedorActivo: 5,  // 5-10 referidos
+        vendedor: 1         // 1-5 referidos
     }
 };
 
@@ -92,107 +87,18 @@ function initializeVisualization() {
     // Grupo principal para zoom/pan
     g = svg.append('g');
 
-    // Configurar zoom con mejor control
+    // Configurar zoom con rango ampliado
     zoom = d3.zoom()
-        .scaleExtent([0.1, 5]) // Más rango de zoom
+        .scaleExtent([0.2, 4]) // Ampliado de [0.1, 3] a [0.2, 4]
         .on('zoom', function(event) {
             g.attr('transform', event.transform);
         });
 
-    svg.call(zoom)
-        .on("dblclick.zoom", null); // Deshabilitar doble click para zoom
-
-    // Agregar controles de zoom manual
-    addZoomControls();
+    svg.call(zoom);
 
     // Procesar datos y crear visualización inicial
     processData();
     updateVisualization();
-}
-
-/**
- * Agregar controles de zoom manual
- */
-function addZoomControls() {
-    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
-    
-    // Crear contenedor de controles si no existe
-    let controls = container.querySelector('.zoom-controls');
-    if (!controls) {
-        controls = document.createElement('div');
-        controls.className = 'zoom-controls';
-        controls.style.cssText = `
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            z-index: 1000;
-        `;
-        
-        // Botón zoom in
-        const zoomIn = document.createElement('button');
-        zoomIn.innerHTML = '<i class="bi bi-zoom-in"></i>';
-        zoomIn.className = 'btn btn-sm btn-light shadow-sm';
-        zoomIn.title = 'Acercar (Zoom In)';
-        zoomIn.onclick = () => {
-            svg.transition().call(zoom.scaleBy, 1.3);
-        };
-        
-        // Botón zoom out
-        const zoomOut = document.createElement('button');
-        zoomOut.innerHTML = '<i class="bi bi-zoom-out"></i>';
-        zoomOut.className = 'btn btn-sm btn-light shadow-sm';
-        zoomOut.title = 'Alejar (Zoom Out)';
-        zoomOut.onclick = () => {
-            svg.transition().call(zoom.scaleBy, 0.7);
-        };
-        
-        // Botón reset
-        const reset = document.createElement('button');
-        reset.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
-        reset.className = 'btn btn-sm btn-light shadow-sm';
-        reset.title = 'Restablecer Vista';
-        reset.onclick = () => resetZoom();
-        
-        controls.appendChild(zoomIn);
-        controls.appendChild(zoomOut);
-        controls.appendChild(reset);
-        container.style.position = 'relative';
-        container.appendChild(controls);
-    }
-}
-
-/**
- * Resetear zoom a la vista inicial
- */
-function resetZoom() {
-    if (currentViewType === 'tree') {
-        const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
-        const nodesData = g.selectAll('.node').data();
-        centerTreeView(nodesData, container.clientWidth, container.clientHeight);
-    } else {
-        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-    }
-}
-
-/**
- * Exportar SVG
- */
-function exportSVG() {
-    const svgElement = document.querySelector('#referidos-network-container svg') || 
-                      document.querySelector('#network-container svg');
-    if (!svgElement) return;
-    
-    const svgData = new XMLSerializer().serializeToString(svgElement);
-    const blob = new Blob([svgData], {type: 'image/svg+xml'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `red-mlm-${new Date().toISOString().split('T')[0]}.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
 }
 
 /**
@@ -236,7 +142,6 @@ function processData() {
             tipo: nodeData.tipo,
             level: level,
             referidos_count: nodeData.referidos_count,
-            total_ventas: nodeData.total_ventas || 0, // Agregar total de ventas
             parentId: parentId,
             children: nodeData.hijos || []
         };
@@ -613,15 +518,12 @@ function renderForceView() {
  * Obtener color del nodo según su tipo y características
  * ORDEN DE PRIORIDAD:
  * 1. Usuario seleccionado (Dorado brillante)
- * 2. Top ventas por monto (+$5,000,000) - Crimson
- * 3. Top referidos (+20 referidos) - Rojo oscuro
- * 4. Ventas altas ($2M - $5M) - Dorado oscuro
- * 5. Cliente Top Referidor (cliente con 5+ referidos) - Azul Real ⭐ NUEVO
- * 6. Vendedor activo (5-10 referidos) - Vino rosado
- * 7. Líder - Vino tinto oscuro
- * 8. Vendedor (1-4 referidos) - Vino rosado claro
- * 9. Cliente con referidos (1-4) - Azul cielo ⭐ NUEVO
- * 10. Cliente/Inactivo (0 referidos) - Rosa pálido
+ * 2. Top ventas (+20 referidos) - Rojo oscuro
+ * 3. Top referidos (10-20 referidos) - Dorado oscuro
+ * 4. Vendedor activo (5-10 referidos) - Vino rosado
+ * 5. Líder - Vino tinto oscuro
+ * 6. Vendedor (1-5 referidos) - Vino rosado claro
+ * 7. Cliente/Inactivo (0 referidos) - Rosa pálido
  */
 function getNodeColor(node) {
     // Prioridad 1: Usuario seleccionado/actual (DORADO BRILLANTE)
@@ -630,49 +532,33 @@ function getNodeColor(node) {
     }
 
     const referidosCount = node.referidos_count || 0;
-    const totalVentas = node.total_ventas || 0;
 
-    // Prioridad 2: Top Ventas por Monto (+$5,000,000) - CRIMSON
-    if (totalVentas >= config.thresholds.topVentasPorMonto) {
-        return config.colors.topVentasPorMonto; // #DC143C
+    // Prioridad 2: Top Ventas (+20 referidos) - ROJO OSCURO
+    if (referidosCount >= config.thresholds.topVentas) {
+        return config.colors.topVentas; // #8B0000
     }
 
-    // Prioridad 3: Top Referidos (+20 referidos) - ROJO OSCURO
+    // Prioridad 3: Top Referidos (10-20 referidos) - DORADO OSCURO
     if (referidosCount >= config.thresholds.topReferidos) {
-        return config.colors.topReferidos; // #8B0000
+        return config.colors.topReferidos; // #B8860B
     }
 
-    // Prioridad 4: Ventas Altas ($2M - $5M) - DORADO OSCURO
-    if (totalVentas >= config.thresholds.topVentasMenor) {
-        return config.colors.topVentasMenor; // #B8860B
-    }
-
-    // Prioridad 5: Cliente Top Referidor (cliente con 5+ referidos) - AZUL REAL ⭐ NUEVO
-    if (node.tipo === 'cliente' && referidosCount >= config.thresholds.clienteTopReferidor) {
-        return config.colors.clienteTopReferidor; // #4169E1
-    }
-
-    // Prioridad 6: Vendedor Activo (5-10 referidos) - VINO ROSADO
-    if (node.tipo !== 'cliente' && referidosCount >= config.thresholds.vendedorActivo) {
+    // Prioridad 4: Vendedor Activo (5-10 referidos) - VINO ROSADO
+    if (referidosCount >= config.thresholds.vendedorActivo) {
         return config.colors.vendedorActivo; // #A8556A
     }
 
-    // Prioridad 7: Líder (independiente de referidos si <5) - VINO TINTO OSCURO
+    // Prioridad 5: Líder (independiente de referidos si <5) - VINO TINTO OSCURO
     if (node.tipo === 'lider') {
         return config.colors.lider; // #722F37
     }
 
-    // Prioridad 8: Vendedor con 1-4 referidos - VINO ROSADO CLARO
-    if (node.tipo !== 'cliente' && referidosCount >= config.thresholds.vendedor) {
+    // Prioridad 6: Vendedor con 1-5 referidos - VINO ROSADO CLARO
+    if (referidosCount >= config.thresholds.vendedor) {
         return config.colors.vendedor; // #C89FA6
     }
 
-    // Prioridad 9: Cliente con referidos (1-4) - AZUL CIELO ⭐ NUEVO
-    if (node.tipo === 'cliente' && referidosCount >= config.thresholds.vendedor) {
-        return config.colors.clienteConReferidos; // #87CEEB
-    }
-
-    // Prioridad 10: Cliente/Inactivo (0 referidos) - ROSA PÁLIDO
+    // Prioridad 7: Cliente/Inactivo (0 referidos) - ROSA PÁLIDO
     return config.colors.cliente; // #E8D5D9
 }
 
@@ -754,35 +640,19 @@ function addNodeEvents(nodeSelection) {
             
             const nodeData = d.data || d;
             const referidosCount = nodeData.referidos_count || 0;
-            const totalVentas = nodeData.total_ventas || 0;
 
-            // Determinar categoría con nuevas categorías de clientes
-            let categoria = 'Cliente';
-            let categoriaIcon = 'bi-person';
-            if (totalVentas >= config.thresholds.topVentasPorMonto) {
-                categoria = 'Top Ventas';
-                categoriaIcon = 'bi-trophy-fill';
+            // Determinar categoría
+            let categoria = 'Cliente/Inactivo';
+            if (referidosCount >= config.thresholds.topVentas) {
+                categoria = '🏆 Top Ventas';
             } else if (referidosCount >= config.thresholds.topReferidos) {
-                categoria = 'Red Grande';
-                categoriaIcon = 'bi-star-fill';
-            } else if (totalVentas >= config.thresholds.topVentasMenor) {
-                categoria = 'Ventas Altas';
-                categoriaIcon = 'bi-currency-dollar';
-            } else if (nodeData.tipo === 'cliente' && referidosCount >= config.thresholds.clienteTopReferidor) {
-                categoria = 'Cliente Top Referidor'; // ⭐ NUEVO
-                categoriaIcon = 'bi-person-hearts';
-            } else if (nodeData.tipo !== 'cliente' && referidosCount >= config.thresholds.vendedorActivo) {
-                categoria = 'Red Activa';
-                categoriaIcon = 'bi-people-fill';
+                categoria = '⭐ Top Referidos';
+            } else if (referidosCount >= config.thresholds.vendedorActivo) {
+                categoria = '✅ Vendedor Activo';
             } else if (nodeData.tipo === 'lider') {
-                categoria = 'Líder';
-                categoriaIcon = 'bi-award-fill';
-            } else if (nodeData.tipo !== 'cliente' && referidosCount >= config.thresholds.vendedor) {
-                categoria = 'Vendedor';
-                categoriaIcon = 'bi-person-fill';
-            } else if (nodeData.tipo === 'cliente' && referidosCount >= config.thresholds.vendedor) {
-                categoria = 'Cliente con Referidos'; // ⭐ NUEVO
-                categoriaIcon = 'bi-person-plus';
+                categoria = '👑 Líder';
+            } else if (referidosCount >= config.thresholds.vendedor) {
+                categoria = '👤 Vendedor';
             }
 
             // Resaltar nodo
@@ -790,56 +660,16 @@ function addNodeEvents(nodeSelection) {
                 .style('filter', 'brightness(1.2)')
                 .style('stroke-width', getNodeBorderWidth(nodeData) + 2);
 
-            // Formatear ventas
-            const ventasFormateadas = totalVentas > 0 
-                ? '$' + totalVentas.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                : '$0';
-
-            // Template mejorado del tooltip con más información
+            // Template optimizado del tooltip
             const tooltipHTML = `
-                <div style="min-width: 250px; max-width: 350px;">
-                    <div style="border-bottom: 2px solid #FFD700; padding-bottom: 8px; margin-bottom: 8px;">
-                        <strong style="font-size: 15px; color: #FFD700; display: block;">
-                            <i class="bi ${categoriaIcon}"></i> ${nodeData.name || 'Sin nombre'}
-                        </strong>
-                        <span style="color: #aaa; font-size: 12px;">${nodeData.email || 'Sin email'}</span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                        <div>
-                            <span style="color: #888; font-size: 11px;">CATEGORÍA</span><br>
-                            <strong style="color: #FFD700; font-size: 13px;">${categoria}</strong>
-                        </div>
-                        <div>
-                            <span style="color: #888; font-size: 11px;">ROL</span><br>
-                            <strong style="color: #4CAF50; font-size: 13px;">${nodeData.tipo ? nodeData.tipo.toUpperCase() : 'N/A'}</strong>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                        <div>
-                            <span style="color: #888; font-size: 11px;">REFERIDOS</span><br>
-                            <strong style="color: #4CAF50; font-size: 14px;">
-                                <i class="bi bi-people"></i> ${referidosCount}
-                            </strong>
-                        </div>
-                        <div>
-                            <span style="color: #888; font-size: 11px;">VENTAS TOTALES</span><br>
-                            <strong style="color: #4CAF50; font-size: 14px;">
-                                <i class="bi bi-cash-coin"></i> ${ventasFormateadas}
-                            </strong>
-                        </div>
-                    </div>
-                    
-                    ${nodeData.cedula ? `
-                        <div style="margin-bottom: 8px;">
-                            <span style="color: #888; font-size: 11px;">CÉDULA</span><br>
-                            <span style="color: #ddd; font-size: 13px;">${nodeData.cedula}</span>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #444; color: #FFD700; font-size: 11px; text-align: center;">
-                        <i class="bi bi-hand-index"></i> Click para ver detalles completos
+                <div style="min-width: 200px;">
+                    <strong style="font-size: 14px; color: #FFD700;">${nodeData.name || 'Sin nombre'}</strong><br>
+                    <span style="color: #aaa;">Categoría:</span> <strong style="color: #FFD700;">${categoria}</strong><br>
+                    <span style="color: #aaa;">Cédula:</span> ${nodeData.cedula || 'N/A'}<br>
+                    <span style="color: #aaa;">Tipo:</span> ${nodeData.tipo ? nodeData.tipo.charAt(0).toUpperCase() + nodeData.tipo.slice(1) : 'N/A'}<br>
+                    <span style="color: #aaa;">Referidos:</span> <strong style="color: #4CAF50;">${referidosCount}</strong><br>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; color: #FFD700; font-size: 11px;">
+                        💡 Click para ver detalles
                     </div>
                 </div>
             `;

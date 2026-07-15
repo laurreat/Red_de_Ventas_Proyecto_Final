@@ -10,7 +10,7 @@ use Database\Seeders\RedMLMSeeder;
 class BuildMLMNetwork extends Command
 {
     protected $signature = 'mlm:build {--fresh : Limpiar usuarios existentes antes de crear la red}';
-    protected $description = 'Construir una red MLM completa con TODAS las categorías de leyenda, productos reales y métricas completas';
+    protected $description = 'Construir una red MLM completa con productos, clientes y métricas reales';
 
     public function handle()
     {
@@ -183,21 +183,17 @@ class BuildMLMNetwork extends Command
         $this->newLine();
         
         $this->line("4. Categorías de colores:");
-        $this->line("   🏆 Top Ventas: >$5M en ventas (Rojo intenso #DC143C)");
-        $this->line("   ⭐ Red Grande: >20 referidos (Rojo oscuro #8B0000)");
-        $this->line("   💰 Ventas Altas: $2M-$5M (Dorado #B8860B)");
-        $this->line("   ✅ Red Activa: 5-10 referidos (Vino rosado #A8556A)");
-        $this->line("   👑 Líder: Rol de líder (Vino tinto #722F37)");
-        $this->line("   👤 Vendedor: 1-4 referidos (Rosa claro #C89FA6)");
-        $this->line("   🛒 Cliente: Con referidos (Visible en red)");
-        $this->line("   ❌ Inactivo: 0 referidos (Rosa pálido #E8D5D9)");
+        $this->line("   🏆 Top Ventas: +20 referidos (Rojo oscuro)");
+        $this->line("   ⭐ Top Referidos: 10-20 referidos (Dorado)");
+        $this->line("   ✅ Vendedor Activo: 5-10 referidos (Vino rosado)");
+        $this->line("   👑 Líder: Rol de líder (Vino tinto)");
+        $this->line("   👤 Vendedor: 1-5 referidos (Rosa claro)");
+        $this->line("   🛒 Cliente: Rol de cliente (Azul claro)");
+        $this->line("   ❌ Inactivo: 0 referidos (Rosa pálido)");
         $this->newLine();
 
         $this->line("5. Datos generados:");
         $this->line("   ✓ Usuarios con roles diferenciados");
-        $this->line("   ✓ TODAS las categorías de leyenda implementadas");
-        $this->line("   ✓ Usuarios TOP con ventas >$5M garantizados");
-        $this->line("   ✓ Usuarios con >20 referidos garantizados");
         $this->line("   ✓ Productos organizados por categorías");
         $this->line("   ✓ Pedidos completos con detalles de productos");
         $this->line("   ✓ Clientes reales asociados a pedidos");
