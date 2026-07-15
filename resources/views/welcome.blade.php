@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
 
     <!-- Styles -->
-    <link href="{{ asset('css/welcome.css') }}?v={{ filemtime(public_path('css/welcome.css')) }}" rel="stylesheet">
+    <link href="{{ asset('css/global/welcome.css') }}?v={{ filemtime(public_path('css/global/welcome.css')) }}" rel="stylesheet">
 </head>
 <body>
     <!-- Navbar -->
@@ -675,7 +675,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="{{ asset('js/welcome.js') }}?v={{ filemtime(public_path('js/welcome.js')) }}"></script>
+    <script src="{{ asset('js/global/welcome.js') }}?v={{ filemtime(public_path('js/global/welcome.js')) }}"></script>
 
     <!-- PWA Service Worker & Install Script -->
     <script>

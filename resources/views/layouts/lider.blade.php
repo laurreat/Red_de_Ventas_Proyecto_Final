@@ -15,13 +15,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
 
     <!-- Header Dropdowns CSS - Using Admin Unified Style -->
-    <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/global/header-dropdowns.css') }}?v={{ filemtime(public_path('css/global/header-dropdowns.css')) }}">
 
     <!-- Mobile Optimizations -->
-    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/global/mobile-optimizations.css') }}">
 
     <!-- Modern Sidebar Global CSS -->
-    <link rel="stylesheet" href="{{ asset('css/modern-sidebar-global.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('css/global/modern-sidebar-global.css') }}?v={{ time() }}">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])

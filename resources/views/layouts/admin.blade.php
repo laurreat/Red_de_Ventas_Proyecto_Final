@@ -25,13 +25,13 @@
     <link rel="stylesheet" href="{{ asset('css/admin/pedidos.css') }}">
 
     <!-- Mobile Optimizations -->
-    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/global/mobile-optimizations.css') }}">
 
     <!-- Header Dropdowns CSS -->
-    <link rel="stylesheet" href="{{ asset('css/header-dropdowns.css') }}?v={{ filemtime(public_path('css/header-dropdowns.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/global/header-dropdowns.css') }}?v={{ filemtime(public_path('css/global/header-dropdowns.css')) }}">
 
     <!-- Modern Sidebar Global CSS -->
-    <link rel="stylesheet" href="{{ asset('css/modern-sidebar-global.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('css/global/modern-sidebar-global.css') }}?v={{ time() }}">
 
     <style>
         :root {

@@ -49,7 +49,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 50,
                 'stock_minimo' => 10,
                 'activo' => true,
-                'imagen' => 'arepa-queso-llanero.jpg',
+                'imagen' => 'productos/arepa-queso-llanero.jpg',
             ],
             [
                 'nombre' => 'Arepa de Cuajada',
@@ -59,7 +59,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 40,
                 'stock_minimo' => 8,
                 'activo' => true,
-                'imagen' => 'arepa-cuajada.jpg',
+                'imagen' => 'productos/arepa-cuajada.jpg',
             ],
             [
                 'nombre' => 'Arepa Sola',
@@ -69,7 +69,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 100,
                 'stock_minimo' => 20,
                 'activo' => true,
-                'imagen' => 'arepa-sola.jpg',
+                'imagen' => 'productos/arepa-sola.jpg',
             ],
 
             // Arepas con Carne
@@ -81,7 +81,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 30,
                 'stock_minimo' => 5,
                 'activo' => true,
-                'imagen' => 'arepa-carne-mechada.jpg',
+                'imagen' => 'productos/arepa-carne-mechada.jpg',
             ],
             [
                 'nombre' => 'Arepa de Carne Asada',
@@ -91,7 +91,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 25,
                 'stock_minimo' => 5,
                 'activo' => true,
-                'imagen' => 'arepa-carne-asada.jpg',
+                'imagen' => 'productos/arepa-carne-asada.jpg',
             ],
             [
                 'nombre' => 'Arepa de Chicharrón',
@@ -101,7 +101,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 35,
                 'stock_minimo' => 7,
                 'activo' => true,
-                'imagen' => 'arepa-chicharron.jpg',
+                'imagen' => 'productos/arepa-chicharron.jpg',
             ],
 
             // Arepas con Pollo
@@ -113,7 +113,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 40,
                 'stock_minimo' => 8,
                 'activo' => true,
-                'imagen' => 'arepa-pollo-desmechado.jpg',
+                'imagen' => 'productos/arepa-pollo-desmechado.jpg',
             ],
             [
                 'nombre' => 'Arepa de Pollo Guisado',
@@ -123,7 +123,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 30,
                 'stock_minimo' => 6,
                 'activo' => true,
-                'imagen' => 'arepa-pollo-guisado.jpg',
+                'imagen' => 'productos/arepa-pollo-guisado.jpg',
             ],
 
             // Arepas Combinadas
@@ -135,7 +135,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 20,
                 'stock_minimo' => 4,
                 'activo' => true,
-                'imagen' => 'arepa-mixta-queso-carne.jpg',
+                'imagen' => 'productos/arepa-mixta-queso-carne.jpg',
             ],
             [
                 'nombre' => 'Arepa Llanera Especial',
@@ -145,7 +145,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 15,
                 'stock_minimo' => 3,
                 'activo' => true,
-                'imagen' => 'arepa-llanera-especial.jpg',
+                'imagen' => 'productos/arepa-llanera-especial.jpg',
             ],
 
             // Arepas Especiales
@@ -157,7 +157,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 25,
                 'stock_minimo' => 5,
                 'activo' => true,
-                'imagen' => 'arepa-huevo-perico.jpg',
+                'imagen' => 'productos/arepa-huevo-perico.jpg',
             ],
             [
                 'nombre' => 'Arepa Vegetariana',
@@ -167,7 +167,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 20,
                 'stock_minimo' => 4,
                 'activo' => true,
-                'imagen' => 'arepa-vegetariana.jpg',
+                'imagen' => 'productos/arepa-vegetariana.jpg',
             ],
 
             // Bebidas Tradicionales
@@ -179,7 +179,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 60,
                 'stock_minimo' => 15,
                 'activo' => true,
-                'imagen' => 'chicha-llanera.jpg',
+                'imagen' => 'productos/chicha-llanera.jpg',
             ],
             [
                 'nombre' => 'Guarapo de Caña',
@@ -189,7 +189,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 40,
                 'stock_minimo' => 10,
                 'activo' => true,
-                'imagen' => 'guarapo-cana.jpg',
+                'imagen' => 'productos/guarapo-cana.jpg',
             ],
 
             // Bebidas Frías
@@ -201,7 +201,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 50,
                 'stock_minimo' => 12,
                 'activo' => true,
-                'imagen' => 'jugo-maracuya.jpg',
+                'imagen' => 'productos/jugo-maracuya.jpg',
             ],
             [
                 'nombre' => 'Limonada Natural',
@@ -211,7 +211,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 60,
                 'stock_minimo' => 15,
                 'activo' => true,
-                'imagen' => 'limonada-natural.jpg',
+                'imagen' => 'productos/limonada-natural.jpg',
             ],
 
             // Postres
@@ -223,7 +223,7 @@ class ProductosSeeder extends Seeder
                 'stock' => 20,
                 'stock_minimo' => 5,
                 'activo' => true,
-                'imagen' => 'quesillo-llanero.jpg',
+                'imagen' => 'productos/quesillo-llanero.jpg',
             ],
             [
                 'nombre' => 'Dulce de Lechosa',
@@ -233,12 +233,12 @@ class ProductosSeeder extends Seeder
                 'stock' => 15,
                 'stock_minimo' => 3,
                 'activo' => true,
-                'imagen' => 'dulce-lechosa.jpg',
+                'imagen' => 'productos/dulce-lechosa.jpg',
             ],
         ];
 
         foreach ($productos as $producto) {
-            Producto::firstOrCreate(
+            Producto::updateOrCreate(
                 ['nombre' => $producto['nombre']],
                 $producto
             );

@@ -51,10 +51,10 @@
     <!-- Alpine.js -->
 
     <!-- App Theme -->
-    <link rel="stylesheet" href="{{ asset('css/app-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/global/app-theme.css') }}">
 
     <!-- Mobile Optimizations -->
-    <link rel="stylesheet" href="{{ asset('css/mobile-optimizations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/global/mobile-optimizations.css') }}">
 
     @stack('styles')
 </head>

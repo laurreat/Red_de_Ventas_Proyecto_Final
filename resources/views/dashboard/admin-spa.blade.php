@@ -783,6 +783,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/admin-spa.js') }}"></script>
+<script src="{{ asset('js/global/admin-spa.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @endpush
