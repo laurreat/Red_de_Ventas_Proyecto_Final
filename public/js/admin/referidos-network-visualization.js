@@ -87,9 +87,9 @@ function initializeVisualization() {
     // Grupo principal para zoom/pan
     g = svg.append('g');
 
-    // Configurar zoom con rango ampliado
+    // Configurar zoom
     zoom = d3.zoom()
-        .scaleExtent([0.2, 4]) // Ampliado de [0.1, 3] a [0.2, 4]
+        .scaleExtent([0.1, 3])
         .on('zoom', function(event) {
             g.attr('transform', event.transform);
         });
@@ -102,7 +102,7 @@ function initializeVisualization() {
 }
 
 /**
- * Procesar datos jerárquicos para D3.js (Optimizado)
+ * Procesar datos jerárquicos para D3.js
  */
 function processData() {
     console.log('=== PROCESANDO DATOS D3.js ===');
@@ -124,16 +124,24 @@ function processData() {
     const nodeMap = new Map();
     const processedIds = new Set(); // Para detectar duplicados
 
-    // Procesamiento optimizado con batching
     function processNode(nodeData, level = 0, parentId = null) {
         const nodeId = nodeData.id;
 
-        // PREVENIR DUPLICADOS
+        // PREVENIR DUPLICADOS - Si ya se procesó este nodo, saltar silenciosamente
         if (processedIds.has(nodeId)) {
+            // Duplicado detectado, omitir sin warning (esto es normal en estructuras MLM complejas)
             return;
         }
 
-        // Crear nodo de forma más eficiente
+        // Procesar cada nodo
+        console.log(`Procesando nodo nivel ${level}:`, {
+            id: nodeId,
+            name: nodeData.name,
+            cedula: nodeData.cedula,
+            tipo: nodeData.tipo,
+            parentId: parentId
+        });
+
         const node = {
             id: nodeId,
             name: nodeData.name,
@@ -148,7 +156,7 @@ function processData() {
 
         nodes.push(node);
         nodeMap.set(nodeId, node);
-        processedIds.add(nodeId);
+        processedIds.add(nodeId); // Marcar como procesado
 
         // Crear enlace con el padre si existe
         if (parentId) {
@@ -158,16 +166,17 @@ function processData() {
             });
         }
 
-        // Procesar hijos de forma optimizada
+        // Procesar hijos recursivamente (manejar tanto arrays como objetos)
         let children = nodeData.hijos;
 
         // Convertir objeto a array si es necesario
         if (children && typeof children === 'object' && !Array.isArray(children)) {
+            console.log('⚠️ Convirtiendo hijos de objeto a array para:', nodeData.name);
             children = Object.values(children);
         }
 
         if (children && Array.isArray(children) && children.length > 0) {
-            // Usar requestIdleCallback para procesamiento no bloqueante de grandes conjuntos
+            console.log(`👶 Procesando ${children.length} hijos de ${nodeData.name}`);
             children.forEach(child => {
                 processNode(child, level + 1, nodeId);
             });
@@ -182,6 +191,7 @@ function processData() {
     console.log('=== PROCESAMIENTO COMPLETO ===');
     console.log('Total nodos procesados:', nodes.length);
     console.log('Total enlaces:', links.length);
+    console.log('Nombres de todos los nodos:', nodes.map(n => `${n.name} (${n.cedula}) - Tipo: ${n.tipo}`));
 
     // Verificar si hay nodos sin procesar
     if (nodes.length === 0) {
@@ -191,6 +201,9 @@ function processData() {
     } else {
         console.log('✅ Nodos procesados correctamente');
     }
+
+    console.log('Nodos completos:', nodes);
+    console.log('Enlaces:', links);
 
     // Actualizar métricas en tiempo real
     updateNetworkMetrics();
@@ -264,39 +277,18 @@ function renderTreeView() {
         .parentId(d => d.parentId)
         (finalNodes);
 
-    // Calcular altura dinámica basada en el número de nodos
-    const totalNodes = root.descendants().length;
-    const minNodeSpacing = 80; // Espaciado mínimo entre nodos (aumentado de ~40 a 80)
-    const calculatedHeight = Math.max(height, totalNodes * minNodeSpacing);
-    
-    // Calcular profundidad máxima para el ancho
-    const maxDepth = Math.max(...root.descendants().map(d => d.depth));
-    const nodeWidth = 250; // Espacio horizontal entre niveles (aumentado de ~150 a 250)
-    const calculatedWidth = Math.max(width, maxDepth * nodeWidth + 200);
-
-    console.log('Tree dimensions:', {
-        totalNodes,
-        maxDepth,
-        calculatedWidth,
-        calculatedHeight
-    });
-
-    // Configurar layout de árbol con tamaños dinámicos
+    // Configurar layout de árbol
     const treeLayout = d3.tree()
-        .size([calculatedHeight - 100, calculatedWidth - 200])
-        .separation((a, b) => {
-            // Mayor separación entre nodos hermanos
-            return a.parent === b.parent ? 1.5 : 2;
-        });
+        .size([width - 100, height - 100]);
 
     const treeData = treeLayout(root);
 
     // Renderizar árbol
-    renderTree(treeData, calculatedWidth, calculatedHeight);
+    renderTree(treeData, width, height);
 }
 
 /**
- * Renderizar árbol con datos procesados (Optimizado)
+ * Renderizar árbol con datos procesados
  */
 function renderTree(treeData, width, height) {
     // Determinar si hay raíz artificial para filtrarla
@@ -317,97 +309,70 @@ function renderTree(treeData, width, height) {
         nodesData = nodesData.filter(d => d.data.id !== 'artificial-root');
     }
 
-    // Ajustar viewBox del SVG para mostrar todo el árbol
-    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    
-    // Usar dimensiones calculadas o del contenedor
-    const viewBoxWidth = Math.max(width, containerWidth);
-    const viewBoxHeight = Math.max(height, containerHeight);
-    
-    svg.attr('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
-
-    // Padding mejorado para los nodos
-    const paddingX = 100;
-    const paddingY = 60;
-
-    // Crear enlaces con curvas suaves - Optimizado
-    const linkGenerator = d3.linkHorizontal()
-        .x(d => d.y + paddingX)
-        .y(d => d.x + paddingY);
-
+    // Crear enlaces
     const links = g.selectAll('.link')
         .data(linksData)
         .enter()
         .append('path')
         .attr('class', 'link')
-        .attr('d', linkGenerator)
+        .attr('d', d3.linkHorizontal()
+            .x(function(d) {
+                return d.y + 50;
+            })
+            .y(function(d) {
+                return d.x + 50;
+            })
+        )
         .style('fill', 'none')
-        .style('stroke', 'rgba(114, 47, 55, 0.3)')
-        .style('stroke-width', 2.5)
-        .style('stroke-linecap', 'round');
+        .style('stroke', 'rgba(114, 47, 55, 0.2)')
+        .style('stroke-width', 2);
 
-    // Crear nodos con mejor espaciado
+    // Crear nodos
     const nodeGroup = g.selectAll('.node')
         .data(nodesData)
         .enter()
         .append('g')
         .attr('class', 'node')
-        .attr('transform', d => `translate(${d.y + paddingX}, ${d.x + paddingY})`)
+        .attr('transform', function(d) {
+            return 'translate(' + (d.y + 50) + ', ' + (d.x + 50) + ')';
+        })
         .style('cursor', 'pointer');
 
-    // Círculos de nodos con mejor tamaño
+    // Círculos de nodos
     nodeGroup.append('circle')
-        .attr('r', d => {
-            const baseRadius = 12;
-            const extraRadius = Math.min(8, d.data.referidos_count * 0.5);
-            return baseRadius + extraRadius;
+        .attr('r', function(d) {
+            return Math.max(config.nodeRadius.min,
+                Math.min(config.nodeRadius.max, 10 + d.data.referidos_count));
         })
-        .style('fill', d => getNodeColor(d.data))
-        .style('stroke', d => getNodeBorderColor(d.data))
-        .style('stroke-width', d => getNodeBorderWidth(d.data))
-        .style('filter', 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.2))');
-
-    // Etiquetas de nodos con mejor posicionamiento
-    nodeGroup.append('text')
-        .attr('dy', '0.35em')
-        .attr('x', d => d.children ? -25 : 25)
-        .style('text-anchor', d => d.children ? 'end' : 'start')
-        .style('font-size', '13px')
-        .style('font-weight', '600')
-        .style('fill', '#2d3748')
-        .style('paint-order', 'stroke')
-        .style('stroke', '#ffffff')
-        .style('stroke-width', '3px')
-        .style('stroke-linecap', 'round')
-        .style('stroke-linejoin', 'round')
-        .text(d => {
-            const name = d.data ? d.data.name : d.name;
-            return name && name.length > 20 ? name.substring(0, 20) + '...' : (name || 'Sin nombre');
+        .style('fill', function(d) {
+            return getNodeColor(d.data);
+        })
+        .style('stroke', function(d) {
+            return getNodeBorderColor(d.data);
+        })
+        .style('stroke-width', function(d) {
+            return getNodeBorderWidth(d.data);
         });
 
-    // Agregar información adicional (tipo y referidos)
+    // Etiquetas de nodos
     nodeGroup.append('text')
-        .attr('dy', '1.8em')
-        .attr('x', d => d.children ? -25 : 25)
-        .style('text-anchor', d => d.children ? 'end' : 'start')
-        .style('font-size', '10px')
+        .attr('dy', '0.31em')
+        .attr('x', function(d) {
+            return d.children ? -15 : 15;
+        })
+        .style('text-anchor', function(d) {
+            return d.children ? 'end' : 'start';
+        })
+        .style('font-size', '12px')
         .style('font-weight', '500')
-        .style('fill', '#718096')
-        .text(d => {
-            const tipo = d.data.tipo ? d.data.tipo.charAt(0).toUpperCase() + d.data.tipo.slice(1) : '';
-            const refs = d.data.referidos_count || 0;
-            return `${tipo} • ${refs} ref${refs !== 1 ? 's' : ''}`;
+        .text(function(d) {
+            // Usar d.data.name para vista de árbol (hierarchical data)
+            const name = d.data ? d.data.name : d.name;
+            return name && name.length > 15 ? name.substring(0, 15) + '...' : (name || 'Sin nombre');
         });
 
     // Agregar eventos
     addNodeEvents(nodeGroup);
-
-    // Centrar la vista inicial en el árbol - LLAMADA INMEDIATA
-    requestAnimationFrame(() => {
-        centerTreeView(nodesData, viewBoxWidth, viewBoxHeight);
-    });
 }
 
 /**
@@ -423,18 +388,16 @@ function renderForceView() {
         simulation.stop();
     }
 
-    // Crear simulación de fuerzas con parámetros optimizados
+    // Crear simulación de fuerzas
     simulation = d3.forceSimulation(nodes)
         .force('link', d3.forceLink(links).id(function(d) {
             return d.id;
-        }).distance(120).strength(0.5))
-        .force('charge', d3.forceManyBody().strength(-400))
+        }).distance(100))
+        .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('collision', d3.forceCollide().radius(function(d) {
-            return Math.max(config.nodeRadius.min, Math.min(config.nodeRadius.max, 8 + d.referidos_count)) + 10;
-        }))
-        .alphaDecay(0.02) // Convergencia más rápida
-        .velocityDecay(0.3); // Reduce oscilaciones
+            return Math.max(config.nodeRadius.min, Math.min(config.nodeRadius.max, 8 + d.referidos_count)) + 5;
+        }));
 
     // Crear enlaces
     const link = g.selectAll('.link')
@@ -506,11 +469,6 @@ function renderForceView() {
         nodeGroup.attr('transform', function(d) {
             return 'translate(' + d.x + ', ' + d.y + ')';
         });
-    });
-
-    // Centrar y aplicar zoom inicial después de estabilizar
-    simulation.on('end', function() {
-        centerForceView(nodes, width, height);
     });
 }
 
@@ -608,7 +566,7 @@ function getNodeBorderWidth(node) {
 }
 
 /**
- * Agregar eventos a los nodos (Optimizado)
+ * Agregar eventos a los nodos
  */
 function addNodeEvents(nodeSelection) {
     // Crear tooltip si no existe
@@ -628,20 +586,16 @@ function addNodeEvents(nodeSelection) {
             .style('font-size', '13px')
             .style('line-height', '1.6')
             .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.3)')
-            .style('transition', 'opacity 0.15s'); // Transición más rápida
+            .style('transition', 'opacity 0.2s');
     }
-
-    // Usar debounce para el tooltip en caso de muchos nodos
-    let tooltipTimer;
 
     nodeSelection
         .on('mouseover', function(event, d) {
-            clearTimeout(tooltipTimer);
-            
+            // Determinar si es vista de árbol (d.data) o vista de fuerza (d directo)
             const nodeData = d.data || d;
             const referidosCount = nodeData.referidos_count || 0;
 
-            // Determinar categoría
+            // Determinar categoría para mostrar en tooltip
             let categoria = 'Cliente/Inactivo';
             if (referidosCount >= config.thresholds.topVentas) {
                 categoria = '🏆 Top Ventas';
@@ -658,27 +612,29 @@ function addNodeEvents(nodeSelection) {
             // Resaltar nodo
             d3.select(this).select('circle')
                 .style('filter', 'brightness(1.2)')
-                .style('stroke-width', getNodeBorderWidth(nodeData) + 2);
-
-            // Template optimizado del tooltip
-            const tooltipHTML = `
-                <div style="min-width: 200px;">
-                    <strong style="font-size: 14px; color: #FFD700;">${nodeData.name || 'Sin nombre'}</strong><br>
-                    <span style="color: #aaa;">Categoría:</span> <strong style="color: #FFD700;">${categoria}</strong><br>
-                    <span style="color: #aaa;">Cédula:</span> ${nodeData.cedula || 'N/A'}<br>
-                    <span style="color: #aaa;">Tipo:</span> ${nodeData.tipo ? nodeData.tipo.charAt(0).toUpperCase() + nodeData.tipo.slice(1) : 'N/A'}<br>
-                    <span style="color: #aaa;">Referidos:</span> <strong style="color: #4CAF50;">${referidosCount}</strong><br>
-                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; color: #FFD700; font-size: 11px;">
-                        💡 Click para ver detalles
-                    </div>
-                </div>
-            `;
+                .style('stroke-width', function(d) {
+                    const currentWidth = getNodeBorderWidth(nodeData);
+                    return currentWidth + 2;
+                });
 
             tooltip
                 .style('opacity', 1)
                 .style('left', (event.pageX + 15) + 'px')
                 .style('top', (event.pageY - 15) + 'px')
-                .html(tooltipHTML);
+                .html(`
+                <div style="min-width: 200px;">
+                    <strong style="font-size: 14px; color: #FFD700;">${nodeData.name || 'Sin nombre'}</strong><br>
+                    <span style="color: #aaa;">Categoría:</span> <strong style="color: #FFD700;">${categoria}</strong><br>
+                    <span style="color: #aaa;">Cédula:</span> ${nodeData.cedula || 'N/A'}<br>
+                    <span style="color: #aaa;">Tipo:</span> ${nodeData.tipo ? nodeData.tipo.charAt(0).toUpperCase() + nodeData.tipo.slice(1) : 'N/A'}<br>
+                    <span style="color: #aaa;">Email:</span> ${nodeData.email || 'N/A'}<br>
+                    <span style="color: #aaa;">Referidos:</span> <strong style="color: #4CAF50;">${referidosCount}</strong><br>
+                    <span style="color: #aaa;">Nivel:</span> ${nodeData.nivel || (nodeData.level ? nodeData.level + 1 : 'N/A')}<br>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; color: #FFD700; font-size: 11px;">
+                        💡 Click para ver detalles
+                    </div>
+                </div>
+            `);
         })
         .on('mousemove', function(event) {
             tooltip
@@ -686,45 +642,46 @@ function addNodeEvents(nodeSelection) {
                 .style('top', (event.pageY - 15) + 'px');
         })
         .on('mouseout', function(event, d) {
-            clearTimeout(tooltipTimer);
-            tooltipTimer = setTimeout(() => {
-                const nodeData = d.data || d;
-                
-                // Restaurar estilo normal
-                d3.select(this).select('circle')
-                    .style('filter', 'none')
-                    .style('stroke-width', getNodeBorderWidth(nodeData));
-
-                tooltip.style('opacity', 0);
-            }, 50); // Pequeño delay para evitar flickering
-        })
-        .on('click', function(event, d) {
             const nodeData = d.data || d;
             
+            // Restaurar estilo normal
+            d3.select(this).select('circle')
+                .style('filter', 'none')
+                .style('stroke-width', getNodeBorderWidth(nodeData));
+
+            tooltip.style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            // Obtener datos del nodo
+            const nodeData = d.data || d;
+            
+            // Redirigir a la página de detalles del usuario
             if (nodeData.id && nodeData.id !== 'artificial-root') {
+                // Usar la ruta de show de referidos para ver la red del usuario
                 const url = window.routes && window.routes.show 
                     ? window.routes.show.replace(':id', nodeData.id)
                     : `/admin/referidos/${nodeData.id}`;
                 
-                // Animación de click más rápida
+                // Mostrar feedback visual
                 d3.select(this).select('circle')
                     .transition()
-                    .duration(150)
+                    .duration(200)
                     .attr('r', function(d) {
                         const currentRadius = Math.max(config.nodeRadius.min,
                             Math.min(config.nodeRadius.max, 10 + (nodeData.referidos_count || 0)));
                         return currentRadius * 1.2;
                     })
                     .transition()
-                    .duration(150)
+                    .duration(200)
                     .attr('r', function(d) {
                         return Math.max(config.nodeRadius.min,
                             Math.min(config.nodeRadius.max, 10 + (nodeData.referidos_count || 0)));
                     });
 
+                // Redirigir después de la animación
                 setTimeout(() => {
                     window.location.href = url;
-                }, 250);
+                }, 300);
             }
         });
 }
@@ -884,255 +841,3 @@ window.NetworkVisualization = {
         updateVisualization();
     }
 };
-
-/**
- * Centrar la vista del árbol (Optimizado con más zoom)
- */
-function centerTreeView(nodesData, viewBoxWidth, viewBoxHeight) {
-    if (!nodesData || nodesData.length === 0) return;
-
-    // Calcular el centro del árbol
-    const paddingX = 100;
-    const paddingY = 60;
-    
-    const xValues = nodesData.map(d => d.y + paddingX);
-    const yValues = nodesData.map(d => d.x + paddingY);
-    
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
-    
-    const treeWidth = maxX - minX;
-    const treeHeight = maxY - minY;
-    const treeCenterX = (minX + maxX) / 2;
-    const treeCenterY = (minY + maxY) / 2;
-    
-    // Calcular el centro del viewport
-    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    const viewportCenterX = containerWidth / 2;
-    const viewportCenterY = containerHeight / 2;
-    
-    // Calcular escala para que el árbol quepa en el viewport con margen - MÁS ZOOM
-    const marginFactor = 0.75; // 75% del viewport para más zoom
-    const scaleX = (containerWidth * marginFactor) / treeWidth;
-    const scaleY = (containerHeight * marginFactor) / treeHeight;
-    const initialScale = Math.min(scaleX, scaleY, 1.2); // Permitir zoom hasta 1.2x
-    
-    // Calcular el desplazamiento
-    const translateX = viewportCenterX - (treeCenterX * initialScale);
-    const translateY = viewportCenterY - (treeCenterY * initialScale);
-    
-    console.log('Tree centering:', {
-        treeSize: { width: treeWidth, height: treeHeight },
-        treeCenter: { x: treeCenterX, y: treeCenterY },
-        viewportCenter: { x: viewportCenterX, y: viewportCenterY },
-        scale: initialScale,
-        translate: { x: translateX, y: translateY }
-    });
-    
-    // Aplicar transformación inicial con animación suave
-    const initialTransform = d3.zoomIdentity
-        .translate(translateX, translateY)
-        .scale(initialScale);
-    
-    svg.transition()
-        .duration(500) // Reducido de 750ms a 500ms
-        .call(zoom.transform, initialTransform);
-}
-
-/**
- * Centrar la vista de fuerza (Optimizado con más zoom)
- */
-function centerForceView(nodesData, width, height) {
-    if (!nodesData || nodesData.length === 0) return;
-
-    // Calcular límites de los nodos
-    const xValues = nodesData.map(d => d.x);
-    const yValues = nodesData.map(d => d.y);
-    
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
-    
-    const graphWidth = maxX - minX;
-    const graphHeight = maxY - minY;
-    const graphCenterX = (minX + maxX) / 2;
-    const graphCenterY = (minY + maxY) / 2;
-    
-    // Calcular el centro del viewport
-    const viewportCenterX = width / 2;
-    const viewportCenterY = height / 2;
-    
-    // Calcular escala para que el grafo quepa en el viewport - MÁS ZOOM
-    const marginFactor = 0.7; // 70% del viewport para más zoom
-    const scaleX = (width * marginFactor) / graphWidth;
-    const scaleY = (height * marginFactor) / graphHeight;
-    const initialScale = Math.min(scaleX, scaleY, 1.5); // Permitir más zoom
-    
-    // Calcular el desplazamiento
-    const translateX = viewportCenterX - (graphCenterX * initialScale);
-    const translateY = viewportCenterY - (graphCenterY * initialScale);
-    
-    console.log('Force centering:', {
-        graphSize: { width: graphWidth, height: graphHeight },
-        graphCenter: { x: graphCenterX, y: graphCenterY },
-        viewportCenter: { x: viewportCenterX, y: viewportCenterY },
-        scale: initialScale,
-        translate: { x: translateX, y: translateY }
-    });
-    
-    // Aplicar transformación con animación
-    const initialTransform = d3.zoomIdentity
-        .translate(translateX, translateY)
-        .scale(initialScale);
-    
-    svg.transition()
-        .duration(500)
-        .call(zoom.transform, initialTransform);
-}
-
-// ===== OPTIMIZACIÓN DE CARGA =====
-// Usar IntersectionObserver para carga lazy de visualización
-if ('IntersectionObserver' in window) {
-    const observerOptions = {
-        root: null,
-        rootMargin: '50px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !svg) {
-                console.log('📊 Iniciando visualización (lazy load)');
-                // Pequeño delay para mejorar la percepción de velocidad
-                setTimeout(() => {
-                    initializeVisualization();
-                }, 100);
-                observer.disconnect();
-            }
-        });
-    }, observerOptions);
-
-    // Observar el contenedor cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-        const container = document.getElementById('referidos-network-container') || 
-                         document.getElementById('network-container');
-        if (container) {
-            observer.observe(container);
-        }
-    });
-}
-
-/**
- * Centrar la vista del árbol
- */
-function centerTreeView(nodesData, viewBoxWidth, viewBoxHeight) {
-    if (!nodesData || nodesData.length === 0) return;
-
-    // Calcular el centro del árbol
-    const paddingX = 100;
-    const paddingY = 60;
-    
-    const xValues = nodesData.map(d => d.y + paddingX);
-    const yValues = nodesData.map(d => d.x + paddingY);
-    
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
-    
-    const treeWidth = maxX - minX;
-    const treeHeight = maxY - minY;
-    const treeCenterX = (minX + maxX) / 2;
-    const treeCenterY = (minY + maxY) / 2;
-    
-    // Calcular el centro del viewport
-    const container = document.getElementById('referidos-network-container') || document.getElementById('network-container');
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    const viewportCenterX = containerWidth / 2;
-    const viewportCenterY = containerHeight / 2;
-    
-    // Calcular escala para que el árbol quepa en el viewport con margen - MÁS ZOOM
-    const marginFactor = 0.75; // 75% del viewport para más zoom
-    const scaleX = (containerWidth * marginFactor) / treeWidth;
-    const scaleY = (containerHeight * marginFactor) / treeHeight;
-    const initialScale = Math.min(scaleX, scaleY, 1.2); // Permitir zoom hasta 1.2x
-    
-    // Calcular el desplazamiento
-    const translateX = viewportCenterX - (treeCenterX * initialScale);
-    const translateY = viewportCenterY - (treeCenterY * initialScale);
-    
-    console.log('Tree centering:', {
-        treeSize: { width: treeWidth, height: treeHeight },
-        treeCenter: { x: treeCenterX, y: treeCenterY },
-        viewportCenter: { x: viewportCenterX, y: viewportCenterY },
-        scale: initialScale,
-        translate: { x: translateX, y: translateY }
-    });
-    
-    // Aplicar transformación inicial con animación suave
-    const initialTransform = d3.zoomIdentity
-        .translate(translateX, translateY)
-        .scale(initialScale);
-    
-    svg.transition()
-        .duration(500) // Reducido de 750ms a 500ms
-        .call(zoom.transform, initialTransform);
-}
-
-/**
- * Centrar la vista de fuerza
- */
-function centerForceView(nodesData, width, height) {
-    if (!nodesData || nodesData.length === 0) return;
-
-    // Calcular límites de los nodos
-    const xValues = nodesData.map(d => d.x);
-    const yValues = nodesData.map(d => d.y);
-    
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
-    
-    const graphWidth = maxX - minX;
-    const graphHeight = maxY - minY;
-    const graphCenterX = (minX + maxX) / 2;
-    const graphCenterY = (minY + maxY) / 2;
-    
-    // Calcular el centro del viewport
-    const viewportCenterX = width / 2;
-    const viewportCenterY = height / 2;
-    
-    // Calcular escala para que el grafo quepa en el viewport - MÁS ZOOM
-    const marginFactor = 0.7; // 70% del viewport para más zoom
-    const scaleX = (width * marginFactor) / graphWidth;
-    const scaleY = (height * marginFactor) / graphHeight;
-    const initialScale = Math.min(scaleX, scaleY, 1.5); // Permitir más zoom
-    
-    // Calcular el desplazamiento
-    const translateX = viewportCenterX - (graphCenterX * initialScale);
-    const translateY = viewportCenterY - (graphCenterY * initialScale);
-    
-    console.log('Force centering:', {
-        graphSize: { width: graphWidth, height: graphHeight },
-        graphCenter: { x: graphCenterX, y: graphCenterY },
-        viewportCenter: { x: viewportCenterX, y: viewportCenterY },
-        scale: initialScale,
-        translate: { x: translateX, y: translateY }
-    });
-    
-    // Aplicar transformación con animación
-    const initialTransform = d3.zoomIdentity
-        .translate(translateX, translateY)
-        .scale(initialScale);
-    
-    svg.transition()
-        .duration(500)
-        .call(zoom.transform, initialTransform);
-}

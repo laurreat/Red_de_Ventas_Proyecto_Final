@@ -322,13 +322,16 @@
                         </tbody>
                     </table>
                 </div>
-                @if($usuarios->hasPages())
-                <div class="p-4 border-top">
-                    <div class="d-flex justify-content-center">
-                        {{ $usuarios->appends(request()->query())->links('vendor.pagination.custom') }}
+                <div class="p-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            Mostrando {{ $usuarios->firstItem() ?? 0 }} - {{ $usuarios->lastItem() ?? 0 }} de {{ $usuarios->total() }} usuarios
+                        </div>
+                        <div class="referidos-pagination">
+                            {{ $usuarios->appends(request()->query())->links() }}
+                        </div>
                     </div>
                 </div>
-                @endif
                 @else
                 <div class="referidos-empty-state">
                     <i class="bi bi-people referidos-empty-icon"></i>
@@ -380,223 +383,159 @@
 
     <!-- Visualización de Red -->
     @if($referidos->isNotEmpty())
-    <div class="row mt-5">
+    <div class="row mt-4">
         <div class="col-12">
             <div class="referidos-network-card animate-fade-in-up animate-delay-4">
-                <!-- Header con mejor espaciado -->
                 <div class="referidos-network-header">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="referidos-icon-circle">
-                                <i class="bi bi-diagram-3"></i>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <div class="referidos-search-icon-wrapper me-3" style="background: linear-gradient(135deg, var(--wine), var(--wine-light)); box-shadow: 0 4px 12px rgba(114, 47, 55, 0.3);">
+                                <i class="bi bi-diagram-3 text-white"></i>
                             </div>
                             <div>
-                                <h4 class="mb-1 fw-bold" style="color: var(--wine);">Visualización de Red MLM</h4>
-                                <p class="mb-0 text-muted" style="font-size: 0.95rem;">Representación interactiva y dinámica de la estructura de referidos</p>
+                                <h5 class="mb-0 fw-bold" style="color: var(--wine);">Visualización de Red MLM</h5>
+                                <small class="text-muted">Representación interactiva y dinámica de la estructura</small>
                             </div>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <span class="referidos-tech-badge">
-                                <i class="bi bi-cpu me-2"></i>D3.js Interactivo
+                        <div class="d-flex gap-2 mt-2 mt-md-0">
+                            <span class="badge" style="background: var(--wine); color: var(--white); padding: 8px 12px;">
+                                <i class="bi bi-cpu me-1"></i>D3.js Interactivo
                             </span>
-                            <span class="referidos-tech-badge">
-                                <i class="bi bi-graph-up me-2"></i>Tiempo Real
+                            <span class="badge" style="background: var(--wine); color: var(--white); padding: 8px 12px;">
+                                <i class="bi bi-graph-up me-1"></i>Tiempo Real
                             </span>
                         </div>
                     </div>
                 </div>
-
-                <div class="referidos-network-body">
-                    <!-- Controles con mejor organización -->
-                    <div class="row g-4 mb-5">
-                        <!-- Modos de Visualización -->
-                        <div class="col-lg-7 col-md-12">
-                            <div class="referidos-control-card">
-                                <div class="referidos-control-header">
-                                    <i class="bi bi-sliders me-2"></i>
-                                    <h6 class="mb-0">Modo de Visualización</h6>
-                                </div>
-                                <div class="referidos-control-body">
-                                    <div class="referidos-view-options">
-                                        <input type="radio" class="btn-check" name="viewType" id="treeView" value="tree" checked>
-                                        <label class="referidos-view-option" for="treeView">
-                                            <div class="referidos-view-icon">
-                                                <i class="bi bi-diagram-2"></i>
-                                            </div>
-                                            <div class="referidos-view-info">
-                                                <div class="referidos-view-title">Vista Árbol</div>
-                                                <div class="referidos-view-desc">Jerarquía vertical organizada</div>
-                                            </div>
-                                        </label>
-                                        
-                                        <input type="radio" class="btn-check" name="viewType" id="forceView" value="force">
-                                        <label class="referidos-view-option" for="forceView">
-                                            <div class="referidos-view-icon">
-                                                <i class="bi bi-diagram-3"></i>
-                                            </div>
-                                            <div class="referidos-view-info">
-                                                <div class="referidos-view-title">Vista Fuerza</div>
-                                                <div class="referidos-view-desc">Red dinámica interactiva</div>
-                                            </div>
-                                        </label>
-                                    </div>
+                <div class="p-4">
+                    <!-- Controles Mejorados -->
+                    <div class="row mb-4">
+                        <div class="col-lg-8 col-md-6 mb-3">
+                            <div class="referidos-network-controls">
+                                <h6 class="mb-3 fw-semibold" style="color: var(--wine);">
+                                    <i class="bi bi-sliders me-2"></i>Modo de Visualización
+                                </h6>
+                                <div class="d-flex gap-2">
+                                    <input type="radio" class="btn-check" name="viewType" id="treeView" value="tree" checked>
+                                    <label class="referidos-view-btn active" for="treeView">
+                                        <i class="bi bi-diagram-2 me-2"></i>Vista Árbol
+                                    </label>
+                                    <input type="radio" class="btn-check" name="viewType" id="forceView" value="force">
+                                    <label class="referidos-view-btn" for="forceView">
+                                        <i class="bi bi-diagram-3 me-2"></i>Vista Fuerza
+                                    </label>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Controles de Acción -->
-                        <div class="col-lg-5 col-md-12">
-                            <div class="referidos-control-card">
-                                <div class="referidos-control-header">
-                                    <i class="bi bi-gear me-2"></i>
-                                    <h6 class="mb-0">Controles de Red</h6>
-                                </div>
-                                <div class="referidos-control-body">
-                                    <button class="referidos-action-button" onclick="resetZoom()">
-                                        <i class="bi bi-arrows-angle-expand"></i>
-                                        <span>Restablecer Vista</span>
-                                    </button>
-                                    <button class="referidos-action-button" onclick="exportSVG()">
-                                        <i class="bi bi-download"></i>
-                                        <span>Descargar Visualización</span>
-                                    </button>
-                                </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="referidos-network-controls">
+                                <h6 class="mb-3 fw-semibold" style="color: var(--wine);">
+                                    <i class="bi bi-gear me-2"></i>Controles
+                                </h6>
+                                <button class="referidos-control-btn w-100 mb-2" onclick="resetZoom()">
+                                    <i class="bi bi-arrows-angle-expand"></i>
+                                    <span>Restablecer Zoom</span>
+                                </button>
+                                <button class="referidos-control-btn w-100" onclick="exportSVG()">
+                                    <i class="bi bi-download"></i>
+                                    <span>Descargar SVG</span>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Leyenda Mejorada -->
-                    <div class="referidos-legend-card mb-5">
-                        <div class="referidos-legend-header">
-                            <i class="bi bi-palette-fill me-2"></i>
-                            <h6 class="mb-0">Código de Colores de la Red MLM</h6>
+                    <!-- Leyenda Mejorada con Sistema de Colores Avanzado -->
+                    <div class="referidos-legend mb-4">
+                        <div class="referidos-legend-title">
+                            <i class="bi bi-palette-fill"></i>
+                            <span>Código de Colores de la Red MLM</span>
                         </div>
-                        <div class="referidos-legend-body">
-                            <div class="row g-3">
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #FFD700; border: 3px solid #FF8C00;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">Usuario Seleccionado</div>
-                                            <div class="legend-color-desc">Nodo actual en vista</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #8B0000;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">🏆 Top Ventas</div>
-                                            <div class="legend-color-desc">Más de 20 referidos</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #B8860B;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">⭐ Top Referidos</div>
-                                            <div class="legend-color-desc">10-20 referidos</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #A8556A;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">✅ Vendedor Activo</div>
-                                            <div class="legend-color-desc">5-10 referidos</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #722F37;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">👑 Líder</div>
-                                            <div class="legend-color-desc">Rol de líder</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #C89FA6;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">👤 Vendedor</div>
-                                            <div class="legend-color-desc">1-5 referidos</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="legend-color-item">
-                                        <div class="legend-color-circle" style="background: #E8D5D9;"></div>
-                                        <div class="legend-color-info">
-                                            <div class="legend-color-title">Cliente/Inactivo</div>
-                                            <div class="legend-color-desc">Sin referidos</div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="referidos-legend-items">
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #FFD700; border-color: #FF8C00;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>Usuario Seleccionado</strong>
+                                    <small class="d-block text-muted">Nodo actual en vista</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #8B0000;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>🏆 Top Ventas</strong>
+                                    <small class="d-block text-muted">+20 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #B8860B;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>⭐ Top Referidos</strong>
+                                    <small class="d-block text-muted">10-20 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #A8556A;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>✅ Vendedor Activo</strong>
+                                    <small class="d-block text-muted">5-10 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot referidos-legend-dot-lider"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>👑 Líder</strong>
+                                    <small class="d-block text-muted">Rol de líder</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #C89FA6;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>👤 Vendedor</strong>
+                                    <small class="d-block text-muted">1-5 referidos</small>
+                                </span>
+                            </div>
+                            <div class="referidos-legend-item">
+                                <div class="referidos-legend-dot" style="background: #E8D5D9;"></div>
+                                <span class="referidos-legend-label">
+                                    <strong>Cliente/Inactivo</strong>
+                                    <small class="d-block text-muted">0 referidos</small>
+                                </span>
                             </div>
                         </div>
-                        <div class="referidos-legend-footer">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <span><strong>Tip:</strong> Haz clic en cualquier nodo para ver los detalles completos del usuario y su red de referidos.</span>
+                        <div class="mt-3 p-3" style="background: rgba(114, 47, 55, 0.05); border-radius: 8px; border-left: 4px solid var(--wine);">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Interacción:</strong> Haga click en cualquier nodo para ver los detalles completos del usuario y su red de referidos.
+                            </small>
                         </div>
                     </div>
 
-                    <!-- Contenedor de Red con mejor altura -->
-                    <div class="referidos-visualization-wrapper">
-                        <div id="referidos-network-container"></div>
-                    </div>
+                    <!-- Contenedor de Red -->
+                    <div id="referidos-network-container"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Métricas de Red con mejor espaciado -->
-    <div class="row mt-4">
+    <!-- Métricas de Red -->
+    <div class="row mt-3">
         <div class="col-12">
             <div class="referidos-metrics-card">
-                <div class="referidos-metrics-header">
-                    <i class="bi bi-graph-up-arrow me-2"></i>
-                    <h6 class="mb-0">Métricas de la Red</h6>
-                </div>
-                <div class="row g-4 text-center">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="metric-item">
-                            <div class="metric-icon">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                            <div class="metric-value" id="total-nodes">0</div>
-                            <div class="metric-label">Nodos Totales</div>
-                        </div>
+                <div class="row text-center">
+                    <div class="col-lg-3 col-6 referidos-metric-item">
+                        <h5 class="referidos-metric-value" style="color: var(--wine);" id="total-nodes">0</h5>
+                        <small class="referidos-metric-label">Nodos</small>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="metric-item">
-                            <div class="metric-icon">
-                                <i class="bi bi-link-45deg"></i>
-                            </div>
-                            <div class="metric-value" id="total-connections">0</div>
-                            <div class="metric-label">Conexiones</div>
-                        </div>
+                    <div class="col-lg-3 col-6 referidos-metric-item">
+                        <h5 class="referidos-metric-value" id="total-connections">0</h5>
+                        <small class="referidos-metric-label">Conexiones</small>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="metric-item">
-                            <div class="metric-icon">
-                                <i class="bi bi-layers-fill"></i>
-                            </div>
-                            <div class="metric-value" id="max-depth">0</div>
-                            <div class="metric-label">Niveles de Profundidad</div>
-                        </div>
+                    <div class="col-lg-3 col-6 referidos-metric-item">
+                        <h5 class="referidos-metric-value" id="max-depth">0</h5>
+                        <small class="referidos-metric-label">Niveles</small>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="metric-item">
-                            <div class="metric-icon">
-                                <i class="bi bi-bar-chart-fill"></i>
-                            </div>
-                            <div class="metric-value" id="avg-referrals">0</div>
-                            <div class="metric-label">Promedio Referidos</div>
-                        </div>
+                    <div class="col-lg-3 col-6 referidos-metric-item">
+                        <h5 class="referidos-metric-value" id="avg-referrals">0</h5>
+                        <small class="referidos-metric-label">Prom. Referidos</small>
                     </div>
                 </div>
             </div>

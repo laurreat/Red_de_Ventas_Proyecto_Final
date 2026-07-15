@@ -257,10 +257,8 @@
 
             {{-- Pagination --}}
             @if($usuarios->hasPages())
-            <div class="p-4 border-top">
-                <div class="d-flex justify-content-center">
-                    {{ $usuarios->appends(request()->query())->links('vendor.pagination.custom') }}
-                </div>
+            <div class="users-pagination">
+                {{ $usuarios->appends(request()->query())->links() }}
             </div>
             @endif
         @else

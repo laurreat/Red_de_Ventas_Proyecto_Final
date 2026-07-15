@@ -282,13 +282,9 @@
             </div>
 
             {{-- Paginación --}}
-            @if($pedidos->hasPages())
-            <div class="p-4 border-top">
-                <div class="d-flex justify-content-center">
-                    {{ $pedidos->appends(request()->query())->links('vendor.pagination.custom') }}
-                </div>
+            <div style="padding:1.5rem;">
+                {{ $pedidos->appends(request()->query())->links() }}
             </div>
-            @endif
         @else
             <div class="pedido-empty-state">
                 <div class="pedido-empty-state-icon">
