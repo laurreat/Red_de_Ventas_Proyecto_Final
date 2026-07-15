@@ -127,9 +127,9 @@ function processData() {
     function processNode(nodeData, level = 0, parentId = null) {
         const nodeId = nodeData.id;
 
-        // PREVENIR DUPLICADOS - Si ya se procesó este nodo, saltar silenciosamente
+        // ⚠️ PREVENIR DUPLICADOS - Si ya se procesó este nodo, saltar
         if (processedIds.has(nodeId)) {
-            // Duplicado detectado, omitir sin warning (esto es normal en estructuras MLM complejas)
+            console.warn(`⚠️ NODO DUPLICADO DETECTADO Y OMITIDO: ${nodeId} (${nodeData.name})`);
             return;
         }
 
